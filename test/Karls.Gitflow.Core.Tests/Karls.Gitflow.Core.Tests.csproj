@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Karls.Gitflow.Core\Karls.Gitflow.Core.csproj" />
+  </ItemGroup>
+
+</Project>
