@@ -10,6 +10,15 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <RuntimeIdentifiers>linux-x64;linux-arm64;win-x64;win-arm64;osx-arm64</RuntimeIdentifiers>
+    <PublishSelfContained>true</PublishSelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishTrimmed>false</PublishTrimmed>
+    <PublishAot>false</PublishAot>
+    <StripSymbols>true</StripSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <PackageId>Karls.Gitflow.Tool</PackageId>
     <Authors>Karl-Johan Sjögren</Authors>
     <Description>An easy way to manage .NET User Secrets from the command line.</Description>
@@ -27,6 +36,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Karls.Gitflow.Core\Karls.Gitflow.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

@@ -1,29 +1,155 @@
-# Karls Opinionated Solution Template
+# Karls.Gitflow
 
-This project was scaffolded using Karls Opinionated Solution Template.
+A .NET 10 reimplementation of [gitflow-avh](https://github.com/petervanderdoes/gitflow-avh), providing a modern command-line tool for managing Git branches using the Gitflow branching model.
 
-It has been created with the following features:
+## Features
 
-* Source code goes in the `src` folder.
-* Tests go in the `tests` folder.
-* A solution file in .slnx format.
-  * If using Visual Studio at least version 17.13 is required.
-  * If using Rider / ReSharper at least version 2024.3.6 is required.
-  * If using VS Code just make sure to use the latest C# / C# Dev Kit extension.
-* An editor config file is added with Karls preferred settings.
-* A gitignore file is added with the default .NET gitignore settings.
-* A NuGet config file is added with the default NuGet feed settings.
-* A dependabot config with settings for .NET, .NET SDK and optional frontend updates.
-* A github releases config that groups contributions so that dependency updates are listed
-  separately.
-* Several Directory.Build.props files are added.
-  * One in the root folder which references analyzers and some global settings.
-  * One in the `src` folder which sets `InternalsVisibleTo` to test projects ands
-    adds the `BannedApiAnalyzers` package.
-  * One in the `tests` folder which sets up some default settings for test assemblies,
-    adds implicit usings for Moq, Xunit and Shouldly. It also adds code coverage and
-    test result output for release builds.
-* Several GitHub Actions workflows are added.
-  * One that runs tests and builds the project on every push except from Dependabot.
-  * One that runs tests and builds the project on every pull request from Dependabot.
-  * One that can be used to combine several Dependabot updates into one single pull request.
+- **Feature branches** - Develop new features in isolation
+- **Bugfix branches** - Fix bugs targeting the develop branch
+- **Release branches** - Prepare releases with version bumps and final fixes
+- **Hotfix branches** - Quick fixes for production issues
+- **Support branches** - Long-term support for older versions
+
+### Supported Operations
+
+| Branch Type | list | start | finish | publish | delete |
+|-------------|:----:|:-----:|:------:|:-------:|:------:|
+| Feature     |  Y   |   Y   |   Y    |    Y    |   Y    |
+| Bugfix      |  Y   |   Y   |   Y    |    Y    |   Y    |
+| Release     |  Y   |   Y   |   Y    |    Y    |   Y    |
+| Hotfix      |  Y   |   Y   |   Y    |    Y    |   Y    |
+| Support     |  Y   |   Y   |   -    |    -    |   Y    |
+
+## Installation
+
+```bash
+dotnet tool install -g Karls.Gitflow.Tool
+```
+
+## Usage
+
+### Initialize Gitflow
+
+```bash
+# Interactive initialization
+git-flow init
+
+# Use default settings
+git-flow init -d
+
+# Specify options
+git-flow init --main main --develop develop
+```
+
+### Feature Branches
+
+```bash
+# List all feature branches
+git-flow feature list
+
+# Start a new feature
+git-flow feature start my-feature
+
+# Finish a feature (merges to develop)
+git-flow feature finish my-feature
+
+# Publish feature to remote
+git-flow feature publish my-feature
+
+# Delete a feature branch
+git-flow feature delete my-feature
+```
+
+### Release Branches
+
+```bash
+# Start a release
+git-flow release start 1.0.0
+
+# Finish a release (merges to main AND develop, creates tag)
+git-flow release finish 1.0.0 -m "Release 1.0.0"
+
+# Publish release to remote
+git-flow release publish 1.0.0
+```
+
+### Hotfix Branches
+
+```bash
+# Start a hotfix from main
+git-flow hotfix start 1.0.1
+
+# Finish a hotfix (merges to main AND develop, creates tag)
+git-flow hotfix finish 1.0.1 -m "Hotfix 1.0.1"
+```
+
+### Configuration
+
+```bash
+# List current configuration
+git-flow config list
+
+# Set a configuration value
+git-flow config set feature feat/
+```
+
+## Branch Auto-Detection
+
+When on a gitflow branch, you can omit the branch name for finish, publish, and delete commands:
+
+```bash
+# While on feature/my-feature branch
+git-flow feature finish  # Automatically detects "my-feature"
+```
+
+## Finish Options
+
+| Option | Description |
+|--------|-------------|
+| `-k, --keep` | Keep the branch after finishing |
+| `-F, --fetch` | Fetch from origin before finishing |
+| `-p, --push` | Push to origin after finishing |
+| `-S, --squash` | Squash commits during merge |
+
+### Release/Hotfix Specific Options
+
+| Option | Description |
+|--------|-------------|
+| `-m, --message` | Tag message |
+| `-n, --notag` | Don't create a tag |
+| `-b, --nobackmerge` | Don't merge back to develop |
+
+## Project Structure
+
+```
+src/
+  Karls.Gitflow.Core/        # Core library with gitflow logic
+  Karls.Gitflow.Tool/        # CLI application
+
+test/
+  Karls.Gitflow.Core.Tests/  # Unit tests for core library
+  Karls.Gitflow.Tool.Tests/  # E2E tests for CLI
+  Karls.Gitflow.TestHelpers/ # Shared test utilities
+```
+
+## Building from Source
+
+```bash
+# Build
+dotnet build
+
+# Run tests
+dotnet test
+
+# Run the tool locally
+dotnet run --project src/Karls.Gitflow.Tool -- init -d
+```
+
+## Requirements
+
+- .NET 10 SDK
+- Git installed and available in PATH
+
+## License
+
+MIT
