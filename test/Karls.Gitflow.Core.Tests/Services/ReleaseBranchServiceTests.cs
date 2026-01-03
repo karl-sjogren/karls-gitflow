@@ -116,8 +116,8 @@ public class ReleaseBranchServiceTests {
         // Act
         _sut.Finish("1.0.0");
 
-        // Assert
-        A.CallTo(() => _fakeGitService.CreateTag("1.0.0", "Release 1.0.0"))
+        // Assert - no template configured, lets git handle it
+        A.CallTo(() => _fakeGitService.CreateTag("1.0.0", null))
             .MustHaveHappenedOnceExactly();
     }
 
@@ -135,8 +135,8 @@ public class ReleaseBranchServiceTests {
         // Act
         _sut.Finish("1.0.0");
 
-        // Assert
-        A.CallTo(() => _fakeGitService.CreateTag("v1.0.0", "Release 1.0.0"))
+        // Assert - no template configured, lets git handle it
+        A.CallTo(() => _fakeGitService.CreateTag("v1.0.0", null))
             .MustHaveHappenedOnceExactly();
     }
 

@@ -34,6 +34,7 @@ public sealed class ConfigListCommand : GitFlowCommand<ConfigListCommand.Setting
             table.AddRow("Hotfix prefix", config.HotfixPrefix);
             table.AddRow("Support prefix", config.SupportPrefix);
             table.AddRow("Version tag prefix", string.IsNullOrEmpty(config.VersionTagPrefix) ? "(none)" : config.VersionTagPrefix);
+            table.AddRow("Tag message template", string.IsNullOrEmpty(config.TagMessageTemplate) ? "(none)" : config.TagMessageTemplate);
 
             Console.Write(table);
         });
@@ -62,7 +63,8 @@ public sealed class ConfigSetCommand : GitFlowCommand<ConfigSetCommand.Settings>
         ["hotfix"] = "gitflow.prefix.hotfix",
         ["support"] = "gitflow.prefix.support",
         ["versiontag"] = "gitflow.prefix.versiontag",
-        ["tag"] = "gitflow.prefix.versiontag"
+        ["tag"] = "gitflow.prefix.versiontag",
+        ["tagmessage"] = "gitflow.message.tag"
     };
 
     public override int Execute(CommandContext context, Settings settings) {

@@ -149,7 +149,8 @@ public sealed class GitService : IGitService {
             ReleasePrefix = GetConfigValue("gitflow.prefix.release") ?? GitFlowConfiguration.DefaultValues.ReleasePrefix,
             HotfixPrefix = GetConfigValue("gitflow.prefix.hotfix") ?? GitFlowConfiguration.DefaultValues.HotfixPrefix,
             SupportPrefix = GetConfigValue("gitflow.prefix.support") ?? GitFlowConfiguration.DefaultValues.SupportPrefix,
-            VersionTagPrefix = GetConfigValue("gitflow.prefix.versiontag") ?? GitFlowConfiguration.DefaultValues.VersionTagPrefix
+            VersionTagPrefix = GetConfigValue("gitflow.prefix.versiontag") ?? GitFlowConfiguration.DefaultValues.VersionTagPrefix,
+            TagMessageTemplate = GetConfigValue("gitflow.message.tag") ?? GitFlowConfiguration.DefaultValues.TagMessageTemplate
         };
     }
 

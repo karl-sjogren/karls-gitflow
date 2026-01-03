@@ -98,5 +98,10 @@ public sealed class GitFlowInitializer {
         _gitService.SetConfigValue("gitflow.prefix.hotfix", config.HotfixPrefix);
         _gitService.SetConfigValue("gitflow.prefix.support", config.SupportPrefix);
         _gitService.SetConfigValue("gitflow.prefix.versiontag", config.VersionTagPrefix);
+
+        // Message configuration (only write if not empty)
+        if(!string.IsNullOrEmpty(config.TagMessageTemplate)) {
+            _gitService.SetConfigValue("gitflow.message.tag", config.TagMessageTemplate);
+        }
     }
 }
