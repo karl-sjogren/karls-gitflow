@@ -14,8 +14,8 @@ public sealed class ConfigListCommand : GitFlowCommand<ConfigListCommand.Setting
         return ExecuteSafe(() => {
             var config = GitService.GetGitFlowConfiguration();
 
-            AnsiConsole.MarkupLine("[blue]Gitflow Configuration:[/]");
-            AnsiConsole.WriteLine();
+            Console.MarkupLine("[blue]Gitflow Configuration:[/]");
+            Console.WriteLine();
 
             var table = new Table()
                 .Border(TableBorder.Rounded)
@@ -31,7 +31,7 @@ public sealed class ConfigListCommand : GitFlowCommand<ConfigListCommand.Setting
             table.AddRow("Support prefix", config.SupportPrefix);
             table.AddRow("Version tag prefix", string.IsNullOrEmpty(config.VersionTagPrefix) ? "(none)" : config.VersionTagPrefix);
 
-            AnsiConsole.Write(table);
+            Console.Write(table);
         });
     }
 }

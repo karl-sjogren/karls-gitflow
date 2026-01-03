@@ -61,16 +61,16 @@ public sealed class InitCommand : GitFlowCommand<InitCommand.Settings> {
             Initializer.Initialize(config, settings.Force);
 
             WriteSuccess("Gitflow initialized successfully!");
-            AnsiConsole.WriteLine();
+            Console.WriteLine();
             WriteInfo("Configuration:");
-            AnsiConsole.MarkupLine($"  Main branch:      [yellow]{config.MainBranch}[/]");
-            AnsiConsole.MarkupLine($"  Develop branch:   [yellow]{config.DevelopBranch}[/]");
-            AnsiConsole.MarkupLine($"  Feature prefix:   [yellow]{config.FeaturePrefix}[/]");
-            AnsiConsole.MarkupLine($"  Bugfix prefix:    [yellow]{config.BugfixPrefix}[/]");
-            AnsiConsole.MarkupLine($"  Release prefix:   [yellow]{config.ReleasePrefix}[/]");
-            AnsiConsole.MarkupLine($"  Hotfix prefix:    [yellow]{config.HotfixPrefix}[/]");
-            AnsiConsole.MarkupLine($"  Support prefix:   [yellow]{config.SupportPrefix}[/]");
-            AnsiConsole.MarkupLine($"  Version tag:      [yellow]{(string.IsNullOrEmpty(config.VersionTagPrefix) ? "(none)" : config.VersionTagPrefix)}[/]");
+            Console.MarkupLine($"  Main branch:      [yellow]{config.MainBranch}[/]");
+            Console.MarkupLine($"  Develop branch:   [yellow]{config.DevelopBranch}[/]");
+            Console.MarkupLine($"  Feature prefix:   [yellow]{config.FeaturePrefix}[/]");
+            Console.MarkupLine($"  Bugfix prefix:    [yellow]{config.BugfixPrefix}[/]");
+            Console.MarkupLine($"  Release prefix:   [yellow]{config.ReleasePrefix}[/]");
+            Console.MarkupLine($"  Hotfix prefix:    [yellow]{config.HotfixPrefix}[/]");
+            Console.MarkupLine($"  Support prefix:   [yellow]{config.SupportPrefix}[/]");
+            Console.MarkupLine($"  Version tag:      [yellow]{(string.IsNullOrEmpty(config.VersionTagPrefix) ? "(none)" : config.VersionTagPrefix)}[/]");
         });
     }
 
@@ -78,8 +78,8 @@ public sealed class InitCommand : GitFlowCommand<InitCommand.Settings> {
         var defaults = GitFlowConfiguration.Default;
         var localBranches = GitService.GetLocalBranches();
 
-        AnsiConsole.MarkupLine("[blue]Initializing gitflow...[/]");
-        AnsiConsole.WriteLine();
+        Console.MarkupLine("[blue]Initializing gitflow...[/]");
+        Console.WriteLine();
 
         // Main branch
         var mainBranch = settings.MainBranch ?? PromptBranch(
@@ -95,27 +95,27 @@ public sealed class InitCommand : GitFlowCommand<InitCommand.Settings> {
 
         // Prefixes
         var featurePrefix = settings.FeaturePrefix ??
-            AnsiConsole.Prompt(new TextPrompt<string>("Feature branch prefix?")
+            Console.Prompt(new TextPrompt<string>("Feature branch prefix?")
                 .DefaultValue(defaults.FeaturePrefix));
 
         var bugfixPrefix = settings.BugfixPrefix ??
-            AnsiConsole.Prompt(new TextPrompt<string>("Bugfix branch prefix?")
+            Console.Prompt(new TextPrompt<string>("Bugfix branch prefix?")
                 .DefaultValue(defaults.BugfixPrefix));
 
         var releasePrefix = settings.ReleasePrefix ??
-            AnsiConsole.Prompt(new TextPrompt<string>("Release branch prefix?")
+            Console.Prompt(new TextPrompt<string>("Release branch prefix?")
                 .DefaultValue(defaults.ReleasePrefix));
 
         var hotfixPrefix = settings.HotfixPrefix ??
-            AnsiConsole.Prompt(new TextPrompt<string>("Hotfix branch prefix?")
+            Console.Prompt(new TextPrompt<string>("Hotfix branch prefix?")
                 .DefaultValue(defaults.HotfixPrefix));
 
         var supportPrefix = settings.SupportPrefix ??
-            AnsiConsole.Prompt(new TextPrompt<string>("Support branch prefix?")
+            Console.Prompt(new TextPrompt<string>("Support branch prefix?")
                 .DefaultValue(defaults.SupportPrefix));
 
         var versionTagPrefix = settings.VersionTagPrefix ??
-            AnsiConsole.Prompt(new TextPrompt<string>("Version tag prefix?")
+            Console.Prompt(new TextPrompt<string>("Version tag prefix?")
                 .DefaultValue(defaults.VersionTagPrefix)
                 .AllowEmpty());
 
@@ -131,13 +131,13 @@ public sealed class InitCommand : GitFlowCommand<InitCommand.Settings> {
         };
     }
 
-    private static string PromptBranch(string prompt, string defaultValue, string[] existingBranches) {
+    private string PromptBranch(string prompt, string defaultValue, string[] existingBranches) {
         var choices = existingBranches.ToList();
         if(!choices.Contains(defaultValue)) {
             choices.Insert(0, defaultValue);
         }
 
-        return AnsiConsole.Prompt(
+        return Console.Prompt(
             new SelectionPrompt<string>()
                 .Title(prompt)
                 .AddChoices(choices)

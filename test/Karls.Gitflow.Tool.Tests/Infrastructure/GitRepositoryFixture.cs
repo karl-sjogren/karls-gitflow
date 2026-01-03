@@ -6,6 +6,7 @@ using Karls.Gitflow.Tool.Commands.Feature;
 using Karls.Gitflow.Tool.Commands.Hotfix;
 using Karls.Gitflow.Tool.Commands.Release;
 using Karls.Gitflow.Tool.Commands.Support;
+using Karls.Gitflow.Tool.Infrastructure;
 using Spectre.Console.Cli;
 
 namespace Karls.Gitflow.Tool.Tests.Infrastructure;
@@ -16,14 +17,12 @@ namespace Karls.Gitflow.Tool.Tests.Infrastructure;
 /// </summary>
 public sealed class GitRepositoryFixture : IDisposable {
     private readonly IFileSystem _fileSystem;
-    private readonly string _originalDirectory;
     private bool _disposed;
 
     public string RepositoryPath { get; }
 
     public GitRepositoryFixture(IFileSystem? fileSystem = null) {
         _fileSystem = fileSystem ?? new FileSystem();
-        _originalDirectory = Environment.CurrentDirectory;
 
         // Create a unique temp directory for the test repository
         var tempPath = _fileSystem.Path.GetTempPath();
@@ -70,21 +69,17 @@ public sealed class GitRepositoryFixture : IDisposable {
 
     /// <summary>
     /// Executes the git-flow CLI command in the repository.
-    /// Changes to the repository directory, runs the command, then restores the original directory.
+    /// Uses GitFlowContext for thread-local state to enable parallel test execution.
     /// </summary>
     public CliCommandResult ExecuteGitFlow(string arguments) {
         // Parse arguments - handle quoted strings properly
         var args = ParseArguments(arguments);
 
-        // Change to repository directory
-        var previousDir = Environment.CurrentDirectory;
-        Environment.CurrentDirectory = RepositoryPath;
-
         // Create a custom console that writes to our StringWriter
         var outputBuilder = new System.Text.StringBuilder();
         var outputWriter = new StringWriter(outputBuilder);
 
-        // Configure AnsiConsole to use our output writer
+        // Configure console to use our output writer
         var settings = new Spectre.Console.AnsiConsoleSettings {
             Out = new Spectre.Console.AnsiConsoleOutput(outputWriter),
             Interactive = Spectre.Console.InteractionSupport.No,
@@ -93,9 +88,9 @@ public sealed class GitRepositoryFixture : IDisposable {
 
         var console = Spectre.Console.AnsiConsole.Create(settings);
 
-        // Replace the static console (this is a bit hacky but necessary for testing)
-        var originalConsole = Spectre.Console.AnsiConsole.Console;
-        Spectre.Console.AnsiConsole.Console = console;
+        // Use thread-local context for working directory and console
+        GitFlowContext.WorkingDirectory = RepositoryPath;
+        GitFlowContext.Console = console;
 
         int exitCode;
         try {
@@ -106,16 +101,8 @@ public sealed class GitRepositoryFixture : IDisposable {
             outputBuilder.AppendLine($"Error: {ex.Message}");
             exitCode = 1;
         } finally {
-            Spectre.Console.AnsiConsole.Console = originalConsole;
-
-            // Restore previous directory if it still exists
-            try {
-                Environment.CurrentDirectory = previousDir;
-            } catch(DirectoryNotFoundException) {
-                // Previous directory was cleaned up, use temp
-                Environment.CurrentDirectory = _fileSystem.Path.GetTempPath();
-            }
-
+            // Reset the context
+            GitFlowContext.Reset();
             outputWriter.Dispose();
         }
 

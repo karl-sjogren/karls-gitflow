@@ -1,3 +1,2 @@
-// Disable parallel test execution to avoid issues with Environment.CurrentDirectory
-// and the static AnsiConsole instance
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
+// Parallel test execution is enabled.
+// Tests use GitFlowContext for thread-local state, avoiding global state conflicts.

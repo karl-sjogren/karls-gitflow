@@ -21,23 +21,28 @@ public abstract class GitFlowCommand<TSettings> : Command<TSettings>
     protected SupportBranchService SupportService => new(GitService);
     protected GitFlowInitializer Initializer => new(GitService);
 
+    /// <summary>
+    /// Gets the console for output (supports thread-local override for testing).
+    /// </summary>
+    protected IAnsiConsole Console => GitFlowContext.EffectiveConsole;
+
     protected void WriteError(string message) {
-        AnsiConsole.MarkupLine($"[red]Error:[/] {message}");
+        Console.MarkupLine($"[red]Error:[/] {message}");
     }
 
     protected void WriteSuccess(string message) {
-        AnsiConsole.MarkupLine($"[green]{message}[/]");
+        Console.MarkupLine($"[green]{message}[/]");
     }
 
     protected void WriteInfo(string message) {
-        AnsiConsole.MarkupLine($"[blue]{message}[/]");
+        Console.MarkupLine($"[blue]{message}[/]");
     }
 
     protected void WriteBranch(string branchName, bool isCurrent = false) {
         if(isCurrent) {
-            AnsiConsole.MarkupLine($"[green]* {branchName}[/]");
+            Console.MarkupLine($"[green]* {branchName}[/]");
         } else {
-            AnsiConsole.MarkupLine($"  {branchName}");
+            Console.MarkupLine($"  {branchName}");
         }
     }
 

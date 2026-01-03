@@ -12,7 +12,8 @@ public sealed class GitExecutor : IGitExecutor {
 
     public GitExecutor(IFileSystem? fileSystem = null, string? workingDirectory = null) {
         var fs = fileSystem ?? new FileSystem();
-        _workingDirectory = workingDirectory ?? fs.Directory.GetCurrentDirectory();
+        // Use context working directory if set (for testing), otherwise use provided or current directory
+        _workingDirectory = workingDirectory ?? GitFlowContext.WorkingDirectory ?? fs.Directory.GetCurrentDirectory();
     }
 
     public GitExecutorResult Execute(string command) {

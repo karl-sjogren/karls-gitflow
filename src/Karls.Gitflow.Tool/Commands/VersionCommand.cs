@@ -15,8 +15,8 @@ public sealed class VersionCommand : GitFlowCommand<VersionCommand.Settings> {
         var assembly = Assembly.GetExecutingAssembly();
         var version = assembly.GetName().Version?.ToString() ?? "1.0.0";
 
-        AnsiConsole.MarkupLine($"[blue]git-flow[/] version [yellow]{version}[/]");
-        AnsiConsole.MarkupLine("[dim]A .NET reimplementation of gitflow-avh[/]");
+        Console.MarkupLine($"[blue]git-flow[/] version [yellow]{version}[/]");
+        Console.MarkupLine("[dim]A .NET reimplementation of gitflow-avh[/]");
 
         return 0;
     }
