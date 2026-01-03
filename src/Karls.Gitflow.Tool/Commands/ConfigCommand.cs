@@ -12,6 +12,10 @@ public sealed class ConfigListCommand : GitFlowCommand<ConfigListCommand.Setting
 
     public override int Execute(CommandContext context, Settings settings) {
         return ExecuteSafe(() => {
+            if(!Initializer.IsInitialized) {
+                throw new Core.GitFlowException("Gitflow is not initialized. Run 'git-flow init' first.");
+            }
+
             var config = GitService.GetGitFlowConfiguration();
 
             Console.MarkupLine("[blue]Gitflow Configuration:[/]");
