@@ -1,6 +1,6 @@
-using Karls.Gitflow.Tool.Infrastructure;
 using Karls.Gitflow.Core;
 using Karls.Gitflow.Core.Services;
+using Karls.Gitflow.Tool.Infrastructure;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
