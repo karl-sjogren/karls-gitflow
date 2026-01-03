@@ -4,6 +4,7 @@ using Karls.Gitflow.Tool.Commands.Feature;
 using Karls.Gitflow.Tool.Commands.Hotfix;
 using Karls.Gitflow.Tool.Commands.Release;
 using Karls.Gitflow.Tool.Commands.Support;
+using Spectre.Console;
 using Spectre.Console.Cli;
 
 var app = new CommandApp();
@@ -103,4 +104,9 @@ app.Configure(config => {
     config.PropagateExceptions();
 });
 
-return app.Run(args);
+try {
+    return app.Run(args);
+} catch(CommandRuntimeException ex) {
+    AnsiConsole.MarkupLine($"[red]Error:[/] {ex.Message}");
+    return 1;
+}
