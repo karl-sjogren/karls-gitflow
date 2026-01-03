@@ -3,10 +3,11 @@
     <Project Path="benchmarks/Karls.Gitflow.Benchmarks/Karls.Gitflow.Benchmarks.csproj" />
   </Folder>
   <Folder Name="/src/">
-    <Project Path="src/Karls.Gitflow.Cli/Karls.Gitflow.Cli.csproj" />
+    <Project Path="src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj" />
     <Project Path="src/Karls.Gitflow.Core/Karls.Gitflow.Core.csproj" />
   </Folder>
   <Folder Name="/test/">
+    <Project Path="test/Karls.Gitflow.Tool.Tests/Karls.Gitflow.Tool.Tests.csproj" />
     <Project Path="test/Karls.Gitflow.Core.Tests/Karls.Gitflow.Core.Tests.csproj" />
     <Project Path="test/Karls.Gitflow.TestHelpers/Karls.Gitflow.TestHelpers.csproj" />
   </Folder>

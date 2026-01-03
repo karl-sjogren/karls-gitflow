@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>git-flow</AssemblyName>
+    <PackageTags>git;git-flow;karls</PackageTags>
+    <PackAsTool>true</PackAsTool>
+    <RollForward>Major</RollForward>
+    <ToolCommandName>git-flow</ToolCommandName>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>Karls.Gitflow.Tool</PackageId>
+    <Authors>Karl-Johan Sjögren</Authors>
+    <Description>An easy way to manage .NET User Secrets from the command line.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <NoWarn>NU5100,NU5119</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Spectre.Console" />
+    <PackageReference Include="Spectre.Console.Cli" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Karls.Gitflow.Core\Karls.Gitflow.Core.csproj" />
+  </ItemGroup>
+
+</Project>
