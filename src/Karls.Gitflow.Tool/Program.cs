@@ -30,6 +30,10 @@ app.Configure(config => {
     config.AddCommand<VersionCommand>("version")
         .WithDescription("Show the git-flow version information.");
 
+    // Push command
+    config.AddCommand<PushCommand>("push")
+        .WithDescription("Push main, develop, and tags to remote.");
+
     // Feature commands
     config.AddBranch("feature", feature => {
         feature.SetDescription("Manage feature branches.");

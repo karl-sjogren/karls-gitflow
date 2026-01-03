@@ -1,6 +1,9 @@
 # Karls.Gitflow
 
-A .NET 10 reimplementation of [gitflow-avh](https://github.com/petervanderdoes/gitflow-avh), providing a modern command-line tool for managing Git branches using the Gitflow branching model.
+A modern .NET command-line tool for managing Git branches using the Gitflow
+branching model. This tool is a reimplementation of parts of
+[gitflow-avh](https://github.com/petervanderdoes/gitflow-avh). It isn't 100%
+compatible, but provides similar functionality with some additional features.
 
 ## Features
 
