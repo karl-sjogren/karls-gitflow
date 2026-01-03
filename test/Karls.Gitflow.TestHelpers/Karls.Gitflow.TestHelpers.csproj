@@ -2,7 +2,17 @@
 
   <PropertyGroup>
     <IsTestProject>false</IsTestProject>
+    <IsPackable>false</IsPackable>
     <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --ignore-exit-code 8</TestingPlatformCommandLineArguments>
   </PropertyGroup>
+
+  <!-- Remove test-specific packages that are inherited from Directory.Build.props -->
+  <ItemGroup>
+    <PackageReference Remove="Microsoft.NET.Test.Sdk" />
+    <PackageReference Remove="Microsoft.Testing.Extensions.CodeCoverage" />
+    <PackageReference Remove="Microsoft.Testing.Extensions.TrxReport" />
+    <PackageReference Remove="xunit.v3.mtp-v2" />
+    <PackageReference Remove="xunit.runner.visualstudio" />
+  </ItemGroup>
 
 </Project>
