@@ -268,7 +268,7 @@ public abstract class BranchServiceBase : IBranchService {
                 throw new GitFlowException($"Tag '{tagName}' already exists.");
             }
 
-            var message = options.TagMessage ?? $"Release {version}";
+            var message = options.TagMessage ?? FormatTagMessage(Config.TagMessageTemplate, version);
             GitService.CreateTag(tagName, message);
         }
 
@@ -303,6 +303,24 @@ public abstract class BranchServiceBase : IBranchService {
 
         // Return to develop branch
         GitService.CheckoutBranch(developBranch);
+    }
+
+    /// <summary>
+    /// Formats a tag message template with placeholders.
+    /// Returns null if no template is configured (lets git handle it).
+    /// </summary>
+    /// <param name="template">The template with placeholders: {version}, {date}, {type}</param>
+    /// <param name="version">The version being tagged</param>
+    /// <returns>The formatted message, or null if no template</returns>
+    protected string? FormatTagMessage(string template, string version) {
+        if(string.IsNullOrEmpty(template)) {
+            return null;
+        }
+
+        return template
+            .Replace("{version}", version, StringComparison.OrdinalIgnoreCase)
+            .Replace("{date}", TimeProvider.System.GetLocalNow().ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
+            .Replace("{type}", TypeName, StringComparison.OrdinalIgnoreCase);
     }
 
     #endregion

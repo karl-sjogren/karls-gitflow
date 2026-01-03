@@ -45,6 +45,12 @@ public sealed record GitFlowConfiguration {
     public string VersionTagPrefix { get; init; } = string.Empty;
 
     /// <summary>
+    /// The template for tag messages. Supports placeholders: {version}, {date}, {type}.
+    /// If empty, git creates a lightweight tag (no message).
+    /// </summary>
+    public string TagMessageTemplate { get; init; } = string.Empty;
+
+    /// <summary>
     /// Gets the default gitflow configuration.
     /// </summary>
     public static GitFlowConfiguration Default => new() {
@@ -55,7 +61,8 @@ public sealed record GitFlowConfiguration {
         ReleasePrefix = DefaultValues.ReleasePrefix,
         HotfixPrefix = DefaultValues.HotfixPrefix,
         SupportPrefix = DefaultValues.SupportPrefix,
-        VersionTagPrefix = DefaultValues.VersionTagPrefix
+        VersionTagPrefix = DefaultValues.VersionTagPrefix,
+        TagMessageTemplate = DefaultValues.TagMessageTemplate
     };
 
     /// <summary>
@@ -84,5 +91,6 @@ public sealed record GitFlowConfiguration {
         public const string HotfixPrefix = "hotfix/";
         public const string SupportPrefix = "support/";
         public const string VersionTagPrefix = "";
+        public const string TagMessageTemplate = "";
     }
 }

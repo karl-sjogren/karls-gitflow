@@ -38,6 +38,9 @@ public sealed class GitRepositoryFixture : IDisposable {
         ExecuteGit("config user.email \"test@example.com\"");
         ExecuteGit("config user.name \"Test User\"");
 
+        // Disable GPG signing for tags (allows lightweight tags in tests)
+        ExecuteGit("config tag.gpgsign false");
+
         // Create initial commit on main branch
         ExecuteGit("checkout -b main");
         CreateFile("README.md", "# Test Repository");

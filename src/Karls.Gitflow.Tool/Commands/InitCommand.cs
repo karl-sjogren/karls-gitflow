@@ -38,6 +38,9 @@ public sealed class InitCommand : GitFlowCommand<InitCommand.Settings> {
 
         [CommandOption("--tag <PREFIX>")]
         public string? VersionTagPrefix { get; set; }
+
+        [CommandOption("--tagmessage <TEMPLATE>")]
+        public string? TagMessageTemplate { get; set; }
     }
 
     public override int Execute(CommandContext context, Settings settings) {
@@ -71,6 +74,7 @@ public sealed class InitCommand : GitFlowCommand<InitCommand.Settings> {
             Console.MarkupLine($"  Hotfix prefix:    [yellow]{config.HotfixPrefix}[/]");
             Console.MarkupLine($"  Support prefix:   [yellow]{config.SupportPrefix}[/]");
             Console.MarkupLine($"  Version tag:      [yellow]{(string.IsNullOrEmpty(config.VersionTagPrefix) ? "(none)" : config.VersionTagPrefix)}[/]");
+            Console.MarkupLine($"  Tag message:      [yellow]{(string.IsNullOrEmpty(config.TagMessageTemplate) ? "(none)" : config.TagMessageTemplate)}[/]");
         });
     }
 
@@ -119,6 +123,11 @@ public sealed class InitCommand : GitFlowCommand<InitCommand.Settings> {
                 .DefaultValue(defaults.VersionTagPrefix)
                 .AllowEmpty());
 
+        var tagMessageTemplate = settings.TagMessageTemplate ??
+            Console.Prompt(new TextPrompt<string>("Tag message template? (placeholders: {version}, {date}, {type})")
+                .DefaultValue(defaults.TagMessageTemplate)
+                .AllowEmpty());
+
         return new GitFlowConfiguration {
             MainBranch = mainBranch,
             DevelopBranch = developBranch,
@@ -127,7 +136,8 @@ public sealed class InitCommand : GitFlowCommand<InitCommand.Settings> {
             ReleasePrefix = releasePrefix,
             HotfixPrefix = hotfixPrefix,
             SupportPrefix = supportPrefix,
-            VersionTagPrefix = versionTagPrefix
+            VersionTagPrefix = versionTagPrefix,
+            TagMessageTemplate = tagMessageTemplate
         };
     }
 
@@ -153,7 +163,8 @@ public sealed class InitCommand : GitFlowCommand<InitCommand.Settings> {
             ReleasePrefix = settings.ReleasePrefix ?? defaults.ReleasePrefix,
             HotfixPrefix = settings.HotfixPrefix ?? defaults.HotfixPrefix,
             SupportPrefix = settings.SupportPrefix ?? defaults.SupportPrefix,
-            VersionTagPrefix = settings.VersionTagPrefix ?? defaults.VersionTagPrefix
+            VersionTagPrefix = settings.VersionTagPrefix ?? defaults.VersionTagPrefix,
+            TagMessageTemplate = settings.TagMessageTemplate ?? defaults.TagMessageTemplate
         };
     }
 }
