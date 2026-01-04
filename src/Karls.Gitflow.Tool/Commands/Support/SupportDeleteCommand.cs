@@ -7,7 +7,7 @@ namespace Karls.Gitflow.Tool.Commands.Support;
 /// Delete a support branch.
 /// </summary>
 public sealed class SupportDeleteCommand : GitFlowCommand<DeleteSettings> {
-    public override int Execute(CommandContext context, DeleteSettings settings) {
+    public override int Execute(CommandContext context, DeleteSettings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var name = SupportService.ResolveBranchName(settings.Name);
             var options = new DeleteOptions {

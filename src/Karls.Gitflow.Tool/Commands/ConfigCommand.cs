@@ -10,7 +10,7 @@ public sealed class ConfigListCommand : GitFlowCommand<ConfigListCommand.Setting
     public sealed class Settings : CommandSettings {
     }
 
-    public override int Execute(CommandContext context, Settings settings) {
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             if(!Initializer.IsInitialized) {
                 throw new Core.GitFlowException("Gitflow is not initialized. Run 'git-flow init' first.");
@@ -67,7 +67,7 @@ public sealed class ConfigSetCommand : GitFlowCommand<ConfigSetCommand.Settings>
         ["tagmessage"] = "gitflow.message.tag"
     };
 
-    public override int Execute(CommandContext context, Settings settings) {
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             if(!_configKeyMap.TryGetValue(settings.Key, out var configKey)) {
                 var validKeys = string.Join(", ", _configKeyMap.Keys.Distinct());

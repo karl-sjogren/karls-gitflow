@@ -9,7 +9,7 @@ public sealed class FeatureListCommand : GitFlowCommand<FeatureListCommand.Setti
     public sealed class Settings : CommandSettings {
     }
 
-    public override int Execute(CommandContext context, Settings settings) {
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var features = FeatureService.List();
             var currentBranch = GitService.GetCurrentBranchName();

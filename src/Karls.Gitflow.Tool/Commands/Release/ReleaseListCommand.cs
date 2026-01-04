@@ -9,7 +9,7 @@ public sealed class ReleaseListCommand : GitFlowCommand<ReleaseListCommand.Setti
     public sealed class Settings : CommandSettings {
     }
 
-    public override int Execute(CommandContext context, Settings settings) {
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var releases = ReleaseService.List();
             var currentBranch = GitService.GetCurrentBranchName();

@@ -7,7 +7,7 @@ namespace Karls.Gitflow.Tool.Commands.Feature;
 /// Finish a feature branch.
 /// </summary>
 public sealed class FeatureFinishCommand : GitFlowCommand<FinishSettings> {
-    public override int Execute(CommandContext context, FinishSettings settings) {
+    public override int Execute(CommandContext context, FinishSettings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var name = FeatureService.ResolveBranchName(settings.Name);
             var options = new FinishOptions {

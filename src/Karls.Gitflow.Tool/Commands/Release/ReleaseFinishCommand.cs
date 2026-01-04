@@ -7,7 +7,7 @@ namespace Karls.Gitflow.Tool.Commands.Release;
 /// Finish a release branch.
 /// </summary>
 public sealed class ReleaseFinishCommand : GitFlowCommand<TagFinishSettings> {
-    public override int Execute(CommandContext context, TagFinishSettings settings) {
+    public override int Execute(CommandContext context, TagFinishSettings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var name = ReleaseService.ResolveBranchName(settings.Name);
             var config = GitService.GetGitFlowConfiguration();

@@ -6,7 +6,7 @@ namespace Karls.Gitflow.Tool.Commands.Hotfix;
 /// Publish a hotfix branch to remote.
 /// </summary>
 public sealed class HotfixPublishCommand : GitFlowCommand<PublishSettings> {
-    public override int Execute(CommandContext context, PublishSettings settings) {
+    public override int Execute(CommandContext context, PublishSettings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var name = HotfixService.ResolveBranchName(settings.Name);
             HotfixService.Publish(name);

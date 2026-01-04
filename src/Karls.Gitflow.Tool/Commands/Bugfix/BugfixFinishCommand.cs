@@ -7,7 +7,7 @@ namespace Karls.Gitflow.Tool.Commands.Bugfix;
 /// Finish a bugfix branch.
 /// </summary>
 public sealed class BugfixFinishCommand : GitFlowCommand<FinishSettings> {
-    public override int Execute(CommandContext context, FinishSettings settings) {
+    public override int Execute(CommandContext context, FinishSettings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var name = BugfixService.ResolveBranchName(settings.Name);
             var options = new FinishOptions {

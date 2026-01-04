@@ -9,7 +9,7 @@ public sealed class SupportListCommand : GitFlowCommand<SupportListCommand.Setti
     public sealed class Settings : CommandSettings {
     }
 
-    public override int Execute(CommandContext context, Settings settings) {
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var supports = SupportService.List();
             var currentBranch = GitService.GetCurrentBranchName();

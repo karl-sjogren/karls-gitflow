@@ -7,7 +7,7 @@ namespace Karls.Gitflow.Tool.Commands.Hotfix;
 /// Finish a hotfix branch.
 /// </summary>
 public sealed class HotfixFinishCommand : GitFlowCommand<TagFinishSettings> {
-    public override int Execute(CommandContext context, TagFinishSettings settings) {
+    public override int Execute(CommandContext context, TagFinishSettings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var name = HotfixService.ResolveBranchName(settings.Name);
             var config = GitService.GetGitFlowConfiguration();
