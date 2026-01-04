@@ -41,6 +41,9 @@ public sealed class GitRepositoryFixture : IDisposable {
         // Disable GPG signing for tags (allows lightweight tags in tests)
         ExecuteGit("config tag.gpgsign false");
 
+        // Set a default tag message template so tests don't need an editor
+        ExecuteGit("config gitflow.message.tag \"{version}\"");
+
         // Create initial commit on main branch
         ExecuteGit("checkout -b main");
         CreateFile("README.md", "# Test Repository");
