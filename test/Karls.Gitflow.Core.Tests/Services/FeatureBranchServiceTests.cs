@@ -224,10 +224,11 @@ public class FeatureBranchServiceTests {
         A.CallTo(() => _fakeGitService.RemoteBranchExists("feature/my-feature")).Returns(false);
         A.CallTo(() => _fakeGitService.LocalBranchExists("develop")).Returns(false);
         A.CallTo(() => _fakeGitService.RemoteBranchExists("develop")).Returns(false);
+        A.CallTo(() => _fakeGitService.RefExists("develop")).Returns(false);
 
         // Act & Assert
         var ex = Should.Throw<GitFlowException>(() => _sut.Start("my-feature"));
-        ex.Message.ShouldContain("Base branch");
+        ex.Message.ShouldContain("Base ref");
         ex.Message.ShouldContain("does not exist");
     }
 

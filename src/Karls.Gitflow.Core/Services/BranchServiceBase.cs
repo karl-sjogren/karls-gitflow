@@ -97,8 +97,11 @@ public abstract class BranchServiceBase : IBranchService {
     }
 
     protected void ValidateBaseBranchExists(string baseBranch) {
-        if(!GitService.LocalBranchExists(baseBranch) && !GitService.RemoteBranchExists(baseBranch)) {
-            throw new GitFlowException($"Base branch '{baseBranch}' does not exist.");
+        // Check if it's a branch (local or remote) or any valid ref (tag, commit hash)
+        if(!GitService.LocalBranchExists(baseBranch)
+            && !GitService.RemoteBranchExists(baseBranch)
+            && !GitService.RefExists(baseBranch)) {
+            throw new GitFlowException($"Base ref '{baseBranch}' does not exist.");
         }
     }
 

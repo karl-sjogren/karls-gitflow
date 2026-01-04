@@ -115,6 +115,16 @@ public sealed class GitService : IGitService {
 
     #endregion
 
+    #region Ref Queries
+
+    public bool RefExists(string refName) {
+        // Check if it's a valid commit-ish (branch, tag, or commit hash)
+        var result = _gitExecutor.Execute($"rev-parse --verify --quiet {refName}");
+        return result.ExitCode == 0;
+    }
+
+    #endregion
+
     #region Configuration
 
     public string? GetConfigValue(string key) {
