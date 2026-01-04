@@ -22,6 +22,9 @@ public interface IGitService {
     bool TagExists(string tagName);
     string[] GetTags();
 
+    // Ref queries
+    bool RefExists(string refName);
+
     // Configuration
     GitFlowConfiguration GetGitFlowConfiguration();
     string? GetConfigValue(string key);

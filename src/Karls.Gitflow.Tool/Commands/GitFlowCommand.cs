@@ -41,6 +41,14 @@ public abstract class GitFlowCommand<TSettings> : Command<TSettings>
         Console.MarkupLine($"[blue]{message}[/]");
     }
 
+    /// <summary>
+    /// Creates a progress callback for reporting operation status.
+    /// Returns null if quiet mode is enabled.
+    /// </summary>
+    protected Action<string>? CreateProgressCallback(bool quiet) {
+        return quiet ? null : WriteInfo;
+    }
+
     protected void WriteBranch(string branchName, bool isCurrent = false) {
         if(isCurrent) {
             Console.MarkupLine($"[green]* {branchName}[/]");
@@ -206,6 +214,9 @@ public class FinishSettings : OptionalBranchNameSettings {
 
     [CommandOption("-S|--squash")]
     public bool Squash { get; set; }
+
+    [CommandOption("-q|--quiet")]
+    public bool Quiet { get; set; }
 }
 
 /// <summary>

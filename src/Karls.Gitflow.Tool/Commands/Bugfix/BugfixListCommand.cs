@@ -9,7 +9,7 @@ public sealed class BugfixListCommand : GitFlowCommand<BugfixListCommand.Setting
     public sealed class Settings : CommandSettings {
     }
 
-    public override int Execute(CommandContext context, Settings settings) {
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var bugfixes = BugfixService.List();
             var currentBranch = GitService.GetCurrentBranchName();

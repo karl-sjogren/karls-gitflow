@@ -97,8 +97,11 @@ public abstract class BranchServiceBase : IBranchService {
     }
 
     protected void ValidateBaseBranchExists(string baseBranch) {
-        if(!GitService.LocalBranchExists(baseBranch) && !GitService.RemoteBranchExists(baseBranch)) {
-            throw new GitFlowException($"Base branch '{baseBranch}' does not exist.");
+        // Check if it's a branch (local or remote) or any valid ref (tag, commit hash)
+        if(!GitService.LocalBranchExists(baseBranch)
+            && !GitService.RemoteBranchExists(baseBranch)
+            && !GitService.RefExists(baseBranch)) {
+            throw new GitFlowException($"Base ref '{baseBranch}' does not exist.");
         }
     }
 
@@ -201,12 +204,16 @@ public abstract class BranchServiceBase : IBranchService {
 
         ValidateBranchExists(fullBranchName);
 
+        var progress = options.OnProgress;
+
         // Optionally fetch from origin
         if(options.Fetch) {
+            progress?.Invoke("Fetching from origin...");
             GitService.Fetch();
         }
 
-        // Checkout target branch
+        // Checkout target branch and merge
+        progress?.Invoke($"Merging into '{targetBranch}'...");
         GitService.CheckoutBranch(targetBranch);
 
         // Merge the branch
@@ -216,19 +223,26 @@ public abstract class BranchServiceBase : IBranchService {
             GitService.MergeBranch(fullBranchName, noFastForward: true);
         }
 
+        progress?.Invoke($"Merged into '{targetBranch}'");
+
         // Delete the branch unless --keep
         if(!options.Keep) {
+            progress?.Invoke($"Deleting branch '{fullBranchName}'...");
             GitService.DeleteLocalBranch(fullBranchName, force: true);
 
             // Delete remote if it exists
             if(GitService.RemoteBranchExists(fullBranchName)) {
                 GitService.DeleteRemoteBranch(fullBranchName);
             }
+
+            progress?.Invoke($"Deleted branch '{fullBranchName}'");
         }
 
         // Optionally push
         if(options.Push) {
+            progress?.Invoke($"Pushing '{targetBranch}'...");
             GitService.PushBranch(targetBranch);
+            progress?.Invoke($"Pushed '{targetBranch}'");
         }
     }
 
@@ -248,13 +262,16 @@ public abstract class BranchServiceBase : IBranchService {
         var mainBranch = Config.MainBranch;
         var developBranch = Config.DevelopBranch;
         var tagName = $"{Config.VersionTagPrefix}{version}";
+        var progress = options.OnProgress;
 
         // Optionally fetch from origin
         if(options.Fetch) {
+            progress?.Invoke("Fetching from origin...");
             GitService.Fetch();
         }
 
         // Step 1: Merge into main
+        progress?.Invoke($"Merging into '{mainBranch}'...");
         GitService.CheckoutBranch(mainBranch);
         if(options.Squash) {
             GitService.MergeBranchSquash(fullBranchName);
@@ -262,42 +279,58 @@ public abstract class BranchServiceBase : IBranchService {
             GitService.MergeBranch(fullBranchName, noFastForward: true);
         }
 
+        progress?.Invoke($"Merged into '{mainBranch}'");
+
         // Step 2: Create tag on main (unless --notag)
         if(!options.NoTag) {
             if(GitService.TagExists(tagName)) {
                 throw new GitFlowException($"Tag '{tagName}' already exists.");
             }
 
+            progress?.Invoke($"Creating tag '{tagName}'...");
             var message = options.TagMessage ?? FormatTagMessage(Config.TagMessageTemplate, version);
             GitService.CreateTag(tagName, message);
+            progress?.Invoke($"Created tag '{tagName}'");
         }
 
         // Step 3: Merge into develop (unless --nobackmerge)
         if(!options.NoBackMerge) {
+            progress?.Invoke($"Merging into '{developBranch}'...");
             GitService.CheckoutBranch(developBranch);
             // Merge the tag (preferred) or main branch
             var mergeRef = options.NoTag ? mainBranch : tagName;
             GitService.MergeBranch(mergeRef, noFastForward: true);
+            progress?.Invoke($"Merged into '{developBranch}'");
         }
 
         // Step 4: Delete the branch unless --keep
         if(!options.Keep) {
+            progress?.Invoke($"Deleting branch '{fullBranchName}'...");
             GitService.DeleteLocalBranch(fullBranchName, force: true);
 
             if(GitService.RemoteBranchExists(fullBranchName)) {
                 GitService.DeleteRemoteBranch(fullBranchName);
             }
+
+            progress?.Invoke($"Deleted branch '{fullBranchName}'");
         }
 
         // Step 5: Optionally push everything
         if(options.Push) {
+            progress?.Invoke($"Pushing '{mainBranch}'...");
             GitService.PushBranch(mainBranch);
+            progress?.Invoke($"Pushed '{mainBranch}'");
+
             if(!options.NoBackMerge) {
+                progress?.Invoke($"Pushing '{developBranch}'...");
                 GitService.PushBranch(developBranch);
+                progress?.Invoke($"Pushed '{developBranch}'");
             }
 
             if(!options.NoTag) {
+                progress?.Invoke("Pushing tags...");
                 GitService.PushTags();
+                progress?.Invoke("Pushed tags");
             }
         }
 

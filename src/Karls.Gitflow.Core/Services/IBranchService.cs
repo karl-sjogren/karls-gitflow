@@ -99,6 +99,11 @@ public sealed record FinishOptions {
     /// Whether to skip back-merge to develop (for release/hotfix).
     /// </summary>
     public bool NoBackMerge { get; init; }
+
+    /// <summary>
+    /// Optional callback for reporting progress during the finish operation.
+    /// </summary>
+    public Action<string>? OnProgress { get; init; }
 }
 
 /// <summary>

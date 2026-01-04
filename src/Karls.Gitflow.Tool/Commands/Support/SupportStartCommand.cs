@@ -17,7 +17,7 @@ public sealed class SupportStartCommand : GitFlowCommand<SupportStartCommand.Set
         public string BaseBranch { get; set; } = string.Empty;
     }
 
-    public override int Execute(CommandContext context, Settings settings) {
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             SupportService.Start(settings.Name, settings.BaseBranch);
             WriteSuccess($"Started support branch '{SupportService.Prefix}{settings.Name}' from '{settings.BaseBranch}'");

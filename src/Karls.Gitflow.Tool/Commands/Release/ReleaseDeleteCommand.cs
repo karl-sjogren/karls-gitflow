@@ -7,7 +7,7 @@ namespace Karls.Gitflow.Tool.Commands.Release;
 /// Delete a release branch.
 /// </summary>
 public sealed class ReleaseDeleteCommand : GitFlowCommand<DeleteSettings> {
-    public override int Execute(CommandContext context, DeleteSettings settings) {
+    public override int Execute(CommandContext context, DeleteSettings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var name = ReleaseService.ResolveBranchName(settings.Name);
             var options = new DeleteOptions {

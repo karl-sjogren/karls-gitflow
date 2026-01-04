@@ -11,7 +11,7 @@ public sealed class VersionCommand : GitFlowCommand<VersionCommand.Settings> {
     public sealed class Settings : CommandSettings {
     }
 
-    public override int Execute(CommandContext context, Settings settings) {
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
         var assembly = Assembly.GetExecutingAssembly();
         var version = assembly.GetName().Version?.ToString() ?? "1.0.0";
 

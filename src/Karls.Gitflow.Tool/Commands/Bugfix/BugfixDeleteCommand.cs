@@ -7,7 +7,7 @@ namespace Karls.Gitflow.Tool.Commands.Bugfix;
 /// Delete a bugfix branch.
 /// </summary>
 public sealed class BugfixDeleteCommand : GitFlowCommand<DeleteSettings> {
-    public override int Execute(CommandContext context, DeleteSettings settings) {
+    public override int Execute(CommandContext context, DeleteSettings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var name = BugfixService.ResolveBranchName(settings.Name);
             var options = new DeleteOptions {

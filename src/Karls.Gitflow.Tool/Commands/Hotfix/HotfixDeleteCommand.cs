@@ -7,7 +7,7 @@ namespace Karls.Gitflow.Tool.Commands.Hotfix;
 /// Delete a hotfix branch.
 /// </summary>
 public sealed class HotfixDeleteCommand : GitFlowCommand<DeleteSettings> {
-    public override int Execute(CommandContext context, DeleteSettings settings) {
+    public override int Execute(CommandContext context, DeleteSettings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var name = HotfixService.ResolveBranchName(settings.Name);
             var options = new DeleteOptions {

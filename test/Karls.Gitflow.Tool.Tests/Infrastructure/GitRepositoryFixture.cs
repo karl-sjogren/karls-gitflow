@@ -193,6 +193,8 @@ public sealed class GitRepositoryFixture : IDisposable {
                 support.AddCommand<SupportDeleteCommand>("delete");
             });
 
+            config.AddCommand<PushCommand>("push");
+
             config.PropagateExceptions();
         });
 

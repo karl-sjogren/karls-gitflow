@@ -7,7 +7,7 @@ namespace Karls.Gitflow.Tool.Commands.Feature;
 /// Delete a feature branch.
 /// </summary>
 public sealed class FeatureDeleteCommand : GitFlowCommand<DeleteSettings> {
-    public override int Execute(CommandContext context, DeleteSettings settings) {
+    public override int Execute(CommandContext context, DeleteSettings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var name = FeatureService.ResolveBranchName(settings.Name);
             var options = new DeleteOptions {

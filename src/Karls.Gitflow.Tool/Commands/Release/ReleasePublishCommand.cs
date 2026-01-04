@@ -6,7 +6,7 @@ namespace Karls.Gitflow.Tool.Commands.Release;
 /// Publish a release branch to remote.
 /// </summary>
 public sealed class ReleasePublishCommand : GitFlowCommand<PublishSettings> {
-    public override int Execute(CommandContext context, PublishSettings settings) {
+    public override int Execute(CommandContext context, PublishSettings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var name = ReleaseService.ResolveBranchName(settings.Name);
             ReleaseService.Publish(name);

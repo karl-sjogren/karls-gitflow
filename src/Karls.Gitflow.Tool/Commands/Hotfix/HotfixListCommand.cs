@@ -9,7 +9,7 @@ public sealed class HotfixListCommand : GitFlowCommand<HotfixListCommand.Setting
     public sealed class Settings : CommandSettings {
     }
 
-    public override int Execute(CommandContext context, Settings settings) {
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var hotfixes = HotfixService.List();
             var currentBranch = GitService.GetCurrentBranchName();

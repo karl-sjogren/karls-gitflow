@@ -7,7 +7,7 @@ namespace Karls.Gitflow.Tool.Commands.Hotfix;
 /// Finish a hotfix branch.
 /// </summary>
 public sealed class HotfixFinishCommand : GitFlowCommand<TagFinishSettings> {
-    public override int Execute(CommandContext context, TagFinishSettings settings) {
+    public override int Execute(CommandContext context, TagFinishSettings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var name = HotfixService.ResolveBranchName(settings.Name);
             var config = GitService.GetGitFlowConfiguration();
@@ -32,14 +32,14 @@ public sealed class HotfixFinishCommand : GitFlowCommand<TagFinishSettings> {
                 Squash = settings.Squash,
                 TagMessage = tagMessage,
                 NoTag = settings.NoTag,
-                NoBackMerge = settings.NoBackMerge
+                NoBackMerge = settings.NoBackMerge,
+                OnProgress = CreateProgressCallback(settings.Quiet)
             };
 
             HotfixService.Finish(name, options);
 
-            WriteSuccess($"Finished hotfix branch '{HotfixService.Prefix}{name}'");
-            if(!settings.NoTag) {
-                WriteInfo($"Created tag '{tagName}'");
+            if(!settings.Quiet) {
+                WriteSuccess($"Finished hotfix branch '{HotfixService.Prefix}{name}'");
             }
         });
     }
