@@ -1,5 +1,4 @@
-# Git flow commands as a global .NET tool [![codecov](https://codecov.io/github/karl-sjogren/karls-gitflow/graph/badge.svg?token=XnSJ1qvn15)](https://codecov.io/github/karl-sjogren/karls-gitflow) ![NuGet Version](https://img.shields.io/nuget/v/Karls.Gitflow.Tool)
-
+# Git flow commands as a global .NET tool
 
 A modern .NET command-line tool for managing Git branches using the Gitflow
 branching model. This tool is a reimplementation of parts of
