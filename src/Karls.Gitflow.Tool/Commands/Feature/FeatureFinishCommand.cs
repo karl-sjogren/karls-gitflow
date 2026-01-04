@@ -14,11 +14,15 @@ public sealed class FeatureFinishCommand : GitFlowCommand<FinishSettings> {
                 Fetch = settings.Fetch,
                 Push = settings.Push,
                 Keep = settings.Keep,
-                Squash = settings.Squash
+                Squash = settings.Squash,
+                OnProgress = CreateProgressCallback(settings.Quiet)
             };
 
             FeatureService.Finish(name, options);
-            WriteSuccess($"Finished feature branch '{FeatureService.Prefix}{name}'");
+
+            if(!settings.Quiet) {
+                WriteSuccess($"Finished feature branch '{FeatureService.Prefix}{name}'");
+            }
         });
     }
 }

@@ -14,11 +14,15 @@ public sealed class BugfixFinishCommand : GitFlowCommand<FinishSettings> {
                 Fetch = settings.Fetch,
                 Push = settings.Push,
                 Keep = settings.Keep,
-                Squash = settings.Squash
+                Squash = settings.Squash,
+                OnProgress = CreateProgressCallback(settings.Quiet)
             };
 
             BugfixService.Finish(name, options);
-            WriteSuccess($"Finished bugfix branch '{BugfixService.Prefix}{name}'");
+
+            if(!settings.Quiet) {
+                WriteSuccess($"Finished bugfix branch '{BugfixService.Prefix}{name}'");
+            }
         });
     }
 }

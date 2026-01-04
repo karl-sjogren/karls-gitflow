@@ -32,14 +32,14 @@ public sealed class ReleaseFinishCommand : GitFlowCommand<TagFinishSettings> {
                 Squash = settings.Squash,
                 TagMessage = tagMessage,
                 NoTag = settings.NoTag,
-                NoBackMerge = settings.NoBackMerge
+                NoBackMerge = settings.NoBackMerge,
+                OnProgress = CreateProgressCallback(settings.Quiet)
             };
 
             ReleaseService.Finish(name, options);
 
-            WriteSuccess($"Finished release branch '{ReleaseService.Prefix}{name}'");
-            if(!settings.NoTag) {
-                WriteInfo($"Created tag '{tagName}'");
+            if(!settings.Quiet) {
+                WriteSuccess($"Finished release branch '{ReleaseService.Prefix}{name}'");
             }
         });
     }
