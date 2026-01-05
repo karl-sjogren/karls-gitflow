@@ -9,7 +9,8 @@
       "Bash(powershell -Command:*)",
       "Bash(find:*)",
       "Bash(tree:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(cat:*)"
     ]
   }
 }
