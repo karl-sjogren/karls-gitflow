@@ -47,6 +47,18 @@ public interface IGitService {
 
     // Remote operations
     void Fetch();
-    void PushBranch(string branchName, bool setUpstream = false);
-    void PushTags();
+
+    /// <summary>
+    /// Pushes a branch to the remote.
+    /// </summary>
+    /// <param name="branchName">The branch to push.</param>
+    /// <param name="setUpstream">Whether to set the upstream tracking reference.</param>
+    /// <returns>Server messages (e.g., PR links, security warnings).</returns>
+    string[] PushBranch(string branchName, bool setUpstream = false);
+
+    /// <summary>
+    /// Pushes all tags to the remote.
+    /// </summary>
+    /// <returns>Server messages (e.g., PR links, security warnings).</returns>
+    string[] PushTags();
 }

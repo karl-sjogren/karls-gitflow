@@ -9,8 +9,9 @@ public sealed class ReleasePublishCommand : GitFlowCommand<PublishSettings> {
     public override int Execute(CommandContext context, PublishSettings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var name = ReleaseService.ResolveBranchName(settings.Name);
-            ReleaseService.Publish(name);
+            var messages = ReleaseService.Publish(name);
             WriteSuccess($"Published release branch '{ReleaseService.Prefix}{name}' to origin");
+            WriteServerMessages(messages);
         });
     }
 }

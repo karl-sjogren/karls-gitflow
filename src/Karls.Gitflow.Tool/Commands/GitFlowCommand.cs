@@ -49,6 +49,17 @@ public abstract class GitFlowCommand<TSettings> : Command<TSettings>
         return quiet ? null : WriteInfo;
     }
 
+    /// <summary>
+    /// Writes server messages (e.g., PR links, security warnings) to the console.
+    /// </summary>
+    protected void WriteServerMessages(string[] messages) {
+        foreach(var message in messages) {
+            if(!string.IsNullOrWhiteSpace(message)) {
+                Console.MarkupLine($"[grey]{Markup.Escape(message)}[/]");
+            }
+        }
+    }
+
     protected void WriteBranch(string branchName, bool isCurrent = false) {
         if(isCurrent) {
             Console.MarkupLine($"[green]* {branchName}[/]");

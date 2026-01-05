@@ -49,12 +49,17 @@ public sealed class GitExecutor : IGitExecutor {
         process.BeginErrorReadLine();
         process.WaitForExit();
 
-        // Git sometimes writes informational messages to stderr even on success
-        // Only include error lines in output if the command failed
+        // Git writes informational messages to stderr even on success (e.g., PR links, security warnings)
+        // On failure, include stderr in output for error messages
+        // On success, preserve stderr in Messages for informational pass-through
         var output = process.ExitCode == 0
             ? outputLines.ToArray()
             : outputLines.Concat(errorLines).ToArray();
 
-        return new GitExecutorResult(output, process.ExitCode);
+        var messages = process.ExitCode == 0
+            ? errorLines.ToArray()
+            : [];
+
+        return new GitExecutorResult(output, process.ExitCode, messages);
     }
 }

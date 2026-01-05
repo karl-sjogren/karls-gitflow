@@ -9,8 +9,9 @@ public sealed class BugfixPublishCommand : GitFlowCommand<PublishSettings> {
     public override int Execute(CommandContext context, PublishSettings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var name = BugfixService.ResolveBranchName(settings.Name);
-            BugfixService.Publish(name);
+            var messages = BugfixService.Publish(name);
             WriteSuccess($"Published bugfix branch '{BugfixService.Prefix}{name}' to origin");
+            WriteServerMessages(messages);
         });
     }
 }
