@@ -95,11 +95,29 @@ public class GitFlowInitializerTests {
         A.CallTo(() => _fakeGitService.IsGitRepository()).Returns(true);
         A.CallTo(() => _fakeGitService.IsGitFlowInitialized()).Returns(false);
         A.CallTo(() => _fakeGitService.LocalBranchExists("main")).Returns(false);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists("main")).Returns(false);
         A.CallTo(() => _fakeGitService.GetLocalBranches()).Returns(["some-branch"]);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists(A<string>._)).Returns(false);
 
         // Act & Assert
         var ex = Should.Throw<GitFlowException>(() => _sut.Initialize(GitFlowConfiguration.Default));
         ex.Message.ShouldContain("does not exist");
+    }
+
+    [Fact]
+    public void Initialize_WhenMainBranchExistsOnlyOnRemote_ChecksOutRemoteBranch() {
+        // Arrange
+        A.CallTo(() => _fakeGitService.IsGitRepository()).Returns(true);
+        A.CallTo(() => _fakeGitService.IsGitFlowInitialized()).Returns(false);
+        A.CallTo(() => _fakeGitService.LocalBranchExists("main")).Returns(false);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists("main")).Returns(true);
+        A.CallTo(() => _fakeGitService.LocalBranchExists("develop")).Returns(false);
+
+        // Act
+        _sut.Initialize(GitFlowConfiguration.Default);
+
+        // Assert - Should have checked out the remote branch
+        A.CallTo(() => _fakeGitService.CheckoutBranch("main")).MustHaveHappenedOnceExactly();
     }
 
     [Fact]
@@ -108,8 +126,24 @@ public class GitFlowInitializerTests {
         A.CallTo(() => _fakeGitService.IsGitRepository()).Returns(true);
         A.CallTo(() => _fakeGitService.IsGitFlowInitialized()).Returns(false);
         A.CallTo(() => _fakeGitService.LocalBranchExists("main")).Returns(false);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists("main")).Returns(false);
         A.CallTo(() => _fakeGitService.LocalBranchExists("master")).Returns(true);
         A.CallTo(() => _fakeGitService.GetLocalBranches()).Returns(["master", "develop"]);
+
+        // Act & Assert
+        var ex = Should.Throw<GitFlowException>(() => _sut.Initialize(GitFlowConfiguration.Default));
+        ex.Message.ShouldContain("master");
+    }
+
+    [Fact]
+    public void Initialize_WhenAlternativeBranchExistsOnlyOnRemote_SuggestsRemoteBranch() {
+        // Arrange
+        A.CallTo(() => _fakeGitService.IsGitRepository()).Returns(true);
+        A.CallTo(() => _fakeGitService.IsGitFlowInitialized()).Returns(false);
+        A.CallTo(() => _fakeGitService.LocalBranchExists(A<string>._)).Returns(false);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists("main")).Returns(false);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists("master")).Returns(true);
+        A.CallTo(() => _fakeGitService.GetLocalBranches()).Returns(["some-branch"]);
 
         // Act & Assert
         var ex = Should.Throw<GitFlowException>(() => _sut.Initialize(GitFlowConfiguration.Default));
@@ -122,6 +156,7 @@ public class GitFlowInitializerTests {
         A.CallTo(() => _fakeGitService.IsGitRepository()).Returns(true);
         A.CallTo(() => _fakeGitService.IsGitFlowInitialized()).Returns(false);
         A.CallTo(() => _fakeGitService.LocalBranchExists("main")).Returns(false);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists("main")).Returns(false);
         A.CallTo(() => _fakeGitService.GetLocalBranches()).Returns([]);
 
         // Act & Assert

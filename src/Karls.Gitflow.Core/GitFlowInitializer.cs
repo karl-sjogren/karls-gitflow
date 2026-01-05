@@ -57,6 +57,12 @@ public sealed class GitFlowInitializer {
             return;
         }
 
+        // Check if the branch exists on remote - if so, check it out to create local tracking branch
+        if(_gitService.RemoteBranchExists(mainBranch)) {
+            _gitService.CheckoutBranch(mainBranch);
+            return;
+        }
+
         // Check if we're in an empty repository
         var branches = _gitService.GetLocalBranches();
         if(branches.Length == 0) {
@@ -64,9 +70,10 @@ public sealed class GitFlowInitializer {
                 $"Repository has no branches. Create an initial commit on '{mainBranch}' first.");
         }
 
-        // Check if any common main branch names exist
+        // Check if any common main branch names exist (locally or on remote)
         var commonMainNames = new[] { "main", "master", "production" };
-        var existingMain = commonMainNames.FirstOrDefault(b => _gitService.LocalBranchExists(b));
+        var existingMain = commonMainNames.FirstOrDefault(b =>
+            _gitService.LocalBranchExists(b) || _gitService.RemoteBranchExists(b));
 
         if(existingMain != null && existingMain != mainBranch) {
             throw new GitFlowException(
