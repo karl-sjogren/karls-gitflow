@@ -143,7 +143,7 @@ public abstract class BranchServiceBase : IBranchService {
     public abstract void Finish(string name, FinishOptions? options = null);
 
     /// <inheritdoc />
-    public virtual void Publish(string name) {
+    public virtual string[] Publish(string name) {
         ValidateAll();
 
         var fullBranchName = GetFullBranchName(name);
@@ -153,7 +153,7 @@ public abstract class BranchServiceBase : IBranchService {
             throw new GitFlowException($"Branch '{fullBranchName}' already exists on remote.");
         }
 
-        GitService.PushBranch(fullBranchName, setUpstream: true);
+        return GitService.PushBranch(fullBranchName, setUpstream: true);
     }
 
     /// <inheritdoc />
@@ -241,8 +241,13 @@ public abstract class BranchServiceBase : IBranchService {
         // Optionally push
         if(options.Push) {
             progress?.Invoke($"Pushing '{targetBranch}'...");
-            GitService.PushBranch(targetBranch);
+            var messages = GitService.PushBranch(targetBranch);
             progress?.Invoke($"Pushed '{targetBranch}'");
+
+            // Surface server messages (PR links, security warnings, etc.)
+            foreach(var message in messages) {
+                progress?.Invoke(message);
+            }
         }
     }
 
@@ -317,20 +322,27 @@ public abstract class BranchServiceBase : IBranchService {
 
         // Step 5: Optionally push everything
         if(options.Push) {
+            var allMessages = new List<string>();
+
             progress?.Invoke($"Pushing '{mainBranch}'...");
-            GitService.PushBranch(mainBranch);
+            allMessages.AddRange(GitService.PushBranch(mainBranch));
             progress?.Invoke($"Pushed '{mainBranch}'");
 
             if(!options.NoBackMerge) {
                 progress?.Invoke($"Pushing '{developBranch}'...");
-                GitService.PushBranch(developBranch);
+                allMessages.AddRange(GitService.PushBranch(developBranch));
                 progress?.Invoke($"Pushed '{developBranch}'");
             }
 
             if(!options.NoTag) {
                 progress?.Invoke("Pushing tags...");
-                GitService.PushTags();
+                allMessages.AddRange(GitService.PushTags());
                 progress?.Invoke("Pushed tags");
+            }
+
+            // Surface server messages (PR links, security warnings, etc.)
+            foreach(var message in allMessages) {
+                progress?.Invoke(message);
             }
         }
 
