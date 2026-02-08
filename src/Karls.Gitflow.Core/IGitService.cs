@@ -49,16 +49,14 @@ public interface IGitService {
     void Fetch();
 
     /// <summary>
-    /// Pushes a branch to the remote.
+    /// Pushes a branch to the remote. Output is not captured and will be written directly to the console. Exceptions are thrown on failure.
     /// </summary>
     /// <param name="branchName">The branch to push.</param>
     /// <param name="setUpstream">Whether to set the upstream tracking reference.</param>
-    /// <returns>Server messages (e.g., PR links, security warnings).</returns>
-    string[] PushBranch(string branchName, bool setUpstream = false);
+    void PushBranch(string branchName, bool setUpstream = false);
 
     /// <summary>
-    /// Pushes all tags to the remote.
+    /// Pushes all tags to the remote. Output is not captured and will be written directly to the console. Exceptions are thrown on failure.
     /// </summary>
-    /// <returns>Server messages (e.g., PR links, security warnings).</returns>
-    string[] PushTags();
+    void PushTags();
 }

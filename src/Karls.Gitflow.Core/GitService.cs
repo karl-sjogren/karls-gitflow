@@ -258,23 +258,19 @@ public sealed class GitService : IGitService {
         }
     }
 
-    public string[] PushBranch(string branchName, bool setUpstream = false) {
+    public void PushBranch(string branchName, bool setUpstream = false) {
         var command = setUpstream ? $"push -u origin {branchName}" : $"push origin {branchName}";
-        var result = _gitExecutor.Execute(command);
+        var result = _gitExecutor.Execute(command, false);
         if(result.ExitCode != 0) {
             throw new GitException($"Failed to push branch '{branchName}' to origin.");
         }
-
-        return result.Messages;
     }
 
-    public string[] PushTags() {
-        var result = _gitExecutor.Execute("push origin --tags");
+    public void PushTags() {
+        var result = _gitExecutor.Execute("push origin --tags", false);
         if(result.ExitCode != 0) {
             throw new GitException("Failed to push tags to origin.");
         }
-
-        return result.Messages;
     }
 
     #endregion
@@ -284,16 +280,16 @@ public sealed class GitService : IGitService {
 /// Abstraction for executing git commands.
 /// </summary>
 public interface IGitExecutor {
-    GitExecutorResult Execute(string command);
+    GitExecutorResult Execute(string command, bool captureOutput = true);
 }
 
 /// <summary>
 /// Result of executing a git command.
 /// </summary>
-/// <param name="Output">The output lines from the command (stdout).</param>
+/// <param name="Output">The output lines from the command (stdout). Empty when output is not captured.</param>
 /// <param name="ExitCode">The exit code of the command.</param>
 /// <param name="Messages">Informational messages from the command (stderr). These may include
-/// server responses like PR creation links or security warnings.</param>
+/// server responses like PR creation links or security warnings. Empty when output is not captured.</param>
 public sealed record GitExecutorResult(string[] Output, int ExitCode, string[]? Messages = null) {
     /// <summary>
     /// Gets the messages, or an empty array if null.

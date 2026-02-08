@@ -9,9 +9,8 @@ public sealed class HotfixPublishCommand : GitFlowCommand<PublishSettings> {
     public override int Execute(CommandContext context, PublishSettings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var name = HotfixService.ResolveBranchName(settings.Name);
-            var messages = HotfixService.Publish(name);
+            HotfixService.Publish(name);
             WriteSuccess($"Published hotfix branch '{HotfixService.Prefix}{name}' to origin");
-            WriteServerMessages(messages);
         });
     }
 }
