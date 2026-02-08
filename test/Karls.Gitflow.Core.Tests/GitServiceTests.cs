@@ -471,6 +471,60 @@ public class GitServiceTests {
 
     #endregion
 
+    #region Global Configuration
+
+    [Fact]
+    public void GetGlobalConfigValue_WhenValueExists_ReturnsValue() {
+        // Arrange
+        A.CallTo(() => _fakeExecutor.Execute("config --global --get test.key"))
+            .Returns(new GitExecutorResult(["test-value"], 0));
+
+        // Act
+        var result = _sut.GetGlobalConfigValue("test.key");
+
+        // Assert
+        result.ShouldBe("test-value");
+    }
+
+    [Fact]
+    public void GetGlobalConfigValue_WhenValueDoesNotExist_ReturnsNull() {
+        // Arrange
+        A.CallTo(() => _fakeExecutor.Execute("config --global --get test.key"))
+            .Returns(new GitExecutorResult([], 1));
+
+        // Act
+        var result = _sut.GetGlobalConfigValue("test.key");
+
+        // Assert
+        result.ShouldBeNull();
+    }
+
+    [Fact]
+    public void SetGlobalConfigValue_ExecutesCorrectCommand() {
+        // Arrange
+        A.CallTo(() => _fakeExecutor.Execute("config --global test.key \"test-value\""))
+            .Returns(new GitExecutorResult([], 0));
+
+        // Act
+        _sut.SetGlobalConfigValue("test.key", "test-value");
+
+        // Assert
+        A.CallTo(() => _fakeExecutor.Execute("config --global test.key \"test-value\""))
+            .MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
+    public void SetGlobalConfigValue_WhenCommandFails_ThrowsGitException() {
+        // Arrange
+        A.CallTo(() => _fakeExecutor.Execute("config --global test.key \"test-value\""))
+            .Returns(new GitExecutorResult([], 1));
+
+        // Act & Assert
+        Should.Throw<GitException>(() => _sut.SetGlobalConfigValue("test.key", "test-value"));
+    }
+
+    #endregion
+
     #region Helper Methods
 
     private void SetupConfigGet(string key, string value) {

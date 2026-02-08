@@ -143,6 +143,22 @@ public sealed class GitService : IGitService {
         }
     }
 
+    public string? GetGlobalConfigValue(string key) {
+        var result = _gitExecutor.Execute($"config --global --get {key}");
+        if(result.ExitCode != 0) {
+            return null;
+        }
+
+        return result.Output.Length > 0 ? result.Output[0] : null;
+    }
+
+    public void SetGlobalConfigValue(string key, string value) {
+        var result = _gitExecutor.Execute($"config --global {key} \"{value}\"");
+        if(result.ExitCode != 0) {
+            throw new GitException($"Failed to set global config value '{key}'.");
+        }
+    }
+
     public bool IsGitFlowInitialized() {
         // Check if the essential gitflow config keys exist
         var mainBranch = GetConfigValue("gitflow.branch.master");
