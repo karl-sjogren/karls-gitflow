@@ -48,6 +48,7 @@ public sealed class SupportBranchService : BranchServiceBase {
         var fullBranchName = GetFullBranchName(name);
         ValidateBranchExists(fullBranchName);
 
-        return GitService.PushBranch(fullBranchName, setUpstream: true);
+        GitService.PushBranch(fullBranchName, setUpstream: true);
+        return [];
     }
 }

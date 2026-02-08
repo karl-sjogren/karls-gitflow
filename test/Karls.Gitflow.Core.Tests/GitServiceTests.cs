@@ -444,28 +444,28 @@ public class GitServiceTests {
     [Fact]
     public void PushBranch_WithSetUpstream_ExecutesCorrectCommand() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("push -u origin feature/test"))
+        A.CallTo(() => _fakeExecutor.Execute("push -u origin feature/test", false))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
         _sut.PushBranch("feature/test", setUpstream: true);
 
         // Assert
-        A.CallTo(() => _fakeExecutor.Execute("push -u origin feature/test"))
+        A.CallTo(() => _fakeExecutor.Execute("push -u origin feature/test", false))
             .MustHaveHappenedOnceExactly();
     }
 
     [Fact]
     public void PushTags_ExecutesCorrectCommand() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("push origin --tags"))
+        A.CallTo(() => _fakeExecutor.Execute("push origin --tags", false))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
         _sut.PushTags();
 
         // Assert
-        A.CallTo(() => _fakeExecutor.Execute("push origin --tags"))
+        A.CallTo(() => _fakeExecutor.Execute("push origin --tags", false))
             .MustHaveHappenedOnceExactly();
     }
 

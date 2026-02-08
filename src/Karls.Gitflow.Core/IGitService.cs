@@ -53,12 +53,12 @@ public interface IGitService {
     /// </summary>
     /// <param name="branchName">The branch to push.</param>
     /// <param name="setUpstream">Whether to set the upstream tracking reference.</param>
-    /// <returns>Server messages (e.g., PR links, security warnings).</returns>
-    string[] PushBranch(string branchName, bool setUpstream = false);
+    /// <param name="captureOutput">Whether to capture output. When false, git writes directly to stdout/stderr.</param>
+    void PushBranch(string branchName, bool setUpstream = false, bool captureOutput = false);
 
     /// <summary>
     /// Pushes all tags to the remote.
     /// </summary>
-    /// <returns>Server messages (e.g., PR links, security warnings).</returns>
-    string[] PushTags();
+    /// <param name="captureOutput">Whether to capture output. When false, git writes directly to stdout/stderr.</param>
+    void PushTags(bool captureOutput = false);
 }
