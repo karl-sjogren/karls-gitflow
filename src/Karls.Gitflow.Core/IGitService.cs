@@ -29,6 +29,8 @@ public interface IGitService {
     GitFlowConfiguration GetGitFlowConfiguration();
     string? GetConfigValue(string key);
     void SetConfigValue(string key, string value);
+    string? GetGlobalConfigValue(string key);
+    void SetGlobalConfigValue(string key, string value);
     bool IsGitFlowInitialized();
 
     // Branch operations
