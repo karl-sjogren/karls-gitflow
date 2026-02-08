@@ -143,7 +143,7 @@ public abstract class BranchServiceBase : IBranchService {
     public abstract void Finish(string name, FinishOptions? options = null);
 
     /// <inheritdoc />
-    public virtual string[] Publish(string name) {
+    public virtual void Publish(string name) {
         ValidateAll();
 
         var fullBranchName = GetFullBranchName(name);
@@ -154,7 +154,6 @@ public abstract class BranchServiceBase : IBranchService {
         }
 
         GitService.PushBranch(fullBranchName, setUpstream: true);
-        return [];
     }
 
     /// <inheritdoc />

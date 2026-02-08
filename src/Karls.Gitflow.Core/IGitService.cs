@@ -49,16 +49,14 @@ public interface IGitService {
     void Fetch();
 
     /// <summary>
-    /// Pushes a branch to the remote.
+    /// Pushes a branch to the remote. Output is not captured and will be written directly to the console. Exceptions are thrown on failure.
     /// </summary>
     /// <param name="branchName">The branch to push.</param>
     /// <param name="setUpstream">Whether to set the upstream tracking reference.</param>
-    /// <param name="captureOutput">Whether to capture output. When false, git writes directly to stdout/stderr.</param>
-    void PushBranch(string branchName, bool setUpstream = false, bool captureOutput = false);
+    void PushBranch(string branchName, bool setUpstream = false);
 
     /// <summary>
-    /// Pushes all tags to the remote.
+    /// Pushes all tags to the remote. Output is not captured and will be written directly to the console. Exceptions are thrown on failure.
     /// </summary>
-    /// <param name="captureOutput">Whether to capture output. When false, git writes directly to stdout/stderr.</param>
-    void PushTags(bool captureOutput = false);
+    void PushTags();
 }

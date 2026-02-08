@@ -258,16 +258,16 @@ public sealed class GitService : IGitService {
         }
     }
 
-    public void PushBranch(string branchName, bool setUpstream = false, bool captureOutput = false) {
+    public void PushBranch(string branchName, bool setUpstream = false) {
         var command = setUpstream ? $"push -u origin {branchName}" : $"push origin {branchName}";
-        var result = _gitExecutor.Execute(command, captureOutput);
+        var result = _gitExecutor.Execute(command, false);
         if(result.ExitCode != 0) {
             throw new GitException($"Failed to push branch '{branchName}' to origin.");
         }
     }
 
-    public void PushTags(bool captureOutput = false) {
-        var result = _gitExecutor.Execute("push origin --tags", captureOutput);
+    public void PushTags() {
+        var result = _gitExecutor.Execute("push origin --tags", false);
         if(result.ExitCode != 0) {
             throw new GitException("Failed to push tags to origin.");
         }
