@@ -9,9 +9,8 @@ public sealed class FeaturePublishCommand : GitFlowCommand<PublishSettings> {
     public override int Execute(CommandContext context, PublishSettings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var name = FeatureService.ResolveBranchName(settings.Name);
-            var messages = FeatureService.Publish(name);
+            FeatureService.Publish(name);
             WriteSuccess($"Published feature branch '{FeatureService.Prefix}{name}' to origin");
-            WriteServerMessages(messages);
         });
     }
 }
