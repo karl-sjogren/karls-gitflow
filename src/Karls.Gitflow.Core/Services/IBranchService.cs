@@ -51,8 +51,7 @@ public interface IBranchService {
     /// Publishes a branch to the remote.
     /// </summary>
     /// <param name="name">The branch name (without prefix).</param>
-    /// <returns>Server messages (e.g., PR links, security warnings).</returns>
-    string[] Publish(string name);
+    void Publish(string name);
 
     /// <summary>
     /// Deletes a branch.

@@ -16,15 +16,22 @@ public sealed class GitExecutor : IGitExecutor {
         _workingDirectory = workingDirectory ?? GitFlowContext.WorkingDirectory ?? fs.Directory.GetCurrentDirectory();
     }
 
-    public GitExecutorResult Execute(string command) {
+    /// <summary>
+    /// Executes a git command.
+    /// </summary>
+    /// <param name="command">The git command to execute (without "git" prefix).</param>
+    /// <param name="captureOutput">Whether to capture output. When false, git writes directly to stdout/stderr
+    /// and the returned Output and Messages arrays will be empty.</param>
+    /// <returns>The result of the command execution.</returns>
+    public GitExecutorResult Execute(string command, bool captureOutput = true) {
         using var process = new Process {
             StartInfo = new ProcessStartInfo {
                 FileName = "git",
                 Arguments = command,
                 WorkingDirectory = _workingDirectory,
                 UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
+                RedirectStandardOutput = captureOutput,
+                RedirectStandardError = captureOutput,
                 CreateNoWindow = true
             }
         };
@@ -32,22 +39,37 @@ public sealed class GitExecutor : IGitExecutor {
         var outputLines = new List<string>();
         var errorLines = new List<string>();
 
-        process.OutputDataReceived += (sender, e) => {
-            if(e.Data != null) {
-                outputLines.Add(e.Data);
-            }
-        };
+        if(captureOutput) {
+            process.OutputDataReceived += (sender, e) => {
+                if(e.Data != null) {
+                    outputLines.Add(e.Data);
+                }
+            };
 
-        process.ErrorDataReceived += (sender, e) => {
-            if(e.Data != null) {
-                errorLines.Add(e.Data);
-            }
-        };
+            process.ErrorDataReceived += (sender, e) => {
+                if(e.Data != null) {
+                    errorLines.Add(e.Data);
+                }
+            };
+        }
 
         process.Start();
-        process.BeginOutputReadLine();
-        process.BeginErrorReadLine();
+
+        if(captureOutput) {
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+        }
+
         process.WaitForExit();
+
+        // When not capturing, git writes directly to console's stdout/stderr
+        if(!captureOutput) {
+            return new GitExecutorResult(
+                Output: Array.Empty<string>(),
+                ExitCode: process.ExitCode,
+                Messages: Array.Empty<string>()
+            );
+        }
 
         // Git writes informational messages to stderr even on success (e.g., PR links, security warnings)
         // On failure, include stderr in output for error messages

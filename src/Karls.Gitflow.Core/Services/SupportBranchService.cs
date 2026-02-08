@@ -42,12 +42,12 @@ public sealed class SupportBranchService : BranchServiceBase {
     /// <remarks>
     /// Support branches are typically not published in the traditional sense.
     /// </remarks>
-    public override string[] Publish(string name) {
+    public override void Publish(string name) {
         ValidateAll();
 
         var fullBranchName = GetFullBranchName(name);
         ValidateBranchExists(fullBranchName);
 
-        return GitService.PushBranch(fullBranchName, setUpstream: true);
+        GitService.PushBranch(fullBranchName, setUpstream: true);
     }
 }

@@ -1,11 +1,36 @@
+using Karls.Gitflow.Core;
 using Karls.Gitflow.Tool.Commands;
 using Karls.Gitflow.Tool.Commands.Bugfix;
 using Karls.Gitflow.Tool.Commands.Feature;
 using Karls.Gitflow.Tool.Commands.Hotfix;
 using Karls.Gitflow.Tool.Commands.Release;
 using Karls.Gitflow.Tool.Commands.Support;
+using Karls.Gitflow.Tool.Infrastructure;
 using Spectre.Console;
 using Spectre.Console.Cli;
+
+#region Check for updates
+
+try {
+    var gitExecutor = new GitExecutor();
+    var gitService = new GitService(gitExecutor);
+    var nugetClient = new NuGetApiClient();
+    var promptService = new UpdatePromptService();
+    var currentVersion = new Version("0.0.7"); // From Directory.Build.props
+
+    var updateChecker = new UpdateChecker(gitService, nugetClient, promptService, currentVersion);
+    var shouldExit = await updateChecker.CheckForUpdatesAsync();
+
+    nugetClient.Dispose();
+
+    if(shouldExit) {
+        return 0; // User chose to update, exit gracefully
+    }
+} catch {
+    // Silent failure - never interrupt workflow
+}
+
+#endregion
 
 var app = new CommandApp();
 
@@ -109,7 +134,7 @@ app.Configure(config => {
 });
 
 try {
-    return app.Run(args);
+    return await app.RunAsync(args);
 } catch(CommandRuntimeException ex) {
     AnsiConsole.MarkupLine($"[red]Error:[/] {ex.Message}");
     return 1;
