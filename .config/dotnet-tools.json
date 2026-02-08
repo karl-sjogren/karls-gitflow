@@ -8,13 +8,6 @@
         "dotnet-outdated"
       ],
       "rollForward": false
-    },
-    "karls.bettersecretstool": {
-      "version": "1.0.1",
-      "commands": [
-        "dotnet-better-secrets"
-      ],
-      "rollForward": false
     }
   }
 }
