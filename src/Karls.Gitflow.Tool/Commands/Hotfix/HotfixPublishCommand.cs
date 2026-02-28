@@ -1,12 +1,10 @@
-using Spectre.Console.Cli;
+using Karls.Gitflow.Core.Services;
 
 namespace Karls.Gitflow.Tool.Commands.Hotfix;
 
 /// <summary>
 /// Publish a hotfix branch to remote.
 /// </summary>
-public sealed class HotfixPublishCommand : GitFlowCommand<PublishSettings> {
-    public override int Execute(CommandContext context, PublishSettings settings, CancellationToken cancellationToken) {
-        return ExecutePublish(HotfixService, settings);
-    }
+public sealed class HotfixPublishCommand : BranchPublishCommand {
+    protected override IBranchService BranchService => HotfixService;
 }

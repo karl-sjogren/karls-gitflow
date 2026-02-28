@@ -259,3 +259,75 @@ public class DeleteSettings : OptionalBranchNameSettings {
     [CommandOption("-r|--remote")]
     public bool Remote { get; set; }
 }
+
+/// <summary>
+/// Settings for list commands (no arguments).
+/// </summary>
+public class ListSettings : CommandSettings {
+}
+
+/// <summary>
+/// Abstract base for list commands that delegate to a branch service.
+/// </summary>
+public abstract class BranchListCommand : GitFlowCommand<ListSettings> {
+    protected abstract IBranchService BranchService { get; }
+
+    public override int Execute(CommandContext context, ListSettings settings, CancellationToken cancellationToken) {
+        return ExecuteList(BranchService);
+    }
+}
+
+/// <summary>
+/// Abstract base for start commands that delegate to a branch service.
+/// </summary>
+public abstract class BranchStartCommand : GitFlowCommand<StartSettings> {
+    protected abstract IBranchService BranchService { get; }
+
+    public override int Execute(CommandContext context, StartSettings settings, CancellationToken cancellationToken) {
+        return ExecuteStart(BranchService, settings);
+    }
+}
+
+/// <summary>
+/// Abstract base for publish commands that delegate to a branch service.
+/// </summary>
+public abstract class BranchPublishCommand : GitFlowCommand<PublishSettings> {
+    protected abstract IBranchService BranchService { get; }
+
+    public override int Execute(CommandContext context, PublishSettings settings, CancellationToken cancellationToken) {
+        return ExecutePublish(BranchService, settings);
+    }
+}
+
+/// <summary>
+/// Abstract base for delete commands that delegate to a branch service.
+/// </summary>
+public abstract class BranchDeleteCommand : GitFlowCommand<DeleteSettings> {
+    protected abstract IBranchService BranchService { get; }
+
+    public override int Execute(CommandContext context, DeleteSettings settings, CancellationToken cancellationToken) {
+        return ExecuteDelete(BranchService, settings);
+    }
+}
+
+/// <summary>
+/// Abstract base for simple finish commands (feature/bugfix pattern) that delegate to a branch service.
+/// </summary>
+public abstract class BranchSimpleFinishCommand : GitFlowCommand<FinishSettings> {
+    protected abstract IBranchService BranchService { get; }
+
+    public override int Execute(CommandContext context, FinishSettings settings, CancellationToken cancellationToken) {
+        return ExecuteSimpleFinish(BranchService, settings);
+    }
+}
+
+/// <summary>
+/// Abstract base for tag-based finish commands (release/hotfix pattern) that delegate to a branch service.
+/// </summary>
+public abstract class BranchTagFinishCommand : GitFlowCommand<TagFinishSettings> {
+    protected abstract IBranchService BranchService { get; }
+
+    public override int Execute(CommandContext context, TagFinishSettings settings, CancellationToken cancellationToken) {
+        return ExecuteTagFinish(BranchService, settings);
+    }
+}
