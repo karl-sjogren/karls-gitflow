@@ -5,7 +5,7 @@ namespace Karls.Gitflow.Core.Services;
 /// Feature branches are created from develop and merged back into develop.
 /// </summary>
 public sealed class FeatureBranchService : BranchServiceBase {
-    public FeatureBranchService(IGitService gitService) : base(gitService) {
+    public FeatureBranchService(IGitService gitService, TimeProvider? timeProvider = null) : base(gitService, timeProvider) {
     }
 
     /// <inheritdoc />

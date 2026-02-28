@@ -5,7 +5,7 @@ namespace Karls.Gitflow.Core.Services;
 /// Bugfix branches are created from develop and merged back into develop.
 /// </summary>
 public sealed class BugfixBranchService : BranchServiceBase {
-    public BugfixBranchService(IGitService gitService) : base(gitService) {
+    public BugfixBranchService(IGitService gitService, TimeProvider? timeProvider = null) : base(gitService, timeProvider) {
     }
 
     /// <inheritdoc />

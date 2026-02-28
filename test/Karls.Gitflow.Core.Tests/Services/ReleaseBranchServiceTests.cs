@@ -371,6 +371,32 @@ public class ReleaseBranchServiceTests {
 
     #endregion
 
+    #region FormatTagMessage - TimeProvider
+
+    [Fact]
+    public void Finish_WithTagMessageTemplate_UsesDateFromTimeProvider() {
+        // Arrange
+        var fakeTime = new FakeTimeProvider(new DateTimeOffset(2024, 3, 10, 0, 0, 0, TimeSpan.Zero));
+        var sut = new ReleaseBranchService(_fakeGitService, fakeTime);
+
+        A.CallTo(() => _fakeGitService.GetGitFlowConfiguration())
+            .Returns(GitFlowConfiguration.Default with { TagMessageTemplate = "v{version} released on {date}" });
+
+        SetupValidRepositoryWithCleanWorkingTree();
+        A.CallTo(() => _fakeGitService.LocalBranchExists("release/1.0.0")).Returns(true);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists("release/1.0.0")).Returns(false);
+        A.CallTo(() => _fakeGitService.TagExists("1.0.0")).Returns(false);
+
+        // Act
+        sut.Finish("1.0.0");
+
+        // Assert
+        A.CallTo(() => _fakeGitService.CreateTag("1.0.0", "v1.0.0 released on 2024-03-10"))
+            .MustHaveHappenedOnceExactly();
+    }
+
+    #endregion
+
     #region Helper Methods
 
     private void SetupValidRepository() {
