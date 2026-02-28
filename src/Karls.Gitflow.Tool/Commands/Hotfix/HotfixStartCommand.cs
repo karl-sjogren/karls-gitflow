@@ -7,9 +7,6 @@ namespace Karls.Gitflow.Tool.Commands.Hotfix;
 /// </summary>
 public sealed class HotfixStartCommand : GitFlowCommand<StartSettings> {
     public override int Execute(CommandContext context, StartSettings settings, CancellationToken cancellationToken) {
-        return ExecuteSafe(() => {
-            HotfixService.Start(settings.Name, settings.BaseBranch);
-            WriteSuccess($"Started hotfix branch '{HotfixService.Prefix}{settings.Name}'");
-        });
+        return ExecuteStart(HotfixService, settings);
     }
 }

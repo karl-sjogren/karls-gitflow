@@ -10,20 +10,6 @@ public sealed class SupportListCommand : GitFlowCommand<SupportListCommand.Setti
     }
 
     public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
-        return ExecuteSafe(() => {
-            var supports = SupportService.List();
-            var currentBranch = GitService.GetCurrentBranchName();
-            var prefix = SupportService.Prefix;
-
-            if(supports.Length == 0) {
-                WriteInfo("No support branches exist.");
-                return;
-            }
-
-            foreach(var support in supports) {
-                var fullName = $"{prefix}{support}";
-                WriteBranch(support, currentBranch == fullName);
-            }
-        });
+        return ExecuteList(SupportService);
     }
 }

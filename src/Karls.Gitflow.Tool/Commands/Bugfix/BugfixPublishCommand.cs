@@ -7,10 +7,6 @@ namespace Karls.Gitflow.Tool.Commands.Bugfix;
 /// </summary>
 public sealed class BugfixPublishCommand : GitFlowCommand<PublishSettings> {
     public override int Execute(CommandContext context, PublishSettings settings, CancellationToken cancellationToken) {
-        return ExecuteSafe(() => {
-            var name = BugfixService.ResolveBranchName(settings.Name);
-            BugfixService.Publish(name);
-            WriteSuccess($"Published bugfix branch '{BugfixService.Prefix}{name}' to origin");
-        });
+        return ExecutePublish(BugfixService, settings);
     }
 }

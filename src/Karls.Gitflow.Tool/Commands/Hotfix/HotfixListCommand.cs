@@ -10,20 +10,6 @@ public sealed class HotfixListCommand : GitFlowCommand<HotfixListCommand.Setting
     }
 
     public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
-        return ExecuteSafe(() => {
-            var hotfixes = HotfixService.List();
-            var currentBranch = GitService.GetCurrentBranchName();
-            var prefix = HotfixService.Prefix;
-
-            if(hotfixes.Length == 0) {
-                WriteInfo("No hotfix branches exist.");
-                return;
-            }
-
-            foreach(var hotfix in hotfixes) {
-                var fullName = $"{prefix}{hotfix}";
-                WriteBranch(hotfix, currentBranch == fullName);
-            }
-        });
+        return ExecuteList(HotfixService);
     }
 }

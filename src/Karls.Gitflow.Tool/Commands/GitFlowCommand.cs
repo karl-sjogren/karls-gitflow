@@ -71,6 +71,124 @@ public abstract class GitFlowCommand<TSettings> : Command<TSettings>
     }
 
     /// <summary>
+    /// Executes a list operation for the given branch service, displaying all branches.
+    /// </summary>
+    protected int ExecuteList(IBranchService service) {
+        return ExecuteSafe(() => {
+            var branches = service.List();
+            var currentBranch = GitService.GetCurrentBranchName();
+            var prefix = service.Prefix;
+
+            if(branches.Length == 0) {
+                WriteInfo($"No {service.TypeName} branches exist.");
+                return;
+            }
+
+            foreach(var branch in branches) {
+                WriteBranch(branch, currentBranch == $"{prefix}{branch}");
+            }
+        });
+    }
+
+    /// <summary>
+    /// Executes a start operation for the given branch service.
+    /// </summary>
+    protected int ExecuteStart(IBranchService service, StartSettings settings) {
+        return ExecuteSafe(() => {
+            service.Start(settings.Name, settings.BaseBranch);
+            WriteSuccess($"Started {service.TypeName} branch '{service.Prefix}{settings.Name}'");
+        });
+    }
+
+    /// <summary>
+    /// Executes a publish operation for the given branch service.
+    /// </summary>
+    protected int ExecutePublish(IBranchService service, PublishSettings settings) {
+        return ExecuteSafe(() => {
+            var name = service.ResolveBranchName(settings.Name);
+            service.Publish(name);
+            WriteSuccess($"Published {service.TypeName} branch '{service.Prefix}{name}' to origin");
+        });
+    }
+
+    /// <summary>
+    /// Executes a delete operation for the given branch service.
+    /// </summary>
+    protected int ExecuteDelete(IBranchService service, DeleteSettings settings) {
+        return ExecuteSafe(() => {
+            var name = service.ResolveBranchName(settings.Name);
+            var options = new DeleteOptions {
+                Force = settings.Force,
+                Remote = settings.Remote
+            };
+            service.Delete(name, options);
+            WriteSuccess($"Deleted {service.TypeName} branch '{service.Prefix}{name}'");
+        });
+    }
+
+    /// <summary>
+    /// Executes a simple finish operation (feature/bugfix pattern) for the given branch service.
+    /// </summary>
+    protected int ExecuteSimpleFinish(IBranchService service, FinishSettings settings) {
+        return ExecuteSafe(() => {
+            var name = service.ResolveBranchName(settings.Name);
+            var options = new FinishOptions {
+                Fetch = settings.Fetch,
+                Push = settings.Push,
+                Keep = settings.Keep,
+                Squash = settings.Squash,
+                OnProgress = CreateProgressCallback(settings.Quiet)
+            };
+
+            service.Finish(name, options);
+
+            if(!settings.Quiet) {
+                WriteSuccess($"Finished {service.TypeName} branch '{service.Prefix}{name}'");
+            }
+        });
+    }
+
+    /// <summary>
+    /// Executes a tag-based finish operation (release/hotfix pattern) for the given branch service.
+    /// </summary>
+    protected int ExecuteTagFinish(IBranchService service, TagFinishSettings settings) {
+        return ExecuteSafe(() => {
+            var name = service.ResolveBranchName(settings.Name);
+            var config = GitService.GetGitFlowConfiguration();
+            var tagName = $"{config.VersionTagPrefix}{name}";
+
+            // Determine tag message: explicit > template > editor prompt
+            var tagMessage = settings.Message;
+            if(!settings.NoTag && string.IsNullOrEmpty(tagMessage)) {
+                if(!string.IsNullOrEmpty(config.TagMessageTemplate)) {
+                    // Template will be applied in the service layer
+                    tagMessage = null;
+                } else {
+                    // No message and no template - prompt with editor
+                    tagMessage = PromptForTagMessage(tagName);
+                }
+            }
+
+            var options = new FinishOptions {
+                Fetch = settings.Fetch,
+                Push = settings.Push,
+                Keep = settings.Keep,
+                Squash = settings.Squash,
+                TagMessage = tagMessage,
+                NoTag = settings.NoTag,
+                NoBackMerge = settings.NoBackMerge,
+                OnProgress = CreateProgressCallback(settings.Quiet)
+            };
+
+            service.Finish(name, options);
+
+            if(!settings.Quiet) {
+                WriteSuccess($"Finished {service.TypeName} branch '{service.Prefix}{name}'");
+            }
+        });
+    }
+
+    /// <summary>
     /// Prompts the user to enter a tag message using their configured editor.
     /// </summary>
     /// <param name="tagName">The tag name for the template.</param>
