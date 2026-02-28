@@ -89,6 +89,12 @@ public sealed class GitFlowInitializer {
             return;
         }
 
+        // Check if the branch exists on remote - if so, check it out to create local tracking branch
+        if(_gitService.RemoteBranchExists(developBranch)) {
+            _gitService.CheckoutBranch(developBranch);
+            return;
+        }
+
         // Create develop branch from main
         _gitService.CreateBranch(developBranch, mainBranch);
     }
