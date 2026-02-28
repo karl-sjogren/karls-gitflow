@@ -5,7 +5,8 @@ namespace Karls.Gitflow.Core.Services;
 /// </summary>
 public abstract class BranchServiceBase : IBranchService {
     protected readonly IGitService GitService;
-    protected GitFlowConfiguration Config => GitService.GetGitFlowConfiguration();
+    private GitFlowConfiguration? _config;
+    protected GitFlowConfiguration Config => _config ??= GitService.GetGitFlowConfiguration();
 
     protected BranchServiceBase(IGitService gitService) {
         GitService = gitService;
