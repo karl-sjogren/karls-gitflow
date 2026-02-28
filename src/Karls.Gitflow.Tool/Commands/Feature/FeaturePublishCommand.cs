@@ -1,12 +1,10 @@
-using Spectre.Console.Cli;
+using Karls.Gitflow.Core.Services;
 
 namespace Karls.Gitflow.Tool.Commands.Feature;
 
 /// <summary>
 /// Publish a feature branch to remote.
 /// </summary>
-public sealed class FeaturePublishCommand : GitFlowCommand<PublishSettings> {
-    public override int Execute(CommandContext context, PublishSettings settings, CancellationToken cancellationToken) {
-        return ExecutePublish(FeatureService, settings);
-    }
+public sealed class FeaturePublishCommand : BranchPublishCommand {
+    protected override IBranchService BranchService => FeatureService;
 }

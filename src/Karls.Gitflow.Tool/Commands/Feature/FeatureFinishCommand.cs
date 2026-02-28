@@ -1,12 +1,10 @@
-using Spectre.Console.Cli;
+using Karls.Gitflow.Core.Services;
 
 namespace Karls.Gitflow.Tool.Commands.Feature;
 
 /// <summary>
 /// Finish a feature branch.
 /// </summary>
-public sealed class FeatureFinishCommand : GitFlowCommand<FinishSettings> {
-    public override int Execute(CommandContext context, FinishSettings settings, CancellationToken cancellationToken) {
-        return ExecuteSimpleFinish(FeatureService, settings);
-    }
+public sealed class FeatureFinishCommand : BranchSimpleFinishCommand {
+    protected override IBranchService BranchService => FeatureService;
 }

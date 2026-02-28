@@ -1,12 +1,10 @@
-using Spectre.Console.Cli;
+using Karls.Gitflow.Core.Services;
 
 namespace Karls.Gitflow.Tool.Commands.Bugfix;
 
 /// <summary>
 /// Delete a bugfix branch.
 /// </summary>
-public sealed class BugfixDeleteCommand : GitFlowCommand<DeleteSettings> {
-    public override int Execute(CommandContext context, DeleteSettings settings, CancellationToken cancellationToken) {
-        return ExecuteDelete(BugfixService, settings);
-    }
+public sealed class BugfixDeleteCommand : BranchDeleteCommand {
+    protected override IBranchService BranchService => BugfixService;
 }

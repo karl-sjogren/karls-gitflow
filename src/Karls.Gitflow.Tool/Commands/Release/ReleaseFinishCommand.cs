@@ -1,12 +1,10 @@
-using Spectre.Console.Cli;
+using Karls.Gitflow.Core.Services;
 
 namespace Karls.Gitflow.Tool.Commands.Release;
 
 /// <summary>
 /// Finish a release branch.
 /// </summary>
-public sealed class ReleaseFinishCommand : GitFlowCommand<TagFinishSettings> {
-    public override int Execute(CommandContext context, TagFinishSettings settings, CancellationToken cancellationToken) {
-        return ExecuteTagFinish(ReleaseService, settings);
-    }
+public sealed class ReleaseFinishCommand : BranchTagFinishCommand {
+    protected override IBranchService BranchService => ReleaseService;
 }

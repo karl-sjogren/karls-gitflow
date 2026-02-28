@@ -1,12 +1,10 @@
-using Spectre.Console.Cli;
+using Karls.Gitflow.Core.Services;
 
 namespace Karls.Gitflow.Tool.Commands.Hotfix;
 
 /// <summary>
 /// Finish a hotfix branch.
 /// </summary>
-public sealed class HotfixFinishCommand : GitFlowCommand<TagFinishSettings> {
-    public override int Execute(CommandContext context, TagFinishSettings settings, CancellationToken cancellationToken) {
-        return ExecuteTagFinish(HotfixService, settings);
-    }
+public sealed class HotfixFinishCommand : BranchTagFinishCommand {
+    protected override IBranchService BranchService => HotfixService;
 }
