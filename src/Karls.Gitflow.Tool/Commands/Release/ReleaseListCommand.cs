@@ -10,20 +10,6 @@ public sealed class ReleaseListCommand : GitFlowCommand<ReleaseListCommand.Setti
     }
 
     public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
-        return ExecuteSafe(() => {
-            var releases = ReleaseService.List();
-            var currentBranch = GitService.GetCurrentBranchName();
-            var prefix = ReleaseService.Prefix;
-
-            if(releases.Length == 0) {
-                WriteInfo("No release branches exist.");
-                return;
-            }
-
-            foreach(var release in releases) {
-                var fullName = $"{prefix}{release}";
-                WriteBranch(release, currentBranch == fullName);
-            }
-        });
+        return ExecuteList(ReleaseService);
     }
 }

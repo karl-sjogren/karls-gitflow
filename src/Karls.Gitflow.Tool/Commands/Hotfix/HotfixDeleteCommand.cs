@@ -1,4 +1,3 @@
-using Karls.Gitflow.Core.Services;
 using Spectre.Console.Cli;
 
 namespace Karls.Gitflow.Tool.Commands.Hotfix;
@@ -8,15 +7,6 @@ namespace Karls.Gitflow.Tool.Commands.Hotfix;
 /// </summary>
 public sealed class HotfixDeleteCommand : GitFlowCommand<DeleteSettings> {
     public override int Execute(CommandContext context, DeleteSettings settings, CancellationToken cancellationToken) {
-        return ExecuteSafe(() => {
-            var name = HotfixService.ResolveBranchName(settings.Name);
-            var options = new DeleteOptions {
-                Force = settings.Force,
-                Remote = settings.Remote
-            };
-
-            HotfixService.Delete(name, options);
-            WriteSuccess($"Deleted hotfix branch '{HotfixService.Prefix}{name}'");
-        });
+        return ExecuteDelete(HotfixService, settings);
     }
 }

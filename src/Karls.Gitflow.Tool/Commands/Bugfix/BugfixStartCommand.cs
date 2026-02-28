@@ -7,9 +7,6 @@ namespace Karls.Gitflow.Tool.Commands.Bugfix;
 /// </summary>
 public sealed class BugfixStartCommand : GitFlowCommand<StartSettings> {
     public override int Execute(CommandContext context, StartSettings settings, CancellationToken cancellationToken) {
-        return ExecuteSafe(() => {
-            BugfixService.Start(settings.Name, settings.BaseBranch);
-            WriteSuccess($"Started bugfix branch '{BugfixService.Prefix}{settings.Name}'");
-        });
+        return ExecuteStart(BugfixService, settings);
     }
 }

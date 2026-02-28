@@ -10,20 +10,6 @@ public sealed class FeatureListCommand : GitFlowCommand<FeatureListCommand.Setti
     }
 
     public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
-        return ExecuteSafe(() => {
-            var features = FeatureService.List();
-            var currentBranch = GitService.GetCurrentBranchName();
-            var prefix = FeatureService.Prefix;
-
-            if(features.Length == 0) {
-                WriteInfo("No feature branches exist.");
-                return;
-            }
-
-            foreach(var feature in features) {
-                var fullName = $"{prefix}{feature}";
-                WriteBranch(feature, currentBranch == fullName);
-            }
-        });
+        return ExecuteList(FeatureService);
     }
 }
