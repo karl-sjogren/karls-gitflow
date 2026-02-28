@@ -13,26 +13,19 @@ public abstract class GitFlowCommand<TSettings> : Command<TSettings>
     where TSettings : CommandSettings {
     protected IGitExecutor GitExecutor { get; } = new GitExecutor();
 
-    private IGitService? _gitService;
-    protected IGitService GitService => _gitService ??= new GitService(GitExecutor);
+    protected IGitService GitService => field ??= new GitService(GitExecutor);
 
-    private FeatureBranchService? _featureService;
-    protected FeatureBranchService FeatureService => _featureService ??= new(GitService);
+    protected FeatureBranchService FeatureService => field ??= new(GitService);
 
-    private BugfixBranchService? _bugfixService;
-    protected BugfixBranchService BugfixService => _bugfixService ??= new(GitService);
+    protected BugfixBranchService BugfixService => field ??= new(GitService);
 
-    private ReleaseBranchService? _releaseService;
-    protected ReleaseBranchService ReleaseService => _releaseService ??= new(GitService);
+    protected ReleaseBranchService ReleaseService => field ??= new(GitService);
 
-    private HotfixBranchService? _hotfixService;
-    protected HotfixBranchService HotfixService => _hotfixService ??= new(GitService);
+    protected HotfixBranchService HotfixService => field ??= new(GitService);
 
-    private SupportBranchService? _supportService;
-    protected SupportBranchService SupportService => _supportService ??= new(GitService);
+    protected SupportBranchService SupportService => field ??= new(GitService);
 
-    private GitFlowInitializer? _initializer;
-    protected GitFlowInitializer Initializer => _initializer ??= new(GitService);
+    protected GitFlowInitializer Initializer => field ??= new(GitService);
 
     /// <summary>
     /// Gets the console for output (supports thread-local override for testing).
