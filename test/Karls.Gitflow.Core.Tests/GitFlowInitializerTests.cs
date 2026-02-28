@@ -169,6 +169,7 @@ public class GitFlowInitializerTests {
         // Arrange
         SetupValidRepository();
         A.CallTo(() => _fakeGitService.LocalBranchExists("develop")).Returns(false);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists("develop")).Returns(false);
 
         // Act
         _sut.Initialize(GitFlowConfiguration.Default);
@@ -176,6 +177,21 @@ public class GitFlowInitializerTests {
         // Assert
         A.CallTo(() => _fakeGitService.CreateBranch("develop", "main"))
             .MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
+    public void Initialize_WhenDevelopBranchExistsOnRemote_ChecksOutRemoteBranch() {
+        // Arrange
+        SetupValidRepository();
+        A.CallTo(() => _fakeGitService.LocalBranchExists("develop")).Returns(false);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists("develop")).Returns(true);
+
+        // Act
+        _sut.Initialize(GitFlowConfiguration.Default);
+
+        // Assert - should check out remote tracking branch, not create a new one
+        A.CallTo(() => _fakeGitService.CheckoutBranch("develop")).MustHaveHappenedOnceExactly();
+        A.CallTo(() => _fakeGitService.CreateBranch("develop", A<string>._)).MustNotHaveHappened();
     }
 
     [Fact]

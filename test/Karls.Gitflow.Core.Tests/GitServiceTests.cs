@@ -237,14 +237,17 @@ public class GitServiceTests {
     [Fact]
     public void GetGitFlowConfiguration_ReturnsConfiguredValues() {
         // Arrange
-        SetupConfigGet("gitflow.branch.master", "main");
-        SetupConfigGet("gitflow.branch.develop", "develop");
-        SetupConfigGet("gitflow.prefix.feature", "feature/");
-        SetupConfigGet("gitflow.prefix.bugfix", "bugfix/");
-        SetupConfigGet("gitflow.prefix.release", "release/");
-        SetupConfigGet("gitflow.prefix.hotfix", "hotfix/");
-        SetupConfigGet("gitflow.prefix.support", "support/");
-        SetupConfigGet("gitflow.prefix.versiontag", "v");
+        A.CallTo(() => _fakeExecutor.Execute("config --list"))
+            .Returns(new GitExecutorResult([
+                "gitflow.branch.master=main",
+                "gitflow.branch.develop=develop",
+                "gitflow.prefix.feature=feature/",
+                "gitflow.prefix.bugfix=bugfix/",
+                "gitflow.prefix.release=release/",
+                "gitflow.prefix.hotfix=hotfix/",
+                "gitflow.prefix.support=support/",
+                "gitflow.prefix.versiontag=v"
+            ], 0));
 
         // Act
         var result = _sut.GetGitFlowConfiguration();
@@ -263,7 +266,7 @@ public class GitServiceTests {
     [Fact]
     public void GetGitFlowConfiguration_WhenNotConfigured_ReturnsDefaults() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute(A<string>.That.StartsWith("config --get")))
+        A.CallTo(() => _fakeExecutor.Execute("config --list"))
             .Returns(new GitExecutorResult([], 1));
 
         // Act
@@ -273,6 +276,22 @@ public class GitServiceTests {
         result.MainBranch.ShouldBe(GitFlowConfiguration.DefaultValues.MainBranch);
         result.DevelopBranch.ShouldBe(GitFlowConfiguration.DefaultValues.DevelopBranch);
         result.FeaturePrefix.ShouldBe(GitFlowConfiguration.DefaultValues.FeaturePrefix);
+    }
+
+    [Fact]
+    public void GetGitFlowConfiguration_LaterEntriesOverrideEarlierOnes() {
+        // Arrange - local config overrides global (same key appears twice)
+        A.CallTo(() => _fakeExecutor.Execute("config --list"))
+            .Returns(new GitExecutorResult([
+                "gitflow.branch.master=master",
+                "gitflow.branch.master=main"
+            ], 0));
+
+        // Act
+        var result = _sut.GetGitFlowConfiguration();
+
+        // Assert - last value wins (local overrides global)
+        result.MainBranch.ShouldBe("main");
     }
 
     #endregion

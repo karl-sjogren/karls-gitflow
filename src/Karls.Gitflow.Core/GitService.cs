@@ -167,16 +167,31 @@ public sealed class GitService : IGitService {
     }
 
     public GitFlowConfiguration GetGitFlowConfiguration() {
+        // Read all config in one subprocess call instead of spawning a separate process per key.
+        var result = _gitExecutor.Execute("config --list");
+        var configDict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if(result.ExitCode == 0) {
+            foreach(var line in result.Output) {
+                var idx = line.IndexOf('=', StringComparison.Ordinal);
+                if(idx > 0) {
+                    // Later entries override earlier ones (local config wins over global)
+                    configDict[line[..idx]] = line[(idx + 1)..];
+                }
+            }
+        }
+
+        string? Get(string key) => configDict.TryGetValue(key, out var value) ? value : null;
+
         return new GitFlowConfiguration {
-            MainBranch = GetConfigValue("gitflow.branch.master") ?? GitFlowConfiguration.DefaultValues.MainBranch,
-            DevelopBranch = GetConfigValue("gitflow.branch.develop") ?? GitFlowConfiguration.DefaultValues.DevelopBranch,
-            FeaturePrefix = GetConfigValue("gitflow.prefix.feature") ?? GitFlowConfiguration.DefaultValues.FeaturePrefix,
-            BugfixPrefix = GetConfigValue("gitflow.prefix.bugfix") ?? GitFlowConfiguration.DefaultValues.BugfixPrefix,
-            ReleasePrefix = GetConfigValue("gitflow.prefix.release") ?? GitFlowConfiguration.DefaultValues.ReleasePrefix,
-            HotfixPrefix = GetConfigValue("gitflow.prefix.hotfix") ?? GitFlowConfiguration.DefaultValues.HotfixPrefix,
-            SupportPrefix = GetConfigValue("gitflow.prefix.support") ?? GitFlowConfiguration.DefaultValues.SupportPrefix,
-            VersionTagPrefix = GetConfigValue("gitflow.prefix.versiontag") ?? GitFlowConfiguration.DefaultValues.VersionTagPrefix,
-            TagMessageTemplate = GetConfigValue("gitflow.message.tag") ?? GitFlowConfiguration.DefaultValues.TagMessageTemplate
+            MainBranch = Get("gitflow.branch.master") ?? GitFlowConfiguration.DefaultValues.MainBranch,
+            DevelopBranch = Get("gitflow.branch.develop") ?? GitFlowConfiguration.DefaultValues.DevelopBranch,
+            FeaturePrefix = Get("gitflow.prefix.feature") ?? GitFlowConfiguration.DefaultValues.FeaturePrefix,
+            BugfixPrefix = Get("gitflow.prefix.bugfix") ?? GitFlowConfiguration.DefaultValues.BugfixPrefix,
+            ReleasePrefix = Get("gitflow.prefix.release") ?? GitFlowConfiguration.DefaultValues.ReleasePrefix,
+            HotfixPrefix = Get("gitflow.prefix.hotfix") ?? GitFlowConfiguration.DefaultValues.HotfixPrefix,
+            SupportPrefix = Get("gitflow.prefix.support") ?? GitFlowConfiguration.DefaultValues.SupportPrefix,
+            VersionTagPrefix = Get("gitflow.prefix.versiontag") ?? GitFlowConfiguration.DefaultValues.VersionTagPrefix,
+            TagMessageTemplate = Get("gitflow.message.tag") ?? GitFlowConfiguration.DefaultValues.TagMessageTemplate
         };
     }
 
