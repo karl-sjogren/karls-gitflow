@@ -208,4 +208,42 @@ public class PublishCommandTests : IDisposable {
     }
 
     #endregion
+
+    #region Support Publish
+
+    [Fact]
+    public void SupportPublish_PushesSupportBranchToRemote() {
+        // Arrange
+        _repo.ExecuteGit("checkout main");
+        _repo.ExecuteGit("tag v1.0.0");
+        _repo.ExecuteGitFlow("support start 1.x v1.0.0");
+        _repo.CreateCommit("Support work");
+
+        // Act
+        var result = _repo.ExecuteGitFlow("support publish 1.x");
+
+        // Assert
+        result.Success.ShouldBeTrue();
+        var remoteBranches = _repo.ExecuteGit("branch -r");
+        remoteBranches.Output.ShouldContain("origin/support/1.x");
+    }
+
+    [Fact]
+    public void SupportPublish_WhenOnSupportBranch_AutoDetectsName() {
+        // Arrange
+        _repo.ExecuteGit("checkout main");
+        _repo.ExecuteGit("tag v1.0.0");
+        _repo.ExecuteGitFlow("support start 1.x v1.0.0");
+        _repo.CreateCommit("Support work");
+
+        // Act - Don't specify the name
+        var result = _repo.ExecuteGitFlow("support publish");
+
+        // Assert
+        result.Success.ShouldBeTrue();
+        var remoteBranches = _repo.ExecuteGit("branch -r");
+        remoteBranches.Output.ShouldContain("origin/support/1.x");
+    }
+
+    #endregion
 }

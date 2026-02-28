@@ -190,6 +190,7 @@ public sealed class GitRepositoryFixture : IDisposable {
             config.AddBranch("support", support => {
                 support.AddCommand<SupportListCommand>("list");
                 support.AddCommand<SupportStartCommand>("start");
+                support.AddCommand<SupportPublishCommand>("publish");
                 support.AddCommand<SupportDeleteCommand>("delete");
             });
 
