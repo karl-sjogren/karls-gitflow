@@ -12,14 +12,27 @@ namespace Karls.Gitflow.Tool.Commands;
 public abstract class GitFlowCommand<TSettings> : Command<TSettings>
     where TSettings : CommandSettings {
     protected IGitExecutor GitExecutor { get; } = new GitExecutor();
-    protected IGitService GitService => new GitService(GitExecutor);
 
-    protected FeatureBranchService FeatureService => new(GitService);
-    protected BugfixBranchService BugfixService => new(GitService);
-    protected ReleaseBranchService ReleaseService => new(GitService);
-    protected HotfixBranchService HotfixService => new(GitService);
-    protected SupportBranchService SupportService => new(GitService);
-    protected GitFlowInitializer Initializer => new(GitService);
+    private IGitService? _gitService;
+    protected IGitService GitService => _gitService ??= new GitService(GitExecutor);
+
+    private FeatureBranchService? _featureService;
+    protected FeatureBranchService FeatureService => _featureService ??= new(GitService);
+
+    private BugfixBranchService? _bugfixService;
+    protected BugfixBranchService BugfixService => _bugfixService ??= new(GitService);
+
+    private ReleaseBranchService? _releaseService;
+    protected ReleaseBranchService ReleaseService => _releaseService ??= new(GitService);
+
+    private HotfixBranchService? _hotfixService;
+    protected HotfixBranchService HotfixService => _hotfixService ??= new(GitService);
+
+    private SupportBranchService? _supportService;
+    protected SupportBranchService SupportService => _supportService ??= new(GitService);
+
+    private GitFlowInitializer? _initializer;
+    protected GitFlowInitializer Initializer => _initializer ??= new(GitService);
 
     /// <summary>
     /// Gets the console for output (supports thread-local override for testing).
