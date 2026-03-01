@@ -14,7 +14,7 @@ public class GitServiceTests {
     [Fact]
     public void IsGitRepository_WhenInsideGitRepo_ReturnsTrue() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("rev-parse --is-inside-work-tree"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "rev-parse", "--is-inside-work-tree" }))))
             .Returns(new GitExecutorResult(["true"], 0));
 
         // Act
@@ -27,7 +27,7 @@ public class GitServiceTests {
     [Fact]
     public void IsGitRepository_WhenNotInsideGitRepo_ReturnsFalse() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("rev-parse --is-inside-work-tree"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "rev-parse", "--is-inside-work-tree" }))))
             .Returns(new GitExecutorResult([], 128));
 
         // Act
@@ -44,7 +44,7 @@ public class GitServiceTests {
     [Fact]
     public void IsWorkingTreeClean_WhenClean_ReturnsTrue() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("status --porcelain"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "status", "--porcelain" }))))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
@@ -57,7 +57,7 @@ public class GitServiceTests {
     [Fact]
     public void IsWorkingTreeClean_WhenDirty_ReturnsFalse() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("status --porcelain"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "status", "--porcelain" }))))
             .Returns(new GitExecutorResult(["M  file.txt"], 0));
 
         // Act
@@ -70,7 +70,7 @@ public class GitServiceTests {
     [Fact]
     public void IsWorkingTreeClean_WhenCommandFails_ThrowsGitException() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("status --porcelain"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "status", "--porcelain" }))))
             .Returns(new GitExecutorResult([], 1));
 
         // Act & Assert
@@ -84,7 +84,7 @@ public class GitServiceTests {
     [Fact]
     public void GetCurrentBranchName_ReturnsCurrentBranch() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("rev-parse --abbrev-ref HEAD"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "rev-parse", "--abbrev-ref", "HEAD" }))))
             .Returns(new GitExecutorResult(["develop"], 0));
 
         // Act
@@ -97,7 +97,7 @@ public class GitServiceTests {
     [Fact]
     public void GetCurrentBranchName_WhenCommandFails_ThrowsGitException() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("rev-parse --abbrev-ref HEAD"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "rev-parse", "--abbrev-ref", "HEAD" }))))
             .Returns(new GitExecutorResult([], 1));
 
         // Act & Assert
@@ -111,7 +111,7 @@ public class GitServiceTests {
     [Fact]
     public void GetLocalBranches_ReturnsBranches() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("for-each-ref --sort=refname --format=%(refname:short) refs/heads"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "for-each-ref", "--sort=refname", "--format=%(refname:short)", "refs/heads" }))))
             .Returns(new GitExecutorResult(["develop", "main", "feature/test"], 0));
 
         // Act
@@ -128,7 +128,7 @@ public class GitServiceTests {
     [Fact]
     public void LocalBranchExists_WhenBranchExists_ReturnsTrue() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("show-ref --verify --quiet refs/heads/develop"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "show-ref", "--verify", "--quiet", "refs/heads/develop" }))))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
@@ -141,7 +141,7 @@ public class GitServiceTests {
     [Fact]
     public void LocalBranchExists_WhenBranchDoesNotExist_ReturnsFalse() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("show-ref --verify --quiet refs/heads/nonexistent"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "show-ref", "--verify", "--quiet", "refs/heads/nonexistent" }))))
             .Returns(new GitExecutorResult([], 1));
 
         // Act
@@ -158,7 +158,7 @@ public class GitServiceTests {
     [Fact]
     public void RemoteBranchExists_WhenBranchExists_ReturnsTrue() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("show-ref --verify --quiet refs/remotes/origin/develop"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "show-ref", "--verify", "--quiet", "refs/remotes/origin/develop" }))))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
@@ -175,7 +175,7 @@ public class GitServiceTests {
     [Fact]
     public void TagExists_WhenTagExists_ReturnsTrue() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("show-ref --verify --quiet refs/tags/v1.0.0"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "show-ref", "--verify", "--quiet", "refs/tags/v1.0.0" }))))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
@@ -188,7 +188,7 @@ public class GitServiceTests {
     [Fact]
     public void TagExists_WhenTagDoesNotExist_ReturnsFalse() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("show-ref --verify --quiet refs/tags/v1.0.0"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "show-ref", "--verify", "--quiet", "refs/tags/v1.0.0" }))))
             .Returns(new GitExecutorResult([], 1));
 
         // Act
@@ -205,9 +205,9 @@ public class GitServiceTests {
     [Fact]
     public void IsGitFlowInitialized_WhenConfigured_ReturnsTrue() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("config --get gitflow.branch.master"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "config", "--get", "gitflow.branch.master" }))))
             .Returns(new GitExecutorResult(["main"], 0));
-        A.CallTo(() => _fakeExecutor.Execute("config --get gitflow.branch.develop"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "config", "--get", "gitflow.branch.develop" }))))
             .Returns(new GitExecutorResult(["develop"], 0));
 
         // Act
@@ -220,7 +220,7 @@ public class GitServiceTests {
     [Fact]
     public void IsGitFlowInitialized_WhenNotConfigured_ReturnsFalse() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("config --get gitflow.branch.master"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "config", "--get", "gitflow.branch.master" }))))
             .Returns(new GitExecutorResult([], 1));
 
         // Act
@@ -237,7 +237,7 @@ public class GitServiceTests {
     [Fact]
     public void GetGitFlowConfiguration_ReturnsConfiguredValues() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("config --list"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "config", "--list" }))))
             .Returns(new GitExecutorResult([
                 "gitflow.branch.master=main",
                 "gitflow.branch.develop=develop",
@@ -266,7 +266,7 @@ public class GitServiceTests {
     [Fact]
     public void GetGitFlowConfiguration_WhenNotConfigured_ReturnsDefaults() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("config --list"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "config", "--list" }))))
             .Returns(new GitExecutorResult([], 1));
 
         // Act
@@ -281,7 +281,7 @@ public class GitServiceTests {
     [Fact]
     public void GetGitFlowConfiguration_LaterEntriesOverrideEarlierOnes() {
         // Arrange - local config overrides global (same key appears twice)
-        A.CallTo(() => _fakeExecutor.Execute("config --list"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "config", "--list" }))))
             .Returns(new GitExecutorResult([
                 "gitflow.branch.master=master",
                 "gitflow.branch.master=main"
@@ -301,21 +301,21 @@ public class GitServiceTests {
     [Fact]
     public void CreateBranch_ExecutesCorrectCommand() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("checkout -b feature/test develop"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "checkout", "-b", "feature/test", "develop" }))))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
         _sut.CreateBranch("feature/test", "develop");
 
         // Assert
-        A.CallTo(() => _fakeExecutor.Execute("checkout -b feature/test develop"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "checkout", "-b", "feature/test", "develop" }))))
             .MustHaveHappenedOnceExactly();
     }
 
     [Fact]
     public void CreateBranch_WhenFails_ThrowsGitException() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute(A<string>.That.StartsWith("checkout -b")))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.Length >= 2 && a[0] == "checkout" && a[1] == "-b")))
             .Returns(new GitExecutorResult(["error"], 1));
 
         // Act & Assert
@@ -325,56 +325,56 @@ public class GitServiceTests {
     [Fact]
     public void CheckoutBranch_ExecutesCorrectCommand() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("checkout develop"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "checkout", "develop" }))))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
         _sut.CheckoutBranch("develop");
 
         // Assert
-        A.CallTo(() => _fakeExecutor.Execute("checkout develop"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "checkout", "develop" }))))
             .MustHaveHappenedOnceExactly();
     }
 
     [Fact]
     public void DeleteLocalBranch_WithoutForce_ExecutesCorrectCommand() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("branch -d feature/test"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "branch", "-d", "feature/test" }))))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
         _sut.DeleteLocalBranch("feature/test");
 
         // Assert
-        A.CallTo(() => _fakeExecutor.Execute("branch -d feature/test"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "branch", "-d", "feature/test" }))))
             .MustHaveHappenedOnceExactly();
     }
 
     [Fact]
     public void DeleteLocalBranch_WithForce_ExecutesCorrectCommand() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("branch -D feature/test"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "branch", "-D", "feature/test" }))))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
         _sut.DeleteLocalBranch("feature/test", force: true);
 
         // Assert
-        A.CallTo(() => _fakeExecutor.Execute("branch -D feature/test"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "branch", "-D", "feature/test" }))))
             .MustHaveHappenedOnceExactly();
     }
 
     [Fact]
     public void DeleteRemoteBranch_ExecutesCorrectCommand() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("push origin --delete feature/test"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "push", "origin", "--delete", "feature/test" }))))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
         _sut.DeleteRemoteBranch("feature/test");
 
         // Assert
-        A.CallTo(() => _fakeExecutor.Execute("push origin --delete feature/test"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "push", "origin", "--delete", "feature/test" }))))
             .MustHaveHappenedOnceExactly();
     }
 
@@ -385,28 +385,28 @@ public class GitServiceTests {
     [Fact]
     public void MergeBranch_WithNoFastForward_ExecutesCorrectCommand() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("merge --no-ff feature/test"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "merge", "--no-ff", "feature/test" }))))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
         _sut.MergeBranch("feature/test", noFastForward: true);
 
         // Assert
-        A.CallTo(() => _fakeExecutor.Execute("merge --no-ff feature/test"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "merge", "--no-ff", "feature/test" }))))
             .MustHaveHappenedOnceExactly();
     }
 
     [Fact]
     public void MergeBranch_WithFastForward_ExecutesCorrectCommand() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("merge feature/test"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "merge", "feature/test" }))))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
         _sut.MergeBranch("feature/test", noFastForward: false);
 
         // Assert
-        A.CallTo(() => _fakeExecutor.Execute("merge feature/test"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "merge", "feature/test" }))))
             .MustHaveHappenedOnceExactly();
     }
 
@@ -417,28 +417,28 @@ public class GitServiceTests {
     [Fact]
     public void CreateTag_WithMessage_ExecutesCorrectCommand() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("tag -a v1.0.0 -m \"Release 1.0.0\""))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "tag", "-a", "v1.0.0", "-m", "Release 1.0.0" }))))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
         _sut.CreateTag("v1.0.0", "Release 1.0.0");
 
         // Assert
-        A.CallTo(() => _fakeExecutor.Execute("tag -a v1.0.0 -m \"Release 1.0.0\""))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "tag", "-a", "v1.0.0", "-m", "Release 1.0.0" }))))
             .MustHaveHappenedOnceExactly();
     }
 
     [Fact]
     public void CreateTag_WithoutMessage_ExecutesCorrectCommand() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("tag v1.0.0"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "tag", "v1.0.0" }))))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
         _sut.CreateTag("v1.0.0");
 
         // Assert
-        A.CallTo(() => _fakeExecutor.Execute("tag v1.0.0"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "tag", "v1.0.0" }))))
             .MustHaveHappenedOnceExactly();
     }
 
@@ -449,42 +449,42 @@ public class GitServiceTests {
     [Fact]
     public void Fetch_ExecutesCorrectCommand() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("fetch origin"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "fetch", "origin" }))))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
         _sut.Fetch();
 
         // Assert
-        A.CallTo(() => _fakeExecutor.Execute("fetch origin"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "fetch", "origin" }))))
             .MustHaveHappenedOnceExactly();
     }
 
     [Fact]
     public void PushBranch_WithSetUpstream_ExecutesCorrectCommand() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("push -u origin feature/test", false))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "push", "-u", "origin", "feature/test" })), false))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
         _sut.PushBranch("feature/test", setUpstream: true);
 
         // Assert
-        A.CallTo(() => _fakeExecutor.Execute("push -u origin feature/test", false))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "push", "-u", "origin", "feature/test" })), false))
             .MustHaveHappenedOnceExactly();
     }
 
     [Fact]
     public void PushTags_ExecutesCorrectCommand() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("push origin --tags", false))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "push", "origin", "--tags" })), false))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
         _sut.PushTags();
 
         // Assert
-        A.CallTo(() => _fakeExecutor.Execute("push origin --tags", false))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "push", "origin", "--tags" })), false))
             .MustHaveHappenedOnceExactly();
     }
 
@@ -495,7 +495,7 @@ public class GitServiceTests {
     [Fact]
     public void GetGlobalConfigValue_WhenValueExists_ReturnsValue() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("config --global --get test.key"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "config", "--global", "--get", "test.key" }))))
             .Returns(new GitExecutorResult(["test-value"], 0));
 
         // Act
@@ -508,7 +508,7 @@ public class GitServiceTests {
     [Fact]
     public void GetGlobalConfigValue_WhenValueDoesNotExist_ReturnsNull() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("config --global --get test.key"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "config", "--global", "--get", "test.key" }))))
             .Returns(new GitExecutorResult([], 1));
 
         // Act
@@ -521,21 +521,21 @@ public class GitServiceTests {
     [Fact]
     public void SetGlobalConfigValue_ExecutesCorrectCommand() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("config --global test.key \"test-value\""))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "config", "--global", "test.key", "test-value" }))))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
         _sut.SetGlobalConfigValue("test.key", "test-value");
 
         // Assert
-        A.CallTo(() => _fakeExecutor.Execute("config --global test.key \"test-value\""))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "config", "--global", "test.key", "test-value" }))))
             .MustHaveHappenedOnceExactly();
     }
 
     [Fact]
     public void SetGlobalConfigValue_WhenCommandFails_ThrowsGitException() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute("config --global test.key \"test-value\""))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "config", "--global", "test.key", "test-value" }))))
             .Returns(new GitExecutorResult([], 1));
 
         // Act & Assert
@@ -547,7 +547,7 @@ public class GitServiceTests {
     #region Helper Methods
 
     private void SetupConfigGet(string key, string value) {
-        A.CallTo(() => _fakeExecutor.Execute($"config --get {key}"))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "config", "--get", key }))))
             .Returns(new GitExecutorResult([value], 0));
     }
 

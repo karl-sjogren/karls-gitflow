@@ -19,21 +19,27 @@ public sealed class GitExecutor : IGitExecutor {
     /// <summary>
     /// Executes a git command.
     /// </summary>
-    /// <param name="command">The git command to execute (without "git" prefix).</param>
+    /// <param name="args">The git arguments to pass (without "git" itself). Each element is a separate argument,
+    /// so no quoting or escaping is required — values with spaces are handled correctly.</param>
     /// <param name="captureOutput">Whether to capture output. When false, git writes directly to stdout/stderr
     /// and the returned Output and Messages arrays will be empty.</param>
     /// <returns>The result of the command execution.</returns>
-    public GitExecutorResult Execute(string command, bool captureOutput = true) {
+    public GitExecutorResult Execute(string[] args, bool captureOutput = true) {
+        var startInfo = new ProcessStartInfo {
+            FileName = "git",
+            WorkingDirectory = _workingDirectory,
+            UseShellExecute = false,
+            RedirectStandardOutput = captureOutput,
+            RedirectStandardError = captureOutput,
+            CreateNoWindow = true
+        };
+
+        foreach(var arg in args) {
+            startInfo.ArgumentList.Add(arg);
+        }
+
         using var process = new Process {
-            StartInfo = new ProcessStartInfo {
-                FileName = "git",
-                Arguments = command,
-                WorkingDirectory = _workingDirectory,
-                UseShellExecute = false,
-                RedirectStandardOutput = captureOutput,
-                RedirectStandardError = captureOutput,
-                CreateNoWindow = true
-            }
+            StartInfo = startInfo
         };
 
         var outputLines = new List<string>();
