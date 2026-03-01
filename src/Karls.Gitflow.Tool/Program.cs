@@ -1,17 +1,43 @@
+using System.Reflection;
+using Karls.Gitflow.Core;
 using Karls.Gitflow.Tool.Commands;
 using Karls.Gitflow.Tool.Commands.Bugfix;
 using Karls.Gitflow.Tool.Commands.Feature;
 using Karls.Gitflow.Tool.Commands.Hotfix;
 using Karls.Gitflow.Tool.Commands.Release;
 using Karls.Gitflow.Tool.Commands.Support;
+using Karls.Gitflow.Tool.Infrastructure;
 using Spectre.Console;
 using Spectre.Console.Cli;
+
+#region Check for updates
+
+try {
+    var gitExecutor = new GitExecutor();
+    var gitService = new GitService(gitExecutor);
+    var nugetClient = new NuGetApiClient();
+    var promptService = new UpdatePromptService();
+    var currentVersion = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0);
+
+    var updateChecker = new UpdateChecker(gitService, nugetClient, promptService, currentVersion);
+    var shouldExit = await updateChecker.CheckForUpdatesAsync();
+
+    nugetClient.Dispose();
+
+    if(shouldExit) {
+        return 0; // User chose to update, exit gracefully
+    }
+} catch {
+    // Silent failure - never interrupt workflow
+}
+
+#endregion
 
 var app = new CommandApp();
 
 app.Configure(config => {
     config.SetApplicationName("git-flow");
-    config.SetApplicationVersion("1.0.0");
+    config.SetApplicationVersion(Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0");
 
     // Init command
     config.AddCommand<InitCommand>("init")
@@ -101,6 +127,8 @@ app.Configure(config => {
             .WithDescription("List all support branches.");
         support.AddCommand<SupportStartCommand>("start")
             .WithDescription("Start a new support branch.");
+        support.AddCommand<SupportPublishCommand>("publish")
+            .WithDescription("Publish a support branch to remote.");
         support.AddCommand<SupportDeleteCommand>("delete")
             .WithDescription("Delete a support branch.");
     });
@@ -109,7 +137,7 @@ app.Configure(config => {
 });
 
 try {
-    return app.Run(args);
+    return await app.RunAsync(args);
 } catch(CommandRuntimeException ex) {
     AnsiConsole.MarkupLine($"[red]Error:[/] {ex.Message}");
     return 1;

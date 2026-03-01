@@ -1,16 +1,10 @@
-using Spectre.Console.Cli;
+using Karls.Gitflow.Core.Services;
 
 namespace Karls.Gitflow.Tool.Commands.Release;
 
 /// <summary>
 /// Publish a release branch to remote.
 /// </summary>
-public sealed class ReleasePublishCommand : GitFlowCommand<PublishSettings> {
-    public override int Execute(CommandContext context, PublishSettings settings, CancellationToken cancellationToken) {
-        return ExecuteSafe(() => {
-            var name = ReleaseService.ResolveBranchName(settings.Name);
-            ReleaseService.Publish(name);
-            WriteSuccess($"Published release branch '{ReleaseService.Prefix}{name}' to origin");
-        });
-    }
+public sealed class ReleasePublishCommand : BranchPublishCommand {
+    protected override IBranchService BranchService => ReleaseService;
 }

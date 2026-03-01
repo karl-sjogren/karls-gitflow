@@ -6,7 +6,7 @@ namespace Karls.Gitflow.Core.Services;
 /// A version tag is created on main after the merge.
 /// </summary>
 public sealed class HotfixBranchService : BranchServiceBase {
-    public HotfixBranchService(IGitService gitService) : base(gitService) {
+    public HotfixBranchService(IGitService gitService, TimeProvider? timeProvider = null) : base(gitService, timeProvider) {
     }
 
     /// <inheritdoc />

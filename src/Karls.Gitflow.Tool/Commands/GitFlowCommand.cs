@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using System.IO.Abstractions;
 using Karls.Gitflow.Core;
 using Karls.Gitflow.Core.Services;
 using Karls.Gitflow.Tool.Infrastructure;
@@ -13,16 +11,21 @@ namespace Karls.Gitflow.Tool.Commands;
 /// </summary>
 public abstract class GitFlowCommand<TSettings> : Command<TSettings>
     where TSettings : CommandSettings {
-    private readonly IFileSystem _fileSystem = new FileSystem();
     protected IGitExecutor GitExecutor { get; } = new GitExecutor();
-    protected IGitService GitService => new GitService(GitExecutor);
 
-    protected FeatureBranchService FeatureService => new(GitService);
-    protected BugfixBranchService BugfixService => new(GitService);
-    protected ReleaseBranchService ReleaseService => new(GitService);
-    protected HotfixBranchService HotfixService => new(GitService);
-    protected SupportBranchService SupportService => new(GitService);
-    protected GitFlowInitializer Initializer => new(GitService);
+    protected IGitService GitService => field ??= new GitService(GitExecutor);
+
+    protected FeatureBranchService FeatureService => field ??= new(GitService);
+
+    protected BugfixBranchService BugfixService => field ??= new(GitService);
+
+    protected ReleaseBranchService ReleaseService => field ??= new(GitService);
+
+    protected HotfixBranchService HotfixService => field ??= new(GitService);
+
+    protected SupportBranchService SupportService => field ??= new(GitService);
+
+    protected GitFlowInitializer Initializer => field ??= new(GitService);
 
     /// <summary>
     /// Gets the console for output (supports thread-local override for testing).
@@ -71,107 +74,107 @@ public abstract class GitFlowCommand<TSettings> : Command<TSettings>
     }
 
     /// <summary>
-    /// Prompts the user to enter a tag message using their configured editor.
+    /// Executes a list operation for the given branch service, displaying all branches.
     /// </summary>
-    /// <param name="tagName">The tag name for the template.</param>
-    /// <returns>The message entered by the user, or null if cancelled/empty.</returns>
-    /// <exception cref="GitFlowException">Thrown if no editor is configured or editor fails.</exception>
-    protected string? PromptForTagMessage(string tagName) {
-        var editor = GetEditor();
-        if(string.IsNullOrEmpty(editor)) {
-            throw new GitFlowException(
-                "No editor configured. Set core.editor in git config, or use -m to provide a message.");
-        }
+    protected int ExecuteList(IBranchService service) {
+        return ExecuteSafe(() => {
+            var branches = service.List();
+            var currentBranch = GitService.GetCurrentBranchName();
+            var prefix = service.Prefix;
 
-        var tempFile = _fileSystem.Path.Combine(_fileSystem.Path.GetTempPath(), $"TAG_EDITMSG_{Guid.NewGuid():N}");
-        try {
-            // Write template to temp file
-            var template = $"""
-
-                # Enter a tag message for '{tagName}'.
-                # Lines starting with '#' will be ignored.
-                # An empty message aborts the tagging.
-                """;
-            _fileSystem.File.WriteAllText(tempFile, template);
-
-            // Open editor
-            var process = StartEditor(editor, tempFile);
-            if(process == null) {
-                throw new GitFlowException($"Failed to start editor: {editor}");
+            if(branches.Length == 0) {
+                WriteInfo($"No {service.TypeName} branches exist.");
+                return;
             }
 
-            process.WaitForExit();
-
-            if(process.ExitCode != 0) {
-                throw new GitFlowException($"Editor exited with code {process.ExitCode}");
+            foreach(var branch in branches) {
+                WriteBranch(branch, currentBranch == $"{prefix}{branch}");
             }
-
-            // Read and parse the result
-            var content = _fileSystem.File.ReadAllText(tempFile);
-            var message = ParseTagMessage(content);
-
-            if(string.IsNullOrWhiteSpace(message)) {
-                throw new GitFlowException("Aborting due to empty tag message.");
-            }
-
-            return message;
-        } finally {
-            if(_fileSystem.File.Exists(tempFile)) {
-                _fileSystem.File.Delete(tempFile);
-            }
-        }
+        });
     }
 
-    private string? GetEditor() {
-        // Check git config at each level: local, global, system
-        var scopes = new[] { "--local", "--global", "--system" };
-        foreach(var scope in scopes) {
-            var result = GitExecutor.Execute($"config {scope} --get core.editor");
-            if(result.ExitCode == 0 && result.Output.Length > 0 && !string.IsNullOrEmpty(result.Output[0])) {
-                return result.Output[0];
+    /// <summary>
+    /// Executes a start operation for the given branch service.
+    /// </summary>
+    protected int ExecuteStart(IBranchService service, StartSettings settings) {
+        return ExecuteSafe(() => {
+            service.Start(settings.Name, settings.BaseBranch);
+            WriteSuccess($"Started {service.TypeName} branch '{service.Prefix}{settings.Name}'");
+        });
+    }
+
+    /// <summary>
+    /// Executes a publish operation for the given branch service.
+    /// </summary>
+    protected int ExecutePublish(IBranchService service, PublishSettings settings) {
+        return ExecuteSafe(() => {
+            var name = service.ResolveBranchName(settings.Name);
+            service.Publish(name);
+            WriteSuccess($"Published {service.TypeName} branch '{service.Prefix}{name}' to origin");
+        });
+    }
+
+    /// <summary>
+    /// Executes a delete operation for the given branch service.
+    /// </summary>
+    protected int ExecuteDelete(IBranchService service, DeleteSettings settings) {
+        return ExecuteSafe(() => {
+            var name = service.ResolveBranchName(settings.Name);
+            var options = new DeleteOptions {
+                Force = settings.Force,
+                Remote = settings.Remote
+            };
+            service.Delete(name, options);
+            WriteSuccess($"Deleted {service.TypeName} branch '{service.Prefix}{name}'");
+        });
+    }
+
+    /// <summary>
+    /// Executes a simple finish operation (feature/bugfix pattern) for the given branch service.
+    /// </summary>
+    protected int ExecuteSimpleFinish(IBranchService service, FinishSettings settings) {
+        return ExecuteSafe(() => {
+            var name = service.ResolveBranchName(settings.Name);
+            var options = new FinishOptions {
+                Fetch = settings.Fetch,
+                Push = settings.Push,
+                Keep = settings.Keep,
+                Squash = settings.Squash,
+                OnProgress = CreateProgressCallback(settings.Quiet)
+            };
+
+            service.Finish(name, options);
+
+            if(!settings.Quiet) {
+                WriteSuccess($"Finished {service.TypeName} branch '{service.Prefix}{name}'");
             }
-        }
-
-        // Fall back to environment variables
-        var editor = Environment.GetEnvironmentVariable("GIT_EDITOR");
-        if(!string.IsNullOrEmpty(editor)) {
-            return editor;
-        }
-
-        editor = Environment.GetEnvironmentVariable("VISUAL");
-        if(!string.IsNullOrEmpty(editor)) {
-            return editor;
-        }
-
-        editor = Environment.GetEnvironmentVariable("EDITOR");
-        if(!string.IsNullOrEmpty(editor)) {
-            return editor;
-        }
-
-        return null;
+        });
     }
 
-    private static Process? StartEditor(string editor, string filePath) {
-        // Handle editors with arguments (e.g., "code --wait")
-        var parts = editor.Split(' ', 2);
-        var exe = parts[0];
-        var args = parts.Length > 1 ? $"{parts[1]} \"{filePath}\"" : $"\"{filePath}\"";
+    /// <summary>
+    /// Executes a tag-based finish operation (release/hotfix pattern) for the given branch service.
+    /// </summary>
+    protected int ExecuteTagFinish(IBranchService service, TagFinishSettings settings) {
+        return ExecuteSafe(() => {
+            var name = service.ResolveBranchName(settings.Name);
 
-        var startInfo = new ProcessStartInfo {
-            FileName = exe,
-            Arguments = args,
-            UseShellExecute = false
-        };
+            var options = new FinishOptions {
+                Fetch = settings.Fetch,
+                Push = settings.Push,
+                Keep = settings.Keep,
+                Squash = settings.Squash,
+                TagMessage = settings.Message,
+                NoTag = settings.NoTag,
+                NoBackMerge = settings.NoBackMerge,
+                OnProgress = CreateProgressCallback(settings.Quiet)
+            };
 
-        return Process.Start(startInfo);
-    }
+            service.Finish(name, options);
 
-    private static string ParseTagMessage(string content) {
-        var lines = content.Split('\n')
-            .Select(line => line.TrimEnd('\r'))
-            .Where(line => !line.StartsWith('#'));
-
-        return string.Join("\n", lines).Trim();
+            if(!settings.Quiet) {
+                WriteSuccess($"Finished {service.TypeName} branch '{service.Prefix}{name}'");
+            }
+        });
     }
 }
 
@@ -248,4 +251,76 @@ public class DeleteSettings : OptionalBranchNameSettings {
 
     [CommandOption("-r|--remote")]
     public bool Remote { get; set; }
+}
+
+/// <summary>
+/// Settings for list commands (no arguments).
+/// </summary>
+public class ListSettings : CommandSettings {
+}
+
+/// <summary>
+/// Abstract base for list commands that delegate to a branch service.
+/// </summary>
+public abstract class BranchListCommand : GitFlowCommand<ListSettings> {
+    protected abstract IBranchService BranchService { get; }
+
+    public override int Execute(CommandContext context, ListSettings settings, CancellationToken cancellationToken) {
+        return ExecuteList(BranchService);
+    }
+}
+
+/// <summary>
+/// Abstract base for start commands that delegate to a branch service.
+/// </summary>
+public abstract class BranchStartCommand : GitFlowCommand<StartSettings> {
+    protected abstract IBranchService BranchService { get; }
+
+    public override int Execute(CommandContext context, StartSettings settings, CancellationToken cancellationToken) {
+        return ExecuteStart(BranchService, settings);
+    }
+}
+
+/// <summary>
+/// Abstract base for publish commands that delegate to a branch service.
+/// </summary>
+public abstract class BranchPublishCommand : GitFlowCommand<PublishSettings> {
+    protected abstract IBranchService BranchService { get; }
+
+    public override int Execute(CommandContext context, PublishSettings settings, CancellationToken cancellationToken) {
+        return ExecutePublish(BranchService, settings);
+    }
+}
+
+/// <summary>
+/// Abstract base for delete commands that delegate to a branch service.
+/// </summary>
+public abstract class BranchDeleteCommand : GitFlowCommand<DeleteSettings> {
+    protected abstract IBranchService BranchService { get; }
+
+    public override int Execute(CommandContext context, DeleteSettings settings, CancellationToken cancellationToken) {
+        return ExecuteDelete(BranchService, settings);
+    }
+}
+
+/// <summary>
+/// Abstract base for simple finish commands (feature/bugfix pattern) that delegate to a branch service.
+/// </summary>
+public abstract class BranchSimpleFinishCommand : GitFlowCommand<FinishSettings> {
+    protected abstract IBranchService BranchService { get; }
+
+    public override int Execute(CommandContext context, FinishSettings settings, CancellationToken cancellationToken) {
+        return ExecuteSimpleFinish(BranchService, settings);
+    }
+}
+
+/// <summary>
+/// Abstract base for tag-based finish commands (release/hotfix pattern) that delegate to a branch service.
+/// </summary>
+public abstract class BranchTagFinishCommand : GitFlowCommand<TagFinishSettings> {
+    protected abstract IBranchService BranchService { get; }
+
+    public override int Execute(CommandContext context, TagFinishSettings settings, CancellationToken cancellationToken) {
+        return ExecuteTagFinish(BranchService, settings);
+    }
 }

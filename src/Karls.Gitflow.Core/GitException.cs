@@ -1,6 +1,9 @@
 namespace Karls.Gitflow.Core;
 
-public class GitException : Exception {
+/// <summary>
+/// Exception thrown when a git command fails.
+/// </summary>
+public sealed class GitException : Exception {
     public GitException() {
     }
 

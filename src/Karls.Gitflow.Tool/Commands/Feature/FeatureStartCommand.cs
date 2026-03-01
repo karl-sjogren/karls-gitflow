@@ -1,15 +1,10 @@
-using Spectre.Console.Cli;
+using Karls.Gitflow.Core.Services;
 
 namespace Karls.Gitflow.Tool.Commands.Feature;
 
 /// <summary>
 /// Start a new feature branch.
 /// </summary>
-public sealed class FeatureStartCommand : GitFlowCommand<StartSettings> {
-    public override int Execute(CommandContext context, StartSettings settings, CancellationToken cancellationToken) {
-        return ExecuteSafe(() => {
-            FeatureService.Start(settings.Name, settings.BaseBranch);
-            WriteSuccess($"Started feature branch '{FeatureService.Prefix}{settings.Name}'");
-        });
-    }
+public sealed class FeatureStartCommand : BranchStartCommand {
+    protected override IBranchService BranchService => FeatureService;
 }

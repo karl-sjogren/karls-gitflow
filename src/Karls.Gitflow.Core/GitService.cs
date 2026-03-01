@@ -13,12 +13,12 @@ public sealed class GitService : IGitService {
     #region Repository State
 
     public bool IsGitRepository() {
-        var result = _gitExecutor.Execute("rev-parse --is-inside-work-tree");
+        var result = _gitExecutor.Execute(["rev-parse", "--is-inside-work-tree"]);
         return result.ExitCode == 0 && result.Output.Length == 1 && result.Output[0] == "true";
     }
 
     public bool IsWorkingTreeClean() {
-        var result = _gitExecutor.Execute("status --porcelain");
+        var result = _gitExecutor.Execute(["status", "--porcelain"]);
         if(result.ExitCode != 0) {
             throw new GitException("Failed to get working tree status.");
         }
@@ -27,7 +27,7 @@ public sealed class GitService : IGitService {
     }
 
     public string GetRepositoryRoot() {
-        var result = _gitExecutor.Execute("rev-parse --show-toplevel");
+        var result = _gitExecutor.Execute(["rev-parse", "--show-toplevel"]);
         if(result.ExitCode != 0) {
             throw new GitException("Failed to get repository root.");
         }
@@ -40,7 +40,7 @@ public sealed class GitService : IGitService {
     #region Branch Queries
 
     public string GetCurrentBranchName() {
-        var result = _gitExecutor.Execute("rev-parse --abbrev-ref HEAD");
+        var result = _gitExecutor.Execute(["rev-parse", "--abbrev-ref", "HEAD"]);
         if(result.ExitCode != 0) {
             throw new GitException("Failed to get current branch name.");
         }
@@ -49,7 +49,7 @@ public sealed class GitService : IGitService {
     }
 
     public string[] GetLocalBranches() {
-        var result = _gitExecutor.Execute("for-each-ref --sort=refname --format=%(refname:short) refs/heads");
+        var result = _gitExecutor.Execute(["for-each-ref", "--sort=refname", "--format=%(refname:short)", "refs/heads"]);
         if(result.ExitCode != 0) {
             throw new GitException("Failed to get local branches.");
         }
@@ -58,7 +58,7 @@ public sealed class GitService : IGitService {
     }
 
     public string[] GetRemoteBranches() {
-        var result = _gitExecutor.Execute("for-each-ref --sort=refname --format=%(refname:short) refs/remotes/origin");
+        var result = _gitExecutor.Execute(["for-each-ref", "--sort=refname", "--format=%(refname:short)", "refs/remotes/origin"]);
         if(result.ExitCode != 0) {
             throw new GitException("Failed to get remote branches.");
         }
@@ -77,17 +77,17 @@ public sealed class GitService : IGitService {
     }
 
     public bool LocalBranchExists(string branchName) {
-        var result = _gitExecutor.Execute($"show-ref --verify --quiet refs/heads/{branchName}");
+        var result = _gitExecutor.Execute(["show-ref", "--verify", "--quiet", $"refs/heads/{branchName}"]);
         return result.ExitCode == 0;
     }
 
     public bool RemoteBranchExists(string branchName) {
-        var result = _gitExecutor.Execute($"show-ref --verify --quiet refs/remotes/origin/{branchName}");
+        var result = _gitExecutor.Execute(["show-ref", "--verify", "--quiet", $"refs/remotes/origin/{branchName}"]);
         return result.ExitCode == 0;
     }
 
     public bool IsBranchMerged(string branch, string targetBranch) {
-        var result = _gitExecutor.Execute($"branch --merged {targetBranch}");
+        var result = _gitExecutor.Execute(["branch", "--merged", targetBranch]);
         if(result.ExitCode != 0) {
             throw new GitException($"Failed to check if branch '{branch}' is merged into '{targetBranch}'.");
         }
@@ -100,12 +100,12 @@ public sealed class GitService : IGitService {
     #region Tag Queries
 
     public bool TagExists(string tagName) {
-        var result = _gitExecutor.Execute($"show-ref --verify --quiet refs/tags/{tagName}");
+        var result = _gitExecutor.Execute(["show-ref", "--verify", "--quiet", $"refs/tags/{tagName}"]);
         return result.ExitCode == 0;
     }
 
     public string[] GetTags() {
-        var result = _gitExecutor.Execute("tag --list --sort=-version:refname");
+        var result = _gitExecutor.Execute(["tag", "--list", "--sort=-version:refname"]);
         if(result.ExitCode != 0) {
             throw new GitException("Failed to get tags.");
         }
@@ -119,7 +119,7 @@ public sealed class GitService : IGitService {
 
     public bool RefExists(string refName) {
         // Check if it's a valid commit-ish (branch, tag, or commit hash)
-        var result = _gitExecutor.Execute($"rev-parse --verify --quiet {refName}");
+        var result = _gitExecutor.Execute(["rev-parse", "--verify", "--quiet", refName]);
         return result.ExitCode == 0;
     }
 
@@ -128,7 +128,7 @@ public sealed class GitService : IGitService {
     #region Configuration
 
     public string? GetConfigValue(string key) {
-        var result = _gitExecutor.Execute($"config --get {key}");
+        var result = _gitExecutor.Execute(["config", "--get", key]);
         if(result.ExitCode != 0) {
             return null;
         }
@@ -137,9 +137,25 @@ public sealed class GitService : IGitService {
     }
 
     public void SetConfigValue(string key, string value) {
-        var result = _gitExecutor.Execute($"config {key} \"{value}\"");
+        var result = _gitExecutor.Execute(["config", key, value]);
         if(result.ExitCode != 0) {
             throw new GitException($"Failed to set config value '{key}'.");
+        }
+    }
+
+    public string? GetGlobalConfigValue(string key) {
+        var result = _gitExecutor.Execute(["config", "--global", "--get", key]);
+        if(result.ExitCode != 0) {
+            return null;
+        }
+
+        return result.Output.Length > 0 ? result.Output[0] : null;
+    }
+
+    public void SetGlobalConfigValue(string key, string value) {
+        var result = _gitExecutor.Execute(["config", "--global", key, value]);
+        if(result.ExitCode != 0) {
+            throw new GitException($"Failed to set global config value '{key}'.");
         }
     }
 
@@ -151,16 +167,31 @@ public sealed class GitService : IGitService {
     }
 
     public GitFlowConfiguration GetGitFlowConfiguration() {
+        // Read all config in one subprocess call instead of spawning a separate process per key.
+        var result = _gitExecutor.Execute(["config", "--list"]);
+        var configDict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if(result.ExitCode == 0) {
+            foreach(var line in result.Output) {
+                var idx = line.IndexOf('=', StringComparison.Ordinal);
+                if(idx > 0) {
+                    // Later entries override earlier ones (local config wins over global)
+                    configDict[line[..idx]] = line[(idx + 1)..];
+                }
+            }
+        }
+
+        string? Get(string key) => configDict.TryGetValue(key, out var value) ? value : null;
+
         return new GitFlowConfiguration {
-            MainBranch = GetConfigValue("gitflow.branch.master") ?? GitFlowConfiguration.DefaultValues.MainBranch,
-            DevelopBranch = GetConfigValue("gitflow.branch.develop") ?? GitFlowConfiguration.DefaultValues.DevelopBranch,
-            FeaturePrefix = GetConfigValue("gitflow.prefix.feature") ?? GitFlowConfiguration.DefaultValues.FeaturePrefix,
-            BugfixPrefix = GetConfigValue("gitflow.prefix.bugfix") ?? GitFlowConfiguration.DefaultValues.BugfixPrefix,
-            ReleasePrefix = GetConfigValue("gitflow.prefix.release") ?? GitFlowConfiguration.DefaultValues.ReleasePrefix,
-            HotfixPrefix = GetConfigValue("gitflow.prefix.hotfix") ?? GitFlowConfiguration.DefaultValues.HotfixPrefix,
-            SupportPrefix = GetConfigValue("gitflow.prefix.support") ?? GitFlowConfiguration.DefaultValues.SupportPrefix,
-            VersionTagPrefix = GetConfigValue("gitflow.prefix.versiontag") ?? GitFlowConfiguration.DefaultValues.VersionTagPrefix,
-            TagMessageTemplate = GetConfigValue("gitflow.message.tag") ?? GitFlowConfiguration.DefaultValues.TagMessageTemplate
+            MainBranch = Get("gitflow.branch.master") ?? GitFlowConfiguration.DefaultValues.MainBranch,
+            DevelopBranch = Get("gitflow.branch.develop") ?? GitFlowConfiguration.DefaultValues.DevelopBranch,
+            FeaturePrefix = Get("gitflow.prefix.feature") ?? GitFlowConfiguration.DefaultValues.FeaturePrefix,
+            BugfixPrefix = Get("gitflow.prefix.bugfix") ?? GitFlowConfiguration.DefaultValues.BugfixPrefix,
+            ReleasePrefix = Get("gitflow.prefix.release") ?? GitFlowConfiguration.DefaultValues.ReleasePrefix,
+            HotfixPrefix = Get("gitflow.prefix.hotfix") ?? GitFlowConfiguration.DefaultValues.HotfixPrefix,
+            SupportPrefix = Get("gitflow.prefix.support") ?? GitFlowConfiguration.DefaultValues.SupportPrefix,
+            VersionTagPrefix = Get("gitflow.prefix.versiontag") ?? GitFlowConfiguration.DefaultValues.VersionTagPrefix,
+            TagMessageTemplate = Get("gitflow.message.tag") ?? GitFlowConfiguration.DefaultValues.TagMessageTemplate
         };
     }
 
@@ -169,14 +200,14 @@ public sealed class GitService : IGitService {
     #region Branch Operations
 
     public void CreateBranch(string branchName, string baseBranch) {
-        var result = _gitExecutor.Execute($"checkout -b {branchName} {baseBranch}");
+        var result = _gitExecutor.Execute(["checkout", "-b", branchName, baseBranch]);
         if(result.ExitCode != 0) {
             throw new GitException($"Failed to create branch '{branchName}' from '{baseBranch}'.");
         }
     }
 
     public void CheckoutBranch(string branchName) {
-        var result = _gitExecutor.Execute($"checkout {branchName}");
+        var result = _gitExecutor.Execute(["checkout", branchName]);
         if(result.ExitCode != 0) {
             throw new GitException($"Failed to checkout branch '{branchName}'.");
         }
@@ -184,14 +215,14 @@ public sealed class GitService : IGitService {
 
     public void DeleteLocalBranch(string branchName, bool force = false) {
         var flag = force ? "-D" : "-d";
-        var result = _gitExecutor.Execute($"branch {flag} {branchName}");
+        var result = _gitExecutor.Execute(["branch", flag, branchName]);
         if(result.ExitCode != 0) {
             throw new GitException($"Failed to delete local branch '{branchName}'.");
         }
     }
 
     public void DeleteRemoteBranch(string branchName) {
-        var result = _gitExecutor.Execute($"push origin --delete {branchName}");
+        var result = _gitExecutor.Execute(["push", "origin", "--delete", branchName]);
         if(result.ExitCode != 0) {
             throw new GitException($"Failed to delete remote branch '{branchName}'.");
         }
@@ -202,21 +233,21 @@ public sealed class GitService : IGitService {
     #region Merge Operations
 
     public void MergeBranch(string sourceBranch, bool noFastForward = true) {
-        var command = noFastForward ? $"merge --no-ff {sourceBranch}" : $"merge {sourceBranch}";
-        var result = _gitExecutor.Execute(command);
+        string[] args = noFastForward ? ["merge", "--no-ff", sourceBranch] : ["merge", sourceBranch];
+        var result = _gitExecutor.Execute(args);
         if(result.ExitCode != 0) {
             throw new GitException($"Failed to merge branch '{sourceBranch}'.");
         }
     }
 
     public void MergeBranchSquash(string sourceBranch) {
-        var result = _gitExecutor.Execute($"merge --squash {sourceBranch}");
+        var result = _gitExecutor.Execute(["merge", "--squash", sourceBranch]);
         if(result.ExitCode != 0) {
             throw new GitException($"Failed to squash merge branch '{sourceBranch}'.");
         }
 
         // Squash merge requires a commit
-        var commitResult = _gitExecutor.Execute($"commit -m \"Squashed commit from {sourceBranch}\"");
+        var commitResult = _gitExecutor.Execute(["commit", "-m", $"Squashed commit from {sourceBranch}"]);
         if(commitResult.ExitCode != 0) {
             throw new GitException($"Failed to commit squash merge from '{sourceBranch}'.");
         }
@@ -227,21 +258,18 @@ public sealed class GitService : IGitService {
     #region Tag Operations
 
     public void CreateTag(string tagName, string? message = null) {
-        string command;
-        if(string.IsNullOrEmpty(message)) {
-            command = $"tag {tagName}";
-        } else {
-            command = $"tag -a {tagName} -m \"{message}\"";
-        }
+        string[] args = string.IsNullOrEmpty(message)
+            ? ["tag", tagName]
+            : ["tag", "-a", tagName, "-m", message];
 
-        var result = _gitExecutor.Execute(command);
+        var result = _gitExecutor.Execute(args);
         if(result.ExitCode != 0) {
             throw new GitException($"Failed to create tag '{tagName}'.");
         }
     }
 
     public void DeleteTag(string tagName) {
-        var result = _gitExecutor.Execute($"tag -d {tagName}");
+        var result = _gitExecutor.Execute(["tag", "-d", tagName]);
         if(result.ExitCode != 0) {
             throw new GitException($"Failed to delete tag '{tagName}'.");
         }
@@ -252,22 +280,22 @@ public sealed class GitService : IGitService {
     #region Remote Operations
 
     public void Fetch() {
-        var result = _gitExecutor.Execute("fetch origin");
+        var result = _gitExecutor.Execute(["fetch", "origin"]);
         if(result.ExitCode != 0) {
             throw new GitException("Failed to fetch from origin.");
         }
     }
 
     public void PushBranch(string branchName, bool setUpstream = false) {
-        var command = setUpstream ? $"push -u origin {branchName}" : $"push origin {branchName}";
-        var result = _gitExecutor.Execute(command);
+        string[] args = setUpstream ? ["push", "-u", "origin", branchName] : ["push", "origin", branchName];
+        var result = _gitExecutor.Execute(args, false);
         if(result.ExitCode != 0) {
             throw new GitException($"Failed to push branch '{branchName}' to origin.");
         }
     }
 
     public void PushTags() {
-        var result = _gitExecutor.Execute("push origin --tags");
+        var result = _gitExecutor.Execute(["push", "origin", "--tags"], false);
         if(result.ExitCode != 0) {
             throw new GitException("Failed to push tags to origin.");
         }
@@ -275,17 +303,3 @@ public sealed class GitService : IGitService {
 
     #endregion
 }
-
-/// <summary>
-/// Abstraction for executing git commands.
-/// </summary>
-public interface IGitExecutor {
-    GitExecutorResult Execute(string command);
-}
-
-/// <summary>
-/// Result of executing a git command.
-/// </summary>
-/// <param name="Output">The output lines from the command.</param>
-/// <param name="ExitCode">The exit code of the command.</param>
-public sealed record GitExecutorResult(string[] Output, int ExitCode);

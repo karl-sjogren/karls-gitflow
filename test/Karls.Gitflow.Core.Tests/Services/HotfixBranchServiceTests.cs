@@ -293,6 +293,32 @@ public class HotfixBranchServiceTests {
 
     #endregion
 
+    #region FormatTagMessage - TimeProvider
+
+    [Fact]
+    public void Finish_WithTagMessageTemplate_UsesDateFromTimeProvider() {
+        // Arrange
+        var fakeTime = new FakeTimeProvider(new DateTimeOffset(2024, 6, 15, 0, 0, 0, TimeSpan.Zero));
+        var sut = new HotfixBranchService(_fakeGitService, fakeTime);
+
+        A.CallTo(() => _fakeGitService.GetGitFlowConfiguration())
+            .Returns(GitFlowConfiguration.Default with { TagMessageTemplate = "Release {version} on {date}" });
+
+        SetupValidRepositoryWithCleanWorkingTree();
+        A.CallTo(() => _fakeGitService.LocalBranchExists("hotfix/1.0.1")).Returns(true);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists("hotfix/1.0.1")).Returns(false);
+        A.CallTo(() => _fakeGitService.TagExists("1.0.1")).Returns(false);
+
+        // Act
+        sut.Finish("1.0.1");
+
+        // Assert
+        A.CallTo(() => _fakeGitService.CreateTag("1.0.1", "Release 1.0.1 on 2024-06-15"))
+            .MustHaveHappenedOnceExactly();
+    }
+
+    #endregion
+
     #region Helper Methods
 
     private void SetupValidRepository() {
