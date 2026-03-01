@@ -5,11 +5,12 @@ namespace Karls.Gitflow.Core.Services;
 /// </summary>
 public abstract class BranchServiceBase : IBranchService {
     protected readonly IGitService GitService;
-    private GitFlowConfiguration? _config;
-    protected GitFlowConfiguration Config => _config ??= GitService.GetGitFlowConfiguration();
+    private readonly TimeProvider _timeProvider;
+    protected GitFlowConfiguration Config => field ??= GitService.GetGitFlowConfiguration();
 
-    protected BranchServiceBase(IGitService gitService) {
+    protected BranchServiceBase(IGitService gitService, TimeProvider? timeProvider = null) {
         GitService = gitService;
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     /// <inheritdoc />
@@ -353,7 +354,7 @@ public abstract class BranchServiceBase : IBranchService {
 
         return template
             .Replace("{version}", version, StringComparison.OrdinalIgnoreCase)
-            .Replace("{date}", TimeProvider.System.GetLocalNow().ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
+            .Replace("{date}", _timeProvider.GetLocalNow().ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{type}", TypeName, StringComparison.OrdinalIgnoreCase);
     }
 

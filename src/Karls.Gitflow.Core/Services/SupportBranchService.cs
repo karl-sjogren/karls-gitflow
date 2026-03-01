@@ -6,7 +6,7 @@ namespace Karls.Gitflow.Core.Services;
 /// They do not have a finish operation.
 /// </summary>
 public sealed class SupportBranchService : BranchServiceBase {
-    public SupportBranchService(IGitService gitService) : base(gitService) {
+    public SupportBranchService(IGitService gitService, TimeProvider? timeProvider = null) : base(gitService, timeProvider) {
     }
 
     /// <inheritdoc />
