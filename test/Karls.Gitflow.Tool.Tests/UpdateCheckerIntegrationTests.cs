@@ -35,7 +35,7 @@ public class UpdateCheckerIntegrationTests {
         } finally {
             // Cleanup
             try {
-                gitExecutor.Execute("config --global --unset " + testKey);
+                gitExecutor.Execute(["config", "--global", "--unset", testKey]);
             } catch {
                 // Ignore cleanup errors
             }

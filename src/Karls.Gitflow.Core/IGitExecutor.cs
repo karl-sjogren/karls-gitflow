@@ -4,7 +4,7 @@ namespace Karls.Gitflow.Core;
 /// Abstraction for executing git commands.
 /// </summary>
 public interface IGitExecutor {
-    GitExecutorResult Execute(string command, bool captureOutput = true);
+    GitExecutorResult Execute(string[] args, bool captureOutput = true);
 }
 
 /// <summary>
