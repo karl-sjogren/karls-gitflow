@@ -250,7 +250,9 @@ public abstract class BranchServiceBase : IBranchService {
 
     /// <summary>
     /// Performs a dual merge finish workflow (release/hotfix pattern).
-    /// Merges to main, creates tag, then merges to develop.
+    /// Merges to main, merges to develop, then creates a tag on main.
+    /// Tag creation is done last so that a failed develop merge can be retried
+    /// without hitting a "tag already exists" error.
     /// </summary>
     protected void FinishDualMerge(string name, string version, FinishOptions? options = null) {
         ValidateAll();
@@ -283,26 +285,32 @@ public abstract class BranchServiceBase : IBranchService {
 
         progress?.Invoke($"Merged into '{mainBranch}'");
 
-        // Step 2: Create tag on main (unless --notag)
+        // Step 2: Merge into develop (unless --nobackmerge)
+        if(!options.NoBackMerge) {
+            progress?.Invoke($"Merging into '{developBranch}'...");
+            GitService.CheckoutBranch(developBranch);
+            GitService.MergeBranch(mainBranch, noFastForward: true);
+            progress?.Invoke($"Merged into '{developBranch}'");
+        }
+
+        // Step 3: Create tag on main (unless --notag)
+        // This is done after the develop merge so that if the develop merge fails,
+        // the tag hasn't been created yet and the finish command can be retried.
         if(!options.NoTag) {
             if(GitService.TagExists(tagName)) {
                 throw new GitFlowException($"Tag '{tagName}' already exists.");
+            }
+
+            // If we merged into develop we are now on the develop branch;
+            // check out main so the tag is created on the correct commit.
+            if(!options.NoBackMerge) {
+                GitService.CheckoutBranch(mainBranch);
             }
 
             progress?.Invoke($"Creating tag '{tagName}'...");
             var message = options.TagMessage ?? FormatTagMessage(Config.TagMessageTemplate, version);
             GitService.CreateTag(tagName, message);
             progress?.Invoke($"Created tag '{tagName}'");
-        }
-
-        // Step 3: Merge into develop (unless --nobackmerge)
-        if(!options.NoBackMerge) {
-            progress?.Invoke($"Merging into '{developBranch}'...");
-            GitService.CheckoutBranch(developBranch);
-            // Merge the tag (preferred) or main branch
-            var mergeRef = options.NoTag ? mainBranch : tagName;
-            GitService.MergeBranch(mergeRef, noFastForward: true);
-            progress?.Invoke($"Merged into '{developBranch}'");
         }
 
         // Step 4: Delete the branch unless --keep

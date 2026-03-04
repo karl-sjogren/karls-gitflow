@@ -214,6 +214,29 @@ public class HotfixCommandTests : IDisposable {
         _repo.GetCurrentBranch().ShouldBe("develop");
     }
 
+    [Fact]
+    public void HotfixFinish_WhenDevelopMergeFails_TagIsNotCreated() {
+        // Arrange - create conflicting changes on hotfix and develop
+        _repo.ExecuteGitFlow("hotfix start 1.0.1");
+        _repo.CreateFile("conflict.txt", "hotfix change");
+        _repo.ExecuteGit("add .");
+        _repo.ExecuteGit("commit -m \"Hotfix changes conflict file\"");
+
+        _repo.ExecuteGit("checkout develop");
+        _repo.CreateFile("conflict.txt", "develop change");
+        _repo.ExecuteGit("add .");
+        _repo.ExecuteGit("commit -m \"Develop changes conflict file\"");
+
+        _repo.ExecuteGit("checkout hotfix/1.0.1");
+
+        // Act - finish will fail when merging main into develop due to conflict
+        var result = _repo.ExecuteGitFlow("hotfix finish 1.0.1");
+
+        // Assert - operation failed and the tag was NOT created
+        result.Success.ShouldBeFalse();
+        _repo.TagExists("1.0.1").ShouldBeFalse();
+    }
+
     #endregion
 
     #region Delete
