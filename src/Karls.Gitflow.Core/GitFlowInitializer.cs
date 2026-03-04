@@ -42,6 +42,9 @@ public sealed class GitFlowInitializer {
 
         // Write configuration
         WriteConfiguration(config);
+
+        // Switch to develop branch
+        _gitService.CheckoutBranch(config.DevelopBranch);
     }
 
     /// <summary>

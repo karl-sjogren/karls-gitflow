@@ -75,6 +75,15 @@ public class InitCommandTests : IDisposable {
     }
 
     [Fact]
+    public void Init_WithDefaults_EndsOnDevelopBranch() {
+        // Act
+        _repo.ExecuteGitFlow("init -d");
+
+        // Assert
+        _repo.GetCurrentBranch().ShouldBe("develop");
+    }
+
+    [Fact]
     public void Init_WhenDevelopBranchAlreadyExists_DoesNotRecreateIt() {
         // Arrange - Create develop branch manually
         _repo.ExecuteGit("checkout -b develop");
