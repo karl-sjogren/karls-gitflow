@@ -153,6 +153,27 @@ public class HotfixBranchServiceTests {
     }
 
     [Fact]
+    public void Finish_CreatesTagAfterDevelopMerge() {
+        // Arrange
+        SetupValidRepositoryWithCleanWorkingTree();
+        A.CallTo(() => _fakeGitService.LocalBranchExists("hotfix/1.0.1")).Returns(true);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists("hotfix/1.0.1")).Returns(false);
+        A.CallTo(() => _fakeGitService.TagExists("1.0.1")).Returns(false);
+
+        var callOrder = new List<string>();
+        A.CallTo(() => _fakeGitService.MergeBranch("main", A<bool>._))
+            .Invokes(call => callOrder.Add("develop-merge"));
+        A.CallTo(() => _fakeGitService.CreateTag("1.0.1", A<string?>._))
+            .Invokes(call => callOrder.Add("create-tag"));
+
+        // Act
+        _sut.Finish("1.0.1");
+
+        // Assert - develop merge must happen before tag creation
+        callOrder.IndexOf("develop-merge").ShouldBeLessThan(callOrder.IndexOf("create-tag"));
+    }
+
+    [Fact]
     public void Finish_WithVersionTagPrefix_CreatesTagWithPrefix() {
         // Arrange
         A.CallTo(() => _fakeGitService.GetGitFlowConfiguration())

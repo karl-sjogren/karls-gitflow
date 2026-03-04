@@ -231,6 +231,29 @@ public class ReleaseCommandTests : IDisposable {
         _repo.GetCurrentBranch().ShouldBe("develop");
     }
 
+    [Fact]
+    public void ReleaseFinish_WhenDevelopMergeFails_TagIsNotCreated() {
+        // Arrange - create conflicting changes on release and develop
+        _repo.ExecuteGitFlow("release start 1.0.0");
+        _repo.CreateFile("conflict.txt", "release change");
+        _repo.ExecuteGit("add .");
+        _repo.ExecuteGit("commit -m \"Release changes conflict file\"");
+
+        _repo.ExecuteGit("checkout develop");
+        _repo.CreateFile("conflict.txt", "develop change");
+        _repo.ExecuteGit("add .");
+        _repo.ExecuteGit("commit -m \"Develop changes conflict file\"");
+
+        _repo.ExecuteGit("checkout release/1.0.0");
+
+        // Act - finish will fail when merging main into develop due to conflict
+        var result = _repo.ExecuteGitFlow("release finish 1.0.0");
+
+        // Assert - operation failed and the tag was NOT created
+        result.Success.ShouldBeFalse();
+        _repo.TagExists("1.0.0").ShouldBeFalse();
+    }
+
     #endregion
 
     #region Delete
