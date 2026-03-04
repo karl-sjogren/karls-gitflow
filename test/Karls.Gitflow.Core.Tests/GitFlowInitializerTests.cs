@@ -190,8 +190,20 @@ public class GitFlowInitializerTests {
         _sut.Initialize(GitFlowConfiguration.Default);
 
         // Assert - should check out remote tracking branch, not create a new one
-        A.CallTo(() => _fakeGitService.CheckoutBranch("develop")).MustHaveHappenedOnceExactly();
+        A.CallTo(() => _fakeGitService.CheckoutBranch("develop")).MustHaveHappenedTwiceExactly();
         A.CallTo(() => _fakeGitService.CreateBranch("develop", A<string>._)).MustNotHaveHappened();
+    }
+
+    [Fact]
+    public void Initialize_ChecksOutDevelopBranchAfterSetup() {
+        // Arrange
+        SetupValidRepository();
+
+        // Act
+        _sut.Initialize(GitFlowConfiguration.Default);
+
+        // Assert
+        A.CallTo(() => _fakeGitService.CheckoutBranch("develop")).MustHaveHappenedOnceExactly();
     }
 
     [Fact]
