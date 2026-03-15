@@ -429,16 +429,16 @@ public class GitServiceTests {
     }
 
     [Fact]
-    public void CreateTag_WithoutMessage_ExecutesCorrectCommand() {
-        // Arrange
-        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "tag", "v1.0.0" }))))
+    public void CreateTag_WithoutMessage_ExecutesCorrectCommandWithoutCapture() {
+        // Arrange - captureOutput: false so git can open an editor in the terminal
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "tag", "-a", "v1.0.0" })), false))
             .Returns(new GitExecutorResult([], 0));
 
         // Act
         _sut.CreateTag("v1.0.0");
 
         // Assert
-        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "tag", "v1.0.0" }))))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "tag", "-a", "v1.0.0" })), false))
             .MustHaveHappenedOnceExactly();
     }
 

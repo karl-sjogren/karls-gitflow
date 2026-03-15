@@ -56,7 +56,7 @@ jobs:
       run: dotnet test --coverage --coverage-output-format cobertura --coverage-settings ./test/coverage.config --report-trx --configuration Release --no-progress
 
     - name: Upload test results
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       if: matrix.os == 'ubuntu-latest'
       with:
         name: net-test-results
@@ -77,7 +77,7 @@ jobs:
       uses: actions/checkout@v6
 
     - name: Download .NET tests results
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: net-test-results
         path: ./
@@ -94,7 +94,7 @@ jobs:
       working-directory: ./
 
     - name: Download historial coverage
-      uses: dawidd6/action-download-artifact@v16
+      uses: dawidd6/action-download-artifact@v17
       with:
         workflow_conclusion: success
         branch: ${{ github.head_ref }}
@@ -120,7 +120,7 @@ jobs:
         verbosity: 'Info'
 
     - name: Upload coverage report
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: coverage-report
         path: coverage-report
@@ -134,7 +134,7 @@ jobs:
         files: coverage-report/Cobertura.xml
 
     - name: Upload coverage history
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: coverage-history
         path: coverage-history
@@ -171,7 +171,7 @@ jobs:
       working-directory: ./
 
     - name: Upload packages
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: packages
         path: ./artifacts/*.nupkg
@@ -195,7 +195,7 @@ jobs:
         sparse-checkout-cone-mode: false
 
     - name: Download artifacts
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: packages
         path: ./artifacts/

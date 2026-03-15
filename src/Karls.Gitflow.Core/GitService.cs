@@ -258,11 +258,15 @@ public sealed class GitService : IGitService {
     #region Tag Operations
 
     public void CreateTag(string tagName, string? message = null) {
-        string[] args = string.IsNullOrEmpty(message)
-            ? ["tag", tagName]
-            : ["tag", "-a", tagName, "-m", message];
+        GitExecutorResult result;
 
-        var result = _gitExecutor.Execute(args);
+        if(!string.IsNullOrEmpty(message)) {
+            result = _gitExecutor.Execute(["tag", "-a", tagName, "-m", message]);
+        } else {
+            // No message provided - pass through to the terminal so git can open an editor
+            result = _gitExecutor.Execute(["tag", "-a", tagName], captureOutput: false);
+        }
+
         if(result.ExitCode != 0) {
             throw new GitException($"Failed to create tag '{tagName}'.");
         }
