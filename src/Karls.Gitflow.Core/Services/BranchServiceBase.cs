@@ -151,6 +151,25 @@ public abstract class BranchServiceBase : IBranchService {
     public abstract void Finish(string name, FinishOptions? options = null);
 
     /// <inheritdoc />
+    public virtual void Track(string name) {
+        ValidateAll();
+
+        var fullBranchName = GetFullBranchName(name);
+
+        // Local branch should not already exist
+        if(GitService.LocalBranchExists(fullBranchName)) {
+            throw new GitFlowException($"Branch '{fullBranchName}' already exists locally.");
+        }
+
+        // Remote branch must exist to track it
+        if(!GitService.RemoteBranchExists(fullBranchName)) {
+            throw new GitFlowException($"Remote branch '{fullBranchName}' does not exist on origin.");
+        }
+
+        GitService.CreateBranch(fullBranchName, $"origin/{fullBranchName}");
+    }
+
+    /// <inheritdoc />
     public virtual void Publish(string name) {
         ValidateAll();
 
