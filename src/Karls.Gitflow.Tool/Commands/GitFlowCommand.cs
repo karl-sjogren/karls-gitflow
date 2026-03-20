@@ -27,6 +27,8 @@ public abstract class GitFlowCommand<TSettings> : Command<TSettings>
 
     protected GitFlowInitializer Initializer => field ??= new(GitService);
 
+    protected GitFlowConfigFile ConfigFile => field ??= new GitFlowConfigFile();
+
     /// <summary>
     /// Gets the console for output (supports thread-local override for testing).
     /// </summary>
