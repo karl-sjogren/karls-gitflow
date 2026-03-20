@@ -661,11 +661,8 @@
     </p>
     <div class="mermaid-container">
       <pre class="mermaid">
-%%{init: {'theme': 'dark', 'themeVariables': {'git0': '#00f5ff', 'git1': '#39ff14', 'gitBranchLabel0': '#000', 'gitBranchLabel1': '#000'}}}%%
+%%{init: {'theme': 'dark', 'themeVariables': {'git0': '#00f5ff', 'git1': '#39ff14', 'gitBranchLabel0': '#000', 'gitBranchLabel1': '#000'}, 'gitGraph': {'mainBranchName': 'develop'}}}%%
 gitGraph
-   commit id: "Initial commit"
-   branch develop
-   checkout develop
    commit id: "Setup project"
    branch feature/my-feature
    checkout feature/my-feature
@@ -686,11 +683,8 @@ gitGraph
     </p>
     <div class="mermaid-container">
       <pre class="mermaid">
-%%{init: {'theme': 'dark', 'themeVariables': {'git0': '#00f5ff', 'git1': '#ff2d78', 'gitBranchLabel0': '#000', 'gitBranchLabel1': '#000'}}}%%
+%%{init: {'theme': 'dark', 'themeVariables': {'git0': '#00f5ff', 'git1': '#ff2d78', 'gitBranchLabel0': '#000', 'gitBranchLabel1': '#000'}, 'gitGraph': {'mainBranchName': 'develop'}}}%%
 gitGraph
-   commit id: "Initial commit"
-   branch develop
-   checkout develop
    commit id: "Active development"
    branch bugfix/fix-null-check
    checkout bugfix/fix-null-check
@@ -711,18 +705,16 @@ gitGraph
     </p>
     <div class="mermaid-container">
       <pre class="mermaid">
-%%{init: {'theme': 'dark', 'themeVariables': {'git0': '#00f5ff', 'git1': '#39ff14', 'git2': '#bc13fe', 'gitBranchLabel0': '#000', 'gitBranchLabel1': '#000', 'gitBranchLabel2': '#000'}}}%%
+%%{init: {'theme': 'dark', 'themeVariables': {'git0': '#00f5ff', 'git1': '#39ff14', 'git2': '#bc13fe', 'gitBranchLabel0': '#000', 'gitBranchLabel1': '#000', 'gitBranchLabel2': '#000'}, 'gitGraph': {'mainBranchName': 'develop'}}}%%
 gitGraph
-   commit id: "Initial commit"
-   branch develop
-   checkout develop
    commit id: "Feature A"
    commit id: "Feature B"
    branch release/1.0.0
    checkout release/1.0.0
    commit id: "Bump version"
    commit id: "Release notes"
-   checkout main
+   checkout develop
+   branch main
    merge release/1.0.0 id: "Release 1.0.0" tag: "v1.0.0"
    checkout develop
    merge release/1.0.0 id: "Back-merge"
