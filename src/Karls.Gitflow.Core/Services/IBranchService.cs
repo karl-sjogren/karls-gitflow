@@ -54,6 +54,12 @@ public interface IBranchService {
     void Publish(string name);
 
     /// <summary>
+    /// Tracks a remote branch by creating a local tracking branch.
+    /// </summary>
+    /// <param name="name">The branch name (without prefix).</param>
+    void Track(string name);
+
+    /// <summary>
     /// Deletes a branch.
     /// </summary>
     /// <param name="name">The branch name (without prefix).</param>

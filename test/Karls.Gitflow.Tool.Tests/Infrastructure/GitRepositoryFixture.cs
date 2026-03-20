@@ -160,6 +160,7 @@ public sealed class GitRepositoryFixture : IDisposable {
                 feature.AddCommand<FeatureStartCommand>("start");
                 feature.AddCommand<FeatureFinishCommand>("finish");
                 feature.AddCommand<FeaturePublishCommand>("publish");
+                feature.AddCommand<FeatureTrackCommand>("track");
                 feature.AddCommand<FeatureDeleteCommand>("delete");
             });
 
@@ -168,6 +169,7 @@ public sealed class GitRepositoryFixture : IDisposable {
                 bugfix.AddCommand<BugfixStartCommand>("start");
                 bugfix.AddCommand<BugfixFinishCommand>("finish");
                 bugfix.AddCommand<BugfixPublishCommand>("publish");
+                bugfix.AddCommand<BugfixTrackCommand>("track");
                 bugfix.AddCommand<BugfixDeleteCommand>("delete");
             });
 
@@ -176,6 +178,7 @@ public sealed class GitRepositoryFixture : IDisposable {
                 release.AddCommand<ReleaseStartCommand>("start");
                 release.AddCommand<ReleaseFinishCommand>("finish");
                 release.AddCommand<ReleasePublishCommand>("publish");
+                release.AddCommand<ReleaseTrackCommand>("track");
                 release.AddCommand<ReleaseDeleteCommand>("delete");
             });
 
@@ -184,6 +187,7 @@ public sealed class GitRepositoryFixture : IDisposable {
                 hotfix.AddCommand<HotfixStartCommand>("start");
                 hotfix.AddCommand<HotfixFinishCommand>("finish");
                 hotfix.AddCommand<HotfixPublishCommand>("publish");
+                hotfix.AddCommand<HotfixTrackCommand>("track");
                 hotfix.AddCommand<HotfixDeleteCommand>("delete");
             });
 
@@ -191,6 +195,7 @@ public sealed class GitRepositoryFixture : IDisposable {
                 support.AddCommand<SupportListCommand>("list");
                 support.AddCommand<SupportStartCommand>("start");
                 support.AddCommand<SupportPublishCommand>("publish");
+                support.AddCommand<SupportTrackCommand>("track");
                 support.AddCommand<SupportDeleteCommand>("delete");
             });
 
