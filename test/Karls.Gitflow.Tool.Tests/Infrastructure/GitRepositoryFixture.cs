@@ -151,6 +151,7 @@ public sealed class GitRepositoryFixture : IDisposable {
             config.AddBranch("config", cfg => {
                 cfg.AddCommand<ConfigListCommand>("list");
                 cfg.AddCommand<ConfigSetCommand>("set");
+                cfg.AddCommand<ConfigSaveCommand>("save");
             });
 
             config.AddCommand<VersionCommand>("version");
@@ -288,6 +289,31 @@ public sealed class GitRepositoryFixture : IDisposable {
     public bool IsGitFlowInitialized() {
         return GetConfigValue("gitflow.branch.master") != null
             && GetConfigValue("gitflow.branch.develop") != null;
+    }
+
+    /// <summary>
+    /// Checks whether a <c>.gitflow</c> configuration file exists in the repository root.
+    /// </summary>
+    public bool GitFlowFileExists() {
+        return _fileSystem.File.Exists(
+            _fileSystem.Path.Combine(RepositoryPath, Karls.Gitflow.Core.GitFlowConfigFile.FileName));
+    }
+
+    /// <summary>
+    /// Reads and parses the <c>.gitflow</c> configuration file from the repository root.
+    /// Returns <c>null</c> if the file does not exist or cannot be parsed.
+    /// </summary>
+    public Karls.Gitflow.Core.GitFlowConfiguration? LoadGitFlowFile() {
+        var configFile = new Karls.Gitflow.Core.GitFlowConfigFile(_fileSystem);
+        return configFile.Load(RepositoryPath);
+    }
+
+    /// <summary>
+    /// Writes a <c>.gitflow</c> configuration file to the repository root.
+    /// </summary>
+    public void WriteGitFlowFile(Karls.Gitflow.Core.GitFlowConfiguration config) {
+        var configFile = new Karls.Gitflow.Core.GitFlowConfigFile(_fileSystem);
+        configFile.Save(RepositoryPath, config);
     }
 
     public void Dispose() {
