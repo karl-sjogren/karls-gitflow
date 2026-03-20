@@ -1,4 +1,4 @@
-name: 'Deploy gh-pages'
+name: 'Deploy GitHub Pages'
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - develop
     paths:
       - 'gh-pages/**'
+      - '.github/workflows/deploy-gh-pages.yml'
 
 permissions:
   contents: read
