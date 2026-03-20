@@ -19,6 +19,13 @@ public sealed class ReleaseBranchService : BranchServiceBase {
     protected override string DefaultBaseBranch => Config.DevelopBranch;
 
     /// <inheritdoc />
+    public override void Start(string name, string? baseBranch = null) {
+        var tagName = $"{Config.VersionTagPrefix}{name}";
+        ValidateTagDoesNotExist(tagName);
+        base.Start(name, baseBranch);
+    }
+
+    /// <inheritdoc />
     public override void Finish(string name, FinishOptions? options = null) {
         // For releases, the name is typically the version number
         FinishDualMerge(name, name, options);

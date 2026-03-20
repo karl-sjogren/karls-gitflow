@@ -85,6 +85,7 @@ public class HotfixBranchServiceTests {
         A.CallTo(() => _fakeGitService.LocalBranchExists("hotfix/1.0.1")).Returns(false);
         A.CallTo(() => _fakeGitService.RemoteBranchExists("hotfix/1.0.1")).Returns(false);
         A.CallTo(() => _fakeGitService.LocalBranchExists("main")).Returns(true);
+        A.CallTo(() => _fakeGitService.TagExists("1.0.1")).Returns(false);
 
         // Act
         _sut.Start("1.0.1");
@@ -101,6 +102,7 @@ public class HotfixBranchServiceTests {
         A.CallTo(() => _fakeGitService.LocalBranchExists("hotfix/1.0.1")).Returns(false);
         A.CallTo(() => _fakeGitService.RemoteBranchExists("hotfix/1.0.1")).Returns(false);
         A.CallTo(() => _fakeGitService.LocalBranchExists("release/1.0")).Returns(true);
+        A.CallTo(() => _fakeGitService.TagExists("1.0.1")).Returns(false);
 
         // Act
         _sut.Start("1.0.1", "release/1.0");
@@ -108,6 +110,43 @@ public class HotfixBranchServiceTests {
         // Assert
         A.CallTo(() => _fakeGitService.CreateBranch("hotfix/1.0.1", "release/1.0"))
             .MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
+    public void Start_WhenTagAlreadyExists_ThrowsGitFlowException() {
+        // Arrange
+        SetupValidRepositoryWithCleanWorkingTree();
+        A.CallTo(() => _fakeGitService.TagExists("1.0.1")).Returns(true);
+
+        // Act & Assert
+        var ex = Should.Throw<GitFlowException>(() => _sut.Start("1.0.1"));
+        ex.Message.ShouldContain("Tag '1.0.1' already exists");
+    }
+
+    [Fact]
+    public void Start_WhenTagAlreadyExistsWithVersionPrefix_ThrowsGitFlowException() {
+        // Arrange
+        A.CallTo(() => _fakeGitService.GetGitFlowConfiguration())
+            .Returns(GitFlowConfiguration.Default with { VersionTagPrefix = "v" });
+
+        SetupValidRepositoryWithCleanWorkingTree();
+        A.CallTo(() => _fakeGitService.TagExists("v1.0.1")).Returns(true);
+
+        // Act & Assert
+        var ex = Should.Throw<GitFlowException>(() => _sut.Start("1.0.1"));
+        ex.Message.ShouldContain("Tag 'v1.0.1' already exists");
+    }
+
+    [Fact]
+    public void Start_WhenTagAlreadyExists_DoesNotCreateBranch() {
+        // Arrange
+        SetupValidRepositoryWithCleanWorkingTree();
+        A.CallTo(() => _fakeGitService.TagExists("1.0.1")).Returns(true);
+
+        // Act & Assert
+        Should.Throw<GitFlowException>(() => _sut.Start("1.0.1"));
+        A.CallTo(() => _fakeGitService.CreateBranch(A<string>._, A<string>._))
+            .MustNotHaveHappened();
     }
 
     #endregion
