@@ -614,6 +614,8 @@ public class FeatureBranchServiceTests {
         // Assert
         A.CallTo(() => _fakeGitService.CreateBranch("feature/my-feature", "origin/feature/my-feature"))
             .MustHaveHappenedOnceExactly();
+        A.CallTo(() => _fakeGitService.CheckoutBranch("feature/my-feature"))
+            .MustHaveHappenedOnceExactly();
     }
 
     #endregion
