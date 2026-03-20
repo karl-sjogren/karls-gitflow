@@ -574,14 +574,19 @@ public class FeatureBranchServiceTests {
     }
 
     [Fact]
-    public void Track_WhenLocalBranchAlreadyExists_ThrowsGitFlowException() {
+    public void Track_WhenLocalBranchAlreadyExists_ChecksOutBranch() {
         // Arrange
         SetupValidRepository();
         A.CallTo(() => _fakeGitService.LocalBranchExists("feature/my-feature")).Returns(true);
 
-        // Act & Assert
-        var ex = Should.Throw<GitFlowException>(() => _sut.Track("my-feature"));
-        ex.Message.ShouldContain("already exists locally");
+        // Act
+        _sut.Track("my-feature");
+
+        // Assert
+        A.CallTo(() => _fakeGitService.CheckoutBranch("feature/my-feature"))
+            .MustHaveHappenedOnceExactly();
+        A.CallTo(() => _fakeGitService.CreateBranch(A<string>._, A<string>._))
+            .MustNotHaveHappened();
     }
 
     [Fact]

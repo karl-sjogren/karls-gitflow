@@ -91,13 +91,13 @@ public class TrackCommandTests : IDisposable {
     }
 
     [Fact]
-    public void FeatureTrack_WhenLocalBranchAlreadyExists_ReturnsError() {
+    public void FeatureTrack_WhenLocalBranchAlreadyExists_SwitchesToIt() {
         // Arrange - Publish a feature branch from the other repo
         _otherRepo.ExecuteGitFlow("feature start my-feature");
         _otherRepo.CreateCommit("Feature work");
         _otherRepo.ExecuteGitFlow("feature publish my-feature");
 
-        // Create local branch in our repo first
+        // Create local branch in our repo first, then leave it
         _repo.ExecuteGit("fetch origin");
         _repo.ExecuteGit("checkout -b feature/my-feature");
         _repo.ExecuteGit("checkout develop");
@@ -105,9 +105,9 @@ public class TrackCommandTests : IDisposable {
         // Act
         var result = _repo.ExecuteGitFlow("feature track my-feature");
 
-        // Assert
-        result.Success.ShouldBeFalse();
-        result.Output.ShouldContain("already exists locally");
+        // Assert - should succeed and switch to the existing local branch
+        result.Success.ShouldBeTrue();
+        _repo.GetCurrentBranch().ShouldBe("feature/my-feature");
     }
 
     #endregion

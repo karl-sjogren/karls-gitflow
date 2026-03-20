@@ -156,9 +156,10 @@ public abstract class BranchServiceBase : IBranchService {
 
         var fullBranchName = GetFullBranchName(name);
 
-        // Local branch should not already exist
+        // If the local branch already exists, just switch to it
         if(GitService.LocalBranchExists(fullBranchName)) {
-            throw new GitFlowException($"Branch '{fullBranchName}' already exists locally.");
+            GitService.CheckoutBranch(fullBranchName);
+            return;
         }
 
         // Remote branch must exist to track it
