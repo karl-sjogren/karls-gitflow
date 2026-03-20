@@ -50,6 +50,8 @@ app.Configure(config => {
             .WithDescription("List gitflow configuration.");
         config.AddCommand<ConfigSetCommand>("set")
             .WithDescription("Set a gitflow configuration value.");
+        config.AddCommand<ConfigSaveCommand>("save")
+            .WithDescription("Save the current gitflow configuration to a .gitflow file.");
     });
 
     // Version command

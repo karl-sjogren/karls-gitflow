@@ -151,6 +151,7 @@ public sealed class GitRepositoryFixture : IDisposable {
             config.AddBranch("config", cfg => {
                 cfg.AddCommand<ConfigListCommand>("list");
                 cfg.AddCommand<ConfigSetCommand>("set");
+                cfg.AddCommand<ConfigSaveCommand>("save");
             });
 
             config.AddCommand<VersionCommand>("version");
