@@ -98,6 +98,12 @@ public abstract class BranchServiceBase : IBranchService {
         }
     }
 
+    protected void ValidateTagDoesNotExist(string tagName) {
+        if(GitService.TagExists(tagName)) {
+            throw new GitFlowException($"Tag '{tagName}' already exists.");
+        }
+    }
+
     protected void ValidateBaseBranchExists(string baseBranch) {
         // Check if it's a branch (local or remote) or any valid ref (tag, commit hash)
         if(!GitService.LocalBranchExists(baseBranch)

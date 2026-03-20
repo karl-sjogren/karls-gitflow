@@ -70,6 +70,7 @@ public class ReleaseBranchServiceTests {
         A.CallTo(() => _fakeGitService.LocalBranchExists("release/1.0.0")).Returns(false);
         A.CallTo(() => _fakeGitService.RemoteBranchExists("release/1.0.0")).Returns(false);
         A.CallTo(() => _fakeGitService.LocalBranchExists("develop")).Returns(true);
+        A.CallTo(() => _fakeGitService.TagExists("1.0.0")).Returns(false);
 
         // Act
         _sut.Start("1.0.0");
@@ -77,6 +78,43 @@ public class ReleaseBranchServiceTests {
         // Assert
         A.CallTo(() => _fakeGitService.CreateBranch("release/1.0.0", "develop"))
             .MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
+    public void Start_WhenTagAlreadyExists_ThrowsGitFlowException() {
+        // Arrange
+        SetupValidRepositoryWithCleanWorkingTree();
+        A.CallTo(() => _fakeGitService.TagExists("1.0.0")).Returns(true);
+
+        // Act & Assert
+        var ex = Should.Throw<GitFlowException>(() => _sut.Start("1.0.0"));
+        ex.Message.ShouldContain("Tag '1.0.0' already exists");
+    }
+
+    [Fact]
+    public void Start_WhenTagAlreadyExistsWithVersionPrefix_ThrowsGitFlowException() {
+        // Arrange
+        A.CallTo(() => _fakeGitService.GetGitFlowConfiguration())
+            .Returns(GitFlowConfiguration.Default with { VersionTagPrefix = "v" });
+
+        SetupValidRepositoryWithCleanWorkingTree();
+        A.CallTo(() => _fakeGitService.TagExists("v1.0.0")).Returns(true);
+
+        // Act & Assert
+        var ex = Should.Throw<GitFlowException>(() => _sut.Start("1.0.0"));
+        ex.Message.ShouldContain("Tag 'v1.0.0' already exists");
+    }
+
+    [Fact]
+    public void Start_WhenTagAlreadyExists_DoesNotCreateBranch() {
+        // Arrange
+        SetupValidRepositoryWithCleanWorkingTree();
+        A.CallTo(() => _fakeGitService.TagExists("1.0.0")).Returns(true);
+
+        // Act & Assert
+        Should.Throw<GitFlowException>(() => _sut.Start("1.0.0"));
+        A.CallTo(() => _fakeGitService.CreateBranch(A<string>._, A<string>._))
+            .MustNotHaveHappened();
     }
 
     #endregion
