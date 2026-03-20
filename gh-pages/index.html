@@ -398,11 +398,15 @@
     .tab-panel.active { display: block; }
 
     /* ── Feature table ────────────────────────────────────────────── */
+    .support-table-wrapper {
+      overflow-x: auto;
+      margin-top: 2.5rem;
+    }
+
     .support-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.9rem;
-      margin-top: 2.5rem;
     }
 
     .support-table th,
@@ -915,6 +919,7 @@ gitGraph
   </div>
 
   <!-- Support table -->
+  <div class="support-table-wrapper">
   <table class="support-table" aria-label="Supported operations by branch type">
     <thead>
       <tr>
@@ -960,6 +965,7 @@ gitGraph
       </tr>
     </tbody>
   </table>
+  </div>
 </section>
 
 <hr class="divider" />
