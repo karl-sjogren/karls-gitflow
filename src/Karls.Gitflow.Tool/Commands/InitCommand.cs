@@ -15,6 +15,12 @@ public sealed class InitCommand : GitFlowCommand<InitCommand.Settings> {
         [CommandOption("-f|--force")]
         public bool Force { get; set; }
 
+        /// <summary>
+        /// Automatically save the configuration to a <c>.gitflow</c> file after init.
+        /// </summary>
+        [CommandOption("-s|--save")]
+        public bool Save { get; set; }
+
         [CommandOption("--main <BRANCH>")]
         public string? MainBranch { get; set; }
 
@@ -53,12 +59,13 @@ public sealed class InitCommand : GitFlowCommand<InitCommand.Settings> {
                 throw new GitFlowException("Gitflow is already initialized. Use --force to reinitialize.");
             }
 
+            var repositoryRoot = GitService.GetRepositoryRoot();
             GitFlowConfiguration config;
 
             if(settings.UseDefaults) {
-                config = CreateConfigFromSettings(settings, GitFlowConfiguration.Default);
+                config = ResolveConfigForDefaults(settings, repositoryRoot);
             } else {
-                config = PromptForConfiguration(settings);
+                config = PromptForConfiguration(settings, repositoryRoot);
             }
 
             Initializer.Initialize(config, settings.Force);
@@ -75,15 +82,54 @@ public sealed class InitCommand : GitFlowCommand<InitCommand.Settings> {
             Console.MarkupLine($"  Support prefix:   [yellow]{config.SupportPrefix}[/]");
             Console.MarkupLine($"  Version tag:      [yellow]{(string.IsNullOrEmpty(config.VersionTagPrefix) ? "(none)" : config.VersionTagPrefix)}[/]");
             Console.MarkupLine($"  Tag message:      [yellow]{(string.IsNullOrEmpty(config.TagMessageTemplate) ? "(none)" : config.TagMessageTemplate)}[/]");
+
+            if(settings.Save) {
+                ConfigFile.Save(repositoryRoot, config);
+                WriteSuccess($"Configuration saved to {GitFlowConfigFile.FileName}");
+            } else if(!settings.UseDefaults) {
+                // In interactive mode, ask the user whether to save
+                var save = Console.Prompt(
+                    new ConfirmationPrompt($"Save settings to {GitFlowConfigFile.FileName} file?") { DefaultValue = true });
+                if(save) {
+                    ConfigFile.Save(repositoryRoot, config);
+                    WriteSuccess($"Configuration saved to {GitFlowConfigFile.FileName}");
+                }
+            }
         });
     }
 
-    private GitFlowConfiguration PromptForConfiguration(Settings settings) {
-        var defaults = GitFlowConfiguration.Default;
-        var localBranches = GitService.GetLocalBranches();
+    /// <summary>
+    /// Resolves the configuration when <c>--defaults</c> is specified.
+    /// If a <c>.gitflow</c> file exists the settings from that file are used as the base,
+    /// otherwise the built-in defaults are used.  Any explicit CLI options override both.
+    /// </summary>
+    private GitFlowConfiguration ResolveConfigForDefaults(Settings settings, string repositoryRoot) {
+        var fileConfig = ConfigFile.Load(repositoryRoot);
 
+        if(fileConfig != null) {
+            WriteInfo($"Using settings from {GitFlowConfigFile.FileName} file.");
+            return CreateConfigFromSettings(settings, fileConfig);
+        }
+
+        return CreateConfigFromSettings(settings, GitFlowConfiguration.Default);
+    }
+
+    private GitFlowConfiguration PromptForConfiguration(Settings settings, string repositoryRoot) {
         Console.MarkupLine("[blue]Initializing gitflow...[/]");
         Console.WriteLine();
+
+        // If a .gitflow file exists, ask the user if they want to use those settings
+        var fileConfig = ConfigFile.Load(repositoryRoot);
+        if(fileConfig != null) {
+            var useFile = Console.Prompt(
+                new ConfirmationPrompt($"Found a {GitFlowConfigFile.FileName} configuration file. Use these settings?") { DefaultValue = true });
+            if(useFile) {
+                return CreateConfigFromSettings(settings, fileConfig);
+            }
+        }
+
+        var defaults = GitFlowConfiguration.Default;
+        var localBranches = GitService.GetLocalBranches();
 
         // Main branch
         var mainBranch = settings.MainBranch ?? PromptBranch(

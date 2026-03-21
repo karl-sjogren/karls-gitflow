@@ -15,13 +15,13 @@ compatible, but provides similar functionality with some additional features.
 
 ### Supported Operations
 
-| Branch Type | list | start | finish | publish | delete |
-|-------------|:----:|:-----:|:------:|:-------:|:------:|
-| Feature     |  Y   |   Y   |   Y    |    Y    |   Y    |
-| Bugfix      |  Y   |   Y   |   Y    |    Y    |   Y    |
-| Release     |  Y   |   Y   |   Y    |    Y    |   Y    |
-| Hotfix      |  Y   |   Y   |   Y    |    Y    |   Y    |
-| Support     |  Y   |   Y   |   -    |    -    |   Y    |
+| Branch Type | list | start | finish | publish | track | delete |
+|-------------|:----:|:-----:|:------:|:-------:|:-----:|:------:|
+| Feature     |  Y   |   Y   |   Y    |    Y    |   Y   |   Y    |
+| Bugfix      |  Y   |   Y   |   Y    |    Y    |   Y   |   Y    |
+| Release     |  Y   |   Y   |   Y    |    Y    |   Y   |   Y    |
+| Hotfix      |  Y   |   Y   |   Y    |    Y    |   Y   |   Y    |
+| Support     |  Y   |   Y   |   -    |    Y    |   Y   |   Y    |
 
 ## Installation
 
@@ -59,6 +59,9 @@ git-flow feature finish my-feature
 # Publish feature to remote
 git-flow feature publish my-feature
 
+# Track a remote feature branch (created by a teammate)
+git-flow feature track my-feature
+
 # Delete a feature branch
 git-flow feature delete my-feature
 ```
@@ -74,6 +77,9 @@ git-flow release finish 1.0.0 -m "Release 1.0.0"
 
 # Publish release to remote
 git-flow release publish 1.0.0
+
+# Track a remote release branch
+git-flow release track 1.0.0
 ```
 
 ### Hotfix Branches
@@ -84,6 +90,9 @@ git-flow hotfix start 1.0.1
 
 # Finish a hotfix (merges to main AND develop, creates tag)
 git-flow hotfix finish 1.0.1 -m "Hotfix 1.0.1"
+
+# Track a remote hotfix branch
+git-flow hotfix track 1.0.1
 ```
 
 ### Configuration

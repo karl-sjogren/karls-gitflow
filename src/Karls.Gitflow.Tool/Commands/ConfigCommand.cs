@@ -79,3 +79,39 @@ public sealed class ConfigSetCommand : GitFlowCommand<ConfigSetCommand.Settings>
         });
     }
 }
+
+/// <summary>
+/// Save the current gitflow configuration to a <c>.gitflow</c> file.
+/// </summary>
+public sealed class ConfigSaveCommand : GitFlowCommand<ConfigSaveCommand.Settings> {
+    public sealed class Settings : CommandSettings {
+        /// <summary>
+        /// Overwrite any existing <c>.gitflow</c> file without prompting.
+        /// </summary>
+        [CommandOption("-f|--force")]
+        public bool Force { get; set; }
+    }
+
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
+        return ExecuteSafe(() => {
+            if(!Initializer.IsInitialized) {
+                throw new Core.GitFlowException("Gitflow is not initialized. Run 'git-flow init' first.");
+            }
+
+            var repositoryRoot = GitService.GetRepositoryRoot();
+
+            if(!settings.Force && ConfigFile.Exists(repositoryRoot)) {
+                var overwrite = Console.Prompt(
+                    new ConfirmationPrompt($"A {Core.GitFlowConfigFile.FileName} file already exists. Overwrite it?") { DefaultValue = false });
+                if(!overwrite) {
+                    WriteInfo("Save cancelled.");
+                    return;
+                }
+            }
+
+            var config = GitService.GetGitFlowConfiguration();
+            ConfigFile.Save(repositoryRoot, config);
+            WriteSuccess($"Configuration saved to {Core.GitFlowConfigFile.FileName}");
+        });
+    }
+}
