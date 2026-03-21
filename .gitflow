@@ -1,0 +1,10 @@
+{
+  "mainBranch": "main",
+  "developBranch": "develop",
+  "featurePrefix": "feature/",
+  "bugfixPrefix": "bugfix/",
+  "releasePrefix": "release/",
+  "hotfixPrefix": "hotfix/",
+  "supportPrefix": "support/",
+  "tagMessageTemplate": "Version {version} released on {date} from {type}"
+}
