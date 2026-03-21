@@ -39,10 +39,17 @@ public sealed class UpdatePromptService : IUpdatePromptService {
     /// <summary>
     /// Displays instructions for updating the tool.
     /// </summary>
-    public void DisplayUpdateInstructions() {
+    /// <param name="installType">The type of installation, used to show appropriate update instructions.</param>
+    public void DisplayUpdateInstructions(InstallType installType) {
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[green]To update karls-gitflow, run:[/]");
-        AnsiConsole.MarkupLine("[cyan]  dotnet tool update -g Karls.Gitflow.Tool[/]");
+        if(installType == InstallType.Msi) {
+            AnsiConsole.MarkupLine("[green]To update karls-gitflow, download the latest installer from:[/]");
+            AnsiConsole.MarkupLine("[cyan]  https://github.com/karl-sjogren/karls-gitflow/releases/latest[/]");
+        } else {
+            AnsiConsole.MarkupLine("[green]To update karls-gitflow, run:[/]");
+            AnsiConsole.MarkupLine("[cyan]  dotnet tool update -g Karls.Gitflow.Tool[/]");
+        }
+
         AnsiConsole.WriteLine();
     }
 }

@@ -179,6 +179,37 @@ jobs:
         path: ./artifacts/*.nupkg
         if-no-files-found: error
 
+  windows-installer-build:
+    name: Windows installer build
+    runs-on: windows-latest
+
+    needs: [ net-test ]
+
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v6
+
+    - name: Install .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        global-json-file: global.json
+
+    - name: Restore NuGet packages
+      run: dotnet restore --verbosity minimal
+
+    - name: Publish tool for Windows x64
+      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime win-x64 --self-contained --output ./artifacts/publish --no-restore
+
+    - name: Build Windows installer
+      run: dotnet build src/Karls.Gitflow.WindowsInstaller/Karls.Gitflow.WindowsInstaller.wixproj --configuration Release --no-restore "-p:ToolPublishDir=${{ github.workspace }}/artifacts/publish/"
+
+    - name: Upload installer artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: windows-installer
+        path: ./src/Karls.Gitflow.WindowsInstaller/bin/**/*.msi
+        if-no-files-found: error
+
   publish:
     name: NuGet Publish
     needs: net-build
