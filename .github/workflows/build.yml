@@ -201,7 +201,7 @@ jobs:
       run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime win-x64 --self-contained --output ./artifacts/publish --no-restore
 
     - name: Build Windows installer
-      run: dotnet build src/Karls.Gitflow.WindowsInstaller/Karls.Gitflow.WindowsInstaller.wixproj --configuration Release --no-restore "-p:ToolPublishDir=${{ github.workspace }}/artifacts/publish/"
+      run: dotnet build src/Karls.Gitflow.WindowsInstaller/Karls.Gitflow.WindowsInstaller.wixproj --configuration Release "-p:ToolPublishDir=${{ github.workspace }}/artifacts/publish/"
 
     - name: Upload installer artifact
       uses: actions/upload-artifact@v7
