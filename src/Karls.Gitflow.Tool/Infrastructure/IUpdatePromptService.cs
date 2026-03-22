@@ -15,5 +15,6 @@ public interface IUpdatePromptService {
     /// <summary>
     /// Displays instructions for updating the tool.
     /// </summary>
-    void DisplayUpdateInstructions();
+    /// <param name="installType">The type of installation, used to show appropriate update instructions.</param>
+    void DisplayUpdateInstructions(InstallType installType);
 }

@@ -1,3 +1,4 @@
+using System.IO.Abstractions;
 using Karls.Gitflow.Core;
 using System.Globalization;
 
@@ -16,6 +17,7 @@ public sealed class UpdateChecker {
     private readonly IUpdatePromptService _promptService;
     private readonly Version _currentVersion;
     private readonly TimeProvider _timeProvider;
+    private readonly IFileSystem _fileSystem;
 
     /// <summary>
     /// Creates a new UpdateChecker.
@@ -25,17 +27,20 @@ public sealed class UpdateChecker {
     /// <param name="promptService">The prompt service for user interaction.</param>
     /// <param name="currentVersion">The current version of the tool.</param>
     /// <param name="timeProvider">The time provider for getting current time (optional, defaults to system time).</param>
+    /// <param name="fileSystem">The file system abstraction (optional, defaults to real file system).</param>
     public UpdateChecker(
         IGitService gitService,
         INuGetApiClient nugetClient,
         IUpdatePromptService promptService,
         Version currentVersion,
-        TimeProvider? timeProvider = null) {
+        TimeProvider? timeProvider = null,
+        IFileSystem? fileSystem = null) {
         _gitService = gitService;
         _nugetClient = nugetClient;
         _promptService = promptService;
         _currentVersion = currentVersion;
         _timeProvider = timeProvider ?? TimeProvider.System;
+        _fileSystem = fileSystem ?? new FileSystem();
     }
 
     /// <summary>
@@ -88,9 +93,11 @@ public sealed class UpdateChecker {
             // Prompt user
             var result = _promptService.PromptUser(_currentVersion, latestVersion);
 
+            var installType = DetectInstallType();
+
             switch(result) {
                 case UpdatePromptResult.UpdateNow:
-                    _promptService.DisplayUpdateInstructions();
+                    _promptService.DisplayUpdateInstructions(installType);
                     return true; // Exit application
 
                 case UpdatePromptResult.RemindLater:
@@ -108,5 +115,36 @@ public sealed class UpdateChecker {
             // Silent failure - never interrupt the workflow
             return false;
         }
+    }
+
+    /// <summary>
+    /// Detects the install type based on the current process path.
+    /// </summary>
+    /// <returns>The detected install type.</returns>
+    internal InstallType DetectInstallType() {
+        return DetectInstallType(
+            Environment.ProcessPath,
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+    }
+
+    /// <summary>
+    /// Detects the install type based on the provided process path and user profile path.
+    /// </summary>
+    /// <param name="processPath">The path to the running process executable.</param>
+    /// <param name="userProfilePath">The user profile directory path.</param>
+    /// <returns>The detected install type.</returns>
+    internal InstallType DetectInstallType(string? processPath, string userProfilePath) {
+        if(string.IsNullOrEmpty(processPath)) {
+            return InstallType.DotNetTool; // Default to dotnet tool if path is unavailable
+        }
+
+        var dotnetToolsPath = _fileSystem.Path.Combine(userProfilePath, ".dotnet", "tools");
+
+        if(processPath.StartsWith(dotnetToolsPath, StringComparison.OrdinalIgnoreCase) &&
+           (processPath.Length == dotnetToolsPath.Length || processPath[dotnetToolsPath.Length] is '/' or '\\')) {
+            return InstallType.DotNetTool;
+        }
+
+        return InstallType.Msi;
     }
 }
