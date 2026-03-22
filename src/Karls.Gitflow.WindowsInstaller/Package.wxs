@@ -13,6 +13,8 @@
 
     <ui:WixUI Id="WixUI_InstallDir" />
     <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT"
+              Value="Please open a new Command Prompt or PowerShell window to start using Karls Gitflow." />
 
     <Feature Id="ProductFeature" Title="Karls Gitflow" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
