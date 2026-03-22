@@ -1,0 +1,11 @@
+<Project>
+  <!-- Import root Directory.Build.props directly, bypassing src/Directory.Build.props.
+       src/Directory.Build.props adds C#-only PackageReferences (no versions, relying on CPM)
+       that WiX cannot consume and cause NU1015. -->
+  <Import Project="$(MSBuildThisFileDirectory)..\..\Directory.Build.props" />
+
+  <PropertyGroup>
+    <!-- Override the CPM setting from root after import; WiX manages its own packages -->
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>

@@ -5,8 +5,6 @@
     <Platform>x64</Platform>
     <OutputType>Package</OutputType>
     <Manufacturer>Karl-Johan Sjögren</Manufacturer>
-    <!-- Disable central package version management since WiX uses its own package system -->
-    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     <!-- Default publish directory; override with -p:ToolPublishDir=<path> when building in CI -->
     <ToolPublishDir Condition="'$(ToolPublishDir)' == ''">$(MSBuildThisFileDirectory)..\..\artifacts\publish\</ToolPublishDir>
   </PropertyGroup>
