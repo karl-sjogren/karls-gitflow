@@ -151,10 +151,14 @@ jobs:
         output_text_description_file: ./coverage-report/Summary.md
 
   net-build:
-    name: .NET build
-    runs-on: ubuntu-latest
+    name: .NET build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
 
     needs: [ net-test ]
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
 
     steps:
     - name: Checkout sources
@@ -168,22 +172,36 @@ jobs:
     - name: Restore NuGet packages
       run: dotnet restore --verbosity minimal
 
-    - name: Publish application
+    - name: Pack NuGet package
+      if: matrix.os == 'ubuntu-latest'
       run: dotnet pack --output ./artifacts --configuration Release ./src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj
       working-directory: ./
 
     - name: Upload packages
       uses: actions/upload-artifact@v7
+      if: matrix.os == 'ubuntu-latest'
       with:
         name: packages
         path: ./artifacts/*.nupkg
+        if-no-files-found: error
+
+    - name: Publish tool for Windows x64
+      if: matrix.os == 'windows-latest'
+      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime win-x64 --self-contained --output ./artifacts/publish --no-restore
+
+    - name: Upload Windows publish artifacts
+      uses: actions/upload-artifact@v7
+      if: matrix.os == 'windows-latest'
+      with:
+        name: windows-publish
+        path: ./artifacts/publish/
         if-no-files-found: error
 
   windows-installer-build:
     name: Windows installer build
     runs-on: windows-latest
 
-    needs: [ net-test ]
+    needs: [ net-build ]
 
     steps:
     - name: Checkout sources
@@ -194,11 +212,11 @@ jobs:
       with:
         global-json-file: global.json
 
-    - name: Restore NuGet packages
-      run: dotnet restore --verbosity minimal
-
-    - name: Publish tool for Windows x64
-      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime win-x64 --self-contained --output ./artifacts/publish --no-restore
+    - name: Download Windows publish artifacts
+      uses: actions/download-artifact@v8
+      with:
+        name: windows-publish
+        path: ./artifacts/publish/
 
     - name: Build Windows installer
       run: dotnet build src/Karls.Gitflow.WindowsInstaller/Karls.Gitflow.WindowsInstaller.wixproj --configuration Release "-p:ToolPublishDir=${{ github.workspace }}/artifacts/publish/"
