@@ -15,6 +15,17 @@ public class VersionCommandTests : IDisposable {
     }
 
     [Fact]
+    public void Version_ShowsVersionInThreePartFormat() {
+        // Act
+        var result = _repo.ExecuteGitFlow("version");
+
+        // Assert
+        result.Success.ShouldBeTrue();
+        // Version should be in N.N.N format (not N.N.N.N)
+        result.Output.ShouldMatch(@"\d+\.\d+\.\d+(?!\.\d)");
+    }
+
+    [Fact]
     public void Version_ShowsVersionInfo() {
         // Act
         var result = _repo.ExecuteGitFlow("version");
