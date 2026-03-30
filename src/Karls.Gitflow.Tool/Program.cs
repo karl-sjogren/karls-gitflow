@@ -37,7 +37,7 @@ var app = new CommandApp();
 
 app.Configure(config => {
     config.SetApplicationName("git-flow");
-    config.SetApplicationVersion(Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0");
+    config.SetApplicationVersion(Assembly.GetExecutingAssembly().GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "0.0.0");
 
     // Init command
     config.AddCommand<InitCommand>("init")
