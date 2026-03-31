@@ -148,7 +148,7 @@ dotnet tool install --global --add-source ./local-artifacts Karls.Gitflow.Tool
 - **File-scoped namespaces** are required (`namespace Karls.Gitflow.Core;`) — enforced as an error.
 - **`var`** is preferred when the type is apparent.
 - **`sealed`** by default for concrete classes not designed for inheritance.
-- **No space** after keywords in control flow (`if(condition)`, `foreach(var x in y)`).
+- **No space** after keywords in control flow (`if(condition)`, `foreach(var x in y)`). *(Note: this differs from Microsoft's standard C# conventions but is enforced by `.editorconfig`.)*
 - **Braces**: End-of-line style, no new line before open brace.
 - **Line endings**: CRLF (Windows-style) for C# and JSON files.
 - **Indentation**: 4 spaces for C#, 2 spaces for JSON/YAML.
@@ -161,7 +161,7 @@ dotnet tool install --global --add-source ./local-artifacts Karls.Gitflow.Tool
 | Parameter / Local variable | camelCase | `branchName`, `options` |
 | Private instance field | `_camelCase` | `_gitService` |
 | Private static readonly | `_camelCase` | `_defaultConfig` |
-| Private constant | `_camelCase` | `_maxRetries` |
+| Private constant | `_camelCase` | `_maxRetries` | *(Note: differs from the standard PascalCase convention for C# constants; enforced by `.editorconfig`.)* |
 | Namespace | File-scoped PascalCase | `Karls.Gitflow.Core` |
 
 ### Analyzer Rules
