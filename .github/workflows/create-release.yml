@@ -7,16 +7,203 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+  NUGET_CERT_REVOCATION_MODE: offline
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
 
 jobs:
+  build-nuget-package:
+    name: 'Build NuGet package'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v6
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Restore NuGet packages
+        run: dotnet restore --verbosity minimal
+
+      - name: Pack NuGet package
+        run: dotnet pack --output ./artifacts --configuration Release --no-restore ./src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj
+
+      - name: Upload NuGet package artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: nuget-package
+          path: ./artifacts/*.nupkg
+          if-no-files-found: error
+
+  build-macos-arm64:
+    name: 'Build macOS arm64'
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v6
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Restore NuGet packages
+        run: dotnet restore --verbosity minimal
+
+      - name: Publish tool for macOS (arm64)
+        run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime osx-arm64 --self-contained --output ./artifacts/publish --no-restore
+
+      - name: Create zip archive
+        run: zip -j ./artifacts/karls-gitflow-${{ github.ref_name }}-osx-arm64.zip ./artifacts/publish/git-flow
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: osx-arm64
+          path: ./artifacts/karls-gitflow-${{ github.ref_name }}-osx-arm64.zip
+          if-no-files-found: error
+
+  build-macos-x64:
+    name: 'Build macOS x64'
+    runs-on: macos-26-intel
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v6
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Restore NuGet packages
+        run: dotnet restore --verbosity minimal
+
+      - name: Publish tool for macOS (x64)
+        run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime osx-x64 --self-contained --output ./artifacts/publish --no-restore
+
+      - name: Create zip archive
+        run: zip -j ./artifacts/karls-gitflow-${{ github.ref_name }}-osx-x64.zip ./artifacts/publish/git-flow
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: osx-x64
+          path: ./artifacts/karls-gitflow-${{ github.ref_name }}-osx-x64.zip
+          if-no-files-found: error
+
+  build-windows-installer:
+    name: 'Build Windows installer'
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v6
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Restore NuGet packages
+        run: dotnet restore --verbosity minimal
+
+      - name: Publish tool for Windows x64
+        run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime win-x64 --self-contained --output ./artifacts/publish --no-restore
+
+      - name: Build Windows installer
+        run: dotnet build src/Karls.Gitflow.WindowsInstaller/Karls.Gitflow.WindowsInstaller.wixproj --configuration Release "-p:ToolPublishDir=${{ github.workspace }}/artifacts/publish/"
+
+      - name: Rename installer
+        shell: pwsh
+        run: |
+          $msi = Get-ChildItem -Path ./src/Karls.Gitflow.WindowsInstaller/bin -Filter Karls.Gitflow.WindowsInstaller.msi -Recurse | Select-Object -First 1
+          Copy-Item $msi.FullName -Destination ./artifacts/karls-gitflow-${{ github.ref_name }}-windows.msi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-installer
+          path: ./artifacts/karls-gitflow-${{ github.ref_name }}-windows.msi
+          if-no-files-found: error
+
   tagged-release:
     name: 'Create release'
+    needs: [build-nuget-package, build-macos-arm64, build-macos-x64, build-windows-installer]
 
     runs-on: ubuntu-latest
 
     steps:
+      - name: Download NuGet package artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: nuget-package
+          path: ./release-artifacts/
+
+      - name: Download macOS arm64 artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: osx-arm64
+          path: ./release-artifacts/
+
+      - name: Download macOS x64 artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: osx-x64
+          path: ./release-artifacts/
+
+      - name: Download Windows installer artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-installer
+          path: ./release-artifacts/
+
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           make_latest: true
+          files: ./release-artifacts/*
+
+  publish-nuget:
+    name: 'NuGet Publish'
+    needs: [build-nuget-package]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            global.json
+          sparse-checkout-cone-mode: false
+
+      - name: Download NuGet package artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: nuget-package
+          path: ./artifacts/
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: NuGet login (OIDC → temp API key)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_PROFILE }}
+
+      - name: Publish package to NuGet.org
+        run: dotnet nuget push artifacts/*.nupkg --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
