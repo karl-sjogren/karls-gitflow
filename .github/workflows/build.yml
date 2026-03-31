@@ -127,7 +127,11 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [
+          ubuntu-latest,
+          windows-latest,
+          macos-latest,
+          macos-26-intel]
 
     steps:
     - name: Checkout sources
@@ -163,7 +167,7 @@ jobs:
       run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime osx-arm64 --self-contained --output ./artifacts/publish-macos-arm64 --no-restore
 
     - name: Publish tool for macOS (x64)
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macos-26-intel'
       run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime osx-x64 --self-contained --output ./artifacts/publish-macos-x64 --no-restore
 
     - name: Generate checksums
@@ -181,7 +185,7 @@ jobs:
 
     - name: Upload macOS publish artifacts
       uses: actions/upload-artifact@v7
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macos-26-intel'
       with:
         name: macos-x64-publish
         path: ./artifacts/publish-macos-x64
