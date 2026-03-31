@@ -4,7 +4,7 @@ on:
   workflow_dispatch: 
   push:
     branches:
-      - main
+      - develop
     paths:
       - 'gh-pages/**'
       - '.github/workflows/deploy-gh-pages.yml'
