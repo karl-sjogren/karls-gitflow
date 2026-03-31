@@ -124,7 +124,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
     - name: Checkout sources
@@ -153,14 +153,43 @@ jobs:
 
     - name: Publish tool for Windows x64
       if: matrix.os == 'windows-latest'
-      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime win-x64 --self-contained --output ./artifacts/publish --no-restore
+      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime win-x64 --self-contained --output ./artifacts/publish-windows --no-restore
+
+    - name: Publish tool for macOS (x64)
+      if: matrix.os == 'macos-latest'
+      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime osx-x64 --self-contained --output ./artifacts/publish-macos-x64 --no-restore
+
+    - name: Publish tool for macOS (arm64)
+      if: matrix.os == 'macos-latest'
+      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime osx-arm64 --self-contained --output ./artifacts/publish-macos-arm64 --no-restore
+
+    - name: Generate checksums
+      uses: Solratic/checksum-action@v1
+      with:
+        pattern: ./artifacts/publish/**/*
 
     - name: Upload Windows publish artifacts
       uses: actions/upload-artifact@v7
       if: matrix.os == 'windows-latest'
       with:
         name: windows-publish
-        path: ./artifacts/publish/
+        path: ./artifacts/publish/windows
+        if-no-files-found: error
+
+    - name: Upload macOS publish artifacts
+      uses: actions/upload-artifact@v7
+      if: matrix.os == 'macos-latest'
+      with:
+        name: macos-x64-publish
+        path: ./artifacts/publish-macos-x64
+        if-no-files-found: error
+
+    - name: Upload macOS arm64 publish artifacts
+      uses: actions/upload-artifact@v7
+      if: matrix.os == 'macos-latest'
+      with:
+        name: macos-arm64-publish
+        path: ./artifacts/publish-macos-arm64
         if-no-files-found: error
 
   windows-installer-build:
