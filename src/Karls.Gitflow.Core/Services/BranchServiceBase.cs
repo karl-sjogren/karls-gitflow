@@ -72,7 +72,7 @@ public abstract class BranchServiceBase : IBranchService {
 
     protected void ValidateGitFlowInitialized() {
         if(!GitService.IsGitFlowInitialized()) {
-            throw new GitFlowException("Gitflow is not initialized. Run 'git-flow init' first.");
+            throw new GitFlowException("Gitflow is not initialized. Run 'git flow init' first.");
         }
     }
 

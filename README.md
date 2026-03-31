@@ -47,74 +47,74 @@ Get the installer from the [latest release](https://github.com/karl-sjogren/karl
 
 ```bash
 # Interactive initialization
-git-flow init
+git flow init
 
 # Use default settings
-git-flow init -d
+git flow init -d
 
 # Specify options
-git-flow init --main main --develop develop
+git flow init --main main --develop develop
 ```
 
 ### Feature Branches
 
 ```bash
 # List all feature branches
-git-flow feature list
+git flow feature list
 
 # Start a new feature
-git-flow feature start my-feature
+git flow feature start my-feature
 
 # Finish a feature (merges to develop)
-git-flow feature finish my-feature
+git flow feature finish my-feature
 
 # Publish feature to remote
-git-flow feature publish my-feature
+git flow feature publish my-feature
 
 # Track a remote feature branch (created by a teammate)
-git-flow feature track my-feature
+git flow feature track my-feature
 
 # Delete a feature branch
-git-flow feature delete my-feature
+git flow feature delete my-feature
 ```
 
 ### Release Branches
 
 ```bash
 # Start a release
-git-flow release start 1.0.0
+git flow release start 1.0.0
 
 # Finish a release (merges to main AND develop, creates tag)
-git-flow release finish 1.0.0 -m "Release 1.0.0"
+git flow release finish 1.0.0 -m "Release 1.0.0"
 
 # Publish release to remote
-git-flow release publish 1.0.0
+git flow release publish 1.0.0
 
 # Track a remote release branch
-git-flow release track 1.0.0
+git flow release track 1.0.0
 ```
 
 ### Hotfix Branches
 
 ```bash
 # Start a hotfix from main
-git-flow hotfix start 1.0.1
+git flow hotfix start 1.0.1
 
 # Finish a hotfix (merges to main AND develop, creates tag)
-git-flow hotfix finish 1.0.1 -m "Hotfix 1.0.1"
+git flow hotfix finish 1.0.1 -m "Hotfix 1.0.1"
 
 # Track a remote hotfix branch
-git-flow hotfix track 1.0.1
+git flow hotfix track 1.0.1
 ```
 
 ### Configuration
 
 ```bash
 # List current configuration
-git-flow config list
+git flow config list
 
 # Set a configuration value
-git-flow config set feature feat/
+git flow config set feature feat/
 ```
 
 ## Branch Auto-Detection
@@ -123,7 +123,7 @@ When on a gitflow branch, you can omit the branch name for finish, publish, and 
 
 ```bash
 # While on feature/my-feature branch
-git-flow feature finish  # Automatically detects "my-feature"
+git flow feature finish  # Automatically detects "my-feature"
 ```
 
 ## Finish Options

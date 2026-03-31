@@ -18,7 +18,7 @@ public sealed class VersionCommand : GitFlowCommand<VersionCommand.Settings> {
             ? $"{assemblyVersion.Major}.{assemblyVersion.Minor}.{assemblyVersion.Build}"
             : "0.0.0";
 
-        Console.MarkupLine($"[blue]git-flow[/] version [yellow]{version}[/]");
+        Console.MarkupLine($"[blue]git flow[/] version [yellow]{version}[/]");
         Console.MarkupLine("[dim]A .NET reimplementation of gitflow-avh[/]");
 
         return 0;
