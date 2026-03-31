@@ -764,51 +764,59 @@ gitGraph
     <p class="section-label">// Installation</p>
     <h2>Up and running in <span class="glow-green">seconds</span></h2>
     <p class="section-intro">
-      Karl's Gitflow is distributed as a .NET global tool — a single command
-      installs it and makes <code>git-flow</code> available anywhere on your machine.
+      Karl's Gitflow is available as a .NET global tool, via Homebrew on macOS, and
+      as a Windows installer — choose the method that suits your platform.
     </p>
 
-    <div class="install-grid">
-      <div class="install-steps">
-        <div class="step">
-          <div class="step-num">1</div>
-          <div class="step-body">
-            <h4>Install .NET 10+ SDK</h4>
-            <p>Download from <a href="https://dotnet.microsoft.com/download" target="_blank" rel="noopener">dotnet.microsoft.com</a> if you haven't already.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <div class="step-body">
-            <h4>Install Karl's Gitflow</h4>
-            <p>Run the single install command shown on the right.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">3</div>
-          <div class="step-body">
-            <h4>Initialize a repository</h4>
-            <p>Navigate to your repo and run <code>git-flow init</code> to set up branches.</p>
-          </div>
-        </div>
-        <div class="step">
-          <div class="step-num">4</div>
-          <div class="step-body">
-            <h4>Start a feature</h4>
-            <p>Create your first isolated feature branch and get to work!</p>
-          </div>
-        </div>
-      </div>
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" role="tab" aria-selected="true"  aria-controls="install-tab-dotnet"  onclick="showInstallTab('dotnet',  this)">.NET Tool</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="install-tab-homebrew" onclick="showInstallTab('homebrew', this)">Homebrew</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="install-tab-windows"  onclick="showInstallTab('windows',  this)">Windows</button>
+    </div>
 
-      <div>
-        <div class="code-window">
-          <div class="code-titlebar">
-            <div class="dot dot-red"></div>
-            <div class="dot dot-yellow"></div>
-            <div class="dot dot-green"></div>
-            <span class="code-filename">terminal</span>
+    <!-- .NET Tool -->
+    <div id="install-tab-dotnet" class="tab-panel active" role="tabpanel">
+      <div class="install-grid">
+        <div class="install-steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <h4>Install .NET 10+ SDK</h4>
+              <p>Download from <a href="https://dotnet.microsoft.com/download" target="_blank" rel="noopener">dotnet.microsoft.com</a> if you haven't already.</p>
+            </div>
           </div>
-          <pre><span class="comment"># Install as a global .NET tool</span>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <h4>Install Karl's Gitflow</h4>
+              <p>Run the single install command shown on the right.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <h4>Initialize a repository</h4>
+              <p>Navigate to your repo and run <code>git-flow init</code> to set up branches.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <h4>Start a feature</h4>
+              <p>Create your first isolated feature branch and get to work!</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="code-window">
+            <div class="code-titlebar">
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
+              <span class="code-filename">terminal</span>
+            </div>
+            <pre><span class="comment"># Install as a global .NET tool</span>
 <span class="cmd">dotnet tool install</span> <span class="flag">-g</span> Karls.Gitflow.Tool
 
 <span class="comment"># Initialize Gitflow in your repo</span>
@@ -816,9 +824,122 @@ gitGraph
 
 <span class="comment"># Confirm it's working</span>
 <span class="cmd">git-flow</span> <span class="flag">--version</span></pre>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- Homebrew -->
+    <div id="install-tab-homebrew" class="tab-panel" role="tabpanel">
+      <div class="install-grid">
+        <div class="install-steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <h4>Install Homebrew</h4>
+              <p>If you don't have Homebrew, install it from <a href="https://brew.sh" target="_blank" rel="noopener">brew.sh</a>.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <h4>Install Karl's Gitflow</h4>
+              <p>Run the install command shown on the right to tap and install the formula.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <h4>Initialize a repository</h4>
+              <p>Navigate to your repo and run <code>git-flow init</code> to set up branches.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <h4>Start a feature</h4>
+              <p>Create your first isolated feature branch and get to work!</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="code-window">
+            <div class="code-titlebar">
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
+              <span class="code-filename">terminal</span>
+            </div>
+            <pre><span class="comment"># Install via Homebrew (macOS)</span>
+<span class="cmd">brew install</span> karl-sjogren/tap/karls-gitflow
+
+<span class="comment"># Initialize Gitflow in your repo</span>
+<span class="cmd">git-flow init</span> <span class="flag">-d</span>
+
+<span class="comment"># Confirm it's working</span>
+<span class="cmd">git-flow</span> <span class="flag">--version</span></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Windows -->
+    <div id="install-tab-windows" class="tab-panel" role="tabpanel">
+      <div class="install-grid">
+        <div class="install-steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <h4>Download the installer</h4>
+              <p>Get the <code>.msi</code> installer from the <a href="https://github.com/karl-sjogren/karls-gitflow/releases/latest" target="_blank" rel="noopener">latest release</a> on GitHub.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <h4>Run the installer</h4>
+              <p>Double-click the <code>.msi</code> file and follow the setup wizard. The tool is added to your <code>PATH</code> automatically.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <h4>Initialize a repository</h4>
+              <p>Open a terminal, navigate to your repo, and run <code>git-flow init</code> to set up branches.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <h4>Start a feature</h4>
+              <p>Create your first isolated feature branch and get to work!</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="code-window">
+            <div class="code-titlebar">
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
+              <span class="code-filename">PowerShell</span>
+            </div>
+            <pre><span class="comment"># After running the MSI installer,</span>
+<span class="comment"># open a new terminal and verify the install:</span>
+<span class="cmd">git-flow</span> <span class="flag">--version</span>
+
+<span class="comment"># Initialize Gitflow in your repo</span>
+<span class="cmd">git-flow init</span> <span class="flag">-d</span>
+
+<span class="comment"># Start your first feature</span>
+<span class="cmd">git-flow feature start</span> my-feature</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -1146,6 +1267,19 @@ gitGraph
     // mermaid sets data-processed="true" on elements it has already rendered;
     // skip those to avoid re-rendering on repeated tab visits.
     mermaid.run({ nodes: panel.querySelectorAll('.mermaid:not([data-processed])') });
+  }
+
+  function showInstallTab(id, btn) {
+    var section = document.getElementById('install');
+    if (!section) { return; }
+    section.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.remove('active'); });
+    section.querySelectorAll('.tab-btn').forEach(function (b) {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+    });
+    document.getElementById('install-tab-' + id).classList.add('active');
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
   }
 
 </script>
