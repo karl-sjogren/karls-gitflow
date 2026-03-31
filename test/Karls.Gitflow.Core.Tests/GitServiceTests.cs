@@ -999,7 +999,7 @@ public class GitServiceTests {
     [Fact]
     public void PushBranch_WhenCommandFails_ThrowsGitException() {
         // Arrange
-        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a[0] == "push" && a[1] != "origin" || (a[0] == "push" && a.Length >= 3 && a[2] != "--tags" && a[2] != "--delete")), false))
+        A.CallTo(() => _fakeExecutor.Execute(A<string[]>.That.Matches(a => a.SequenceEqual(new[] { "push", "origin", "feature/test" })), false))
             .Returns(new GitExecutorResult([], 1));
 
         // Act & Assert

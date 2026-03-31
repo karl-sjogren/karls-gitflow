@@ -3,7 +3,7 @@ using Spectre.Console.Testing;
 
 namespace Karls.Gitflow.Tool.Tests;
 
-public class UpdatePromptServiceTests {
+public sealed class UpdatePromptServiceTests {
     #region DisplayUpdateInstructions
 
     [Fact]

@@ -2,7 +2,7 @@ using System.IO.Abstractions.TestingHelpers;
 
 namespace Karls.Gitflow.Core.Tests;
 
-public class GitFlowConfigFileTests {
+public sealed class GitFlowConfigFileTests {
     private readonly MockFileSystem _fileSystem;
     private readonly GitFlowConfigFile _sut;
 

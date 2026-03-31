@@ -1,6 +1,6 @@
 namespace Karls.Gitflow.Core.Tests;
 
-public class GitExceptionTests {
+public sealed class GitExceptionTests {
     [Fact]
     public void DefaultConstructor_CreatesException() {
         // Act
