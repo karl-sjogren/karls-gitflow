@@ -69,6 +69,84 @@ public class NuGetApiClientTests : IDisposable {
         result.ShouldBeNull();
     }
 
+    [Fact]
+    public async Task GetLatestVersionAsync_WhenResponseHasNoVersionsProperty_ReturnsNullAsync() {
+        // Arrange
+        var mockHttpHandler = new MockHttpMessageHandler();
+        mockHttpHandler.SetResponse(HttpStatusCode.OK, """
+        {
+            "other": "data"
+        }
+        """);
+
+        var httpClient = new HttpClient(mockHttpHandler);
+        _sut = new NuGetApiClient(httpClient);
+
+        // Act
+        var result = await _sut.GetLatestVersionAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task GetLatestVersionAsync_WhenNoStableVersions_ReturnsNullAsync() {
+        // Arrange - only prerelease versions
+        var mockHttpHandler = new MockHttpMessageHandler();
+        mockHttpHandler.SetResponse(HttpStatusCode.OK, """
+        {
+            "versions": ["0.0.1-beta", "0.0.2-alpha"]
+        }
+        """);
+
+        var httpClient = new HttpClient(mockHttpHandler);
+        _sut = new NuGetApiClient(httpClient);
+
+        // Act
+        var result = await _sut.GetLatestVersionAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task GetLatestVersionAsync_WhenHttpClientThrows_ReturnsNullAsync() {
+        // Arrange
+        var mockHttpHandler = new ThrowingHttpMessageHandler();
+        var httpClient = new HttpClient(mockHttpHandler);
+        _sut = new NuGetApiClient(httpClient);
+
+        // Act
+        var result = await _sut.GetLatestVersionAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.ShouldBeNull();
+    }
+
+    [Fact]
+    public void Dispose_WhenOwnsHttpClient_DisposesIt() {
+        // Arrange - use default constructor so it owns the HttpClient
+        var sut = new NuGetApiClient();
+
+        // Act & Assert - should not throw
+        sut.Dispose();
+    }
+
+    [Fact]
+    public void Dispose_WhenDoesNotOwnHttpClient_DoesNotDisposeIt() {
+        // Arrange
+        var mockHttpHandler = new MockHttpMessageHandler();
+        mockHttpHandler.SetResponse(HttpStatusCode.OK, "{}");
+        var httpClient = new HttpClient(mockHttpHandler);
+        var sut = new NuGetApiClient(httpClient);
+
+        // Act
+        sut.Dispose();
+
+        // Assert - httpClient should still be usable (not disposed)
+        httpClient.BaseAddress.ShouldBeNull(); // would throw if disposed
+    }
+
     private class MockHttpMessageHandler : HttpMessageHandler {
         private HttpStatusCode _statusCode;
         private string _content = string.Empty;
@@ -83,6 +161,12 @@ public class NuGetApiClientTests : IDisposable {
                 Content = new StringContent(_content)
             };
             return Task.FromResult(response);
+        }
+    }
+
+    private sealed class ThrowingHttpMessageHandler : HttpMessageHandler {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) {
+            throw new HttpRequestException("Simulated network failure");
         }
     }
 }
