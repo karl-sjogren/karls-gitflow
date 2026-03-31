@@ -19,10 +19,10 @@ public sealed class HotfixBranchService : BranchServiceBase {
     protected override string DefaultBaseBranch => Config.MainBranch;
 
     /// <inheritdoc />
-    public override void Start(string name, string? baseBranch = null) {
+    public override void Start(string name, string? baseBranch = null, StartOptions? options = null) {
         var tagName = $"{Config.VersionTagPrefix}{name}";
         ValidateTagDoesNotExist(tagName);
-        base.Start(name, baseBranch);
+        base.Start(name, baseBranch, options);
     }
 
     /// <inheritdoc />

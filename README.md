@@ -65,6 +65,9 @@ git flow feature list
 # Start a new feature
 git flow feature start my-feature
 
+# Start a new feature, fetching from origin first
+git flow feature start my-feature -F
+
 # Finish a feature (merges to develop)
 git flow feature finish my-feature
 
@@ -84,6 +87,9 @@ git flow feature delete my-feature
 # Start a release
 git flow release start 1.0.0
 
+# Start a release, fetching from origin first
+git flow release start 1.0.0 -F
+
 # Finish a release (merges to main AND develop, creates tag)
 git flow release finish 1.0.0 -m "Release 1.0.0"
 
@@ -99,6 +105,9 @@ git flow release track 1.0.0
 ```bash
 # Start a hotfix from main
 git flow hotfix start 1.0.1
+
+# Start a hotfix, fetching from origin first
+git flow hotfix start 1.0.1 -F
 
 # Finish a hotfix (merges to main AND develop, creates tag)
 git flow hotfix finish 1.0.1 -m "Hotfix 1.0.1"
@@ -126,14 +135,23 @@ When on a gitflow branch, you can omit the branch name for finish, publish, and 
 git flow feature finish  # Automatically detects "my-feature"
 ```
 
+## Start Options
+
+| Option | Description |
+|--------|-------------|
+| `-F, --fetch` | Fetch from origin before creating the branch |
+
 ## Finish Options
 
 | Option | Description |
 |--------|-------------|
-| `-k, --keep` | Keep the branch after finishing |
+| `-k, --keep` | Keep both local and remote branch after finishing |
+| `--keeplocal` | Keep local branch but delete remote after finishing |
+| `--keepremote` | Keep remote branch but delete local after finishing |
 | `-F, --fetch` | Fetch from origin before finishing |
 | `-p, --push` | Push to origin after finishing |
 | `-S, --squash` | Squash commits during merge |
+| `-r, --rebase` | Rebase onto target branch before merging (feature/bugfix only) |
 
 ### Release/Hotfix Specific Options
 
