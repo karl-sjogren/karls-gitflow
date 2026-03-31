@@ -25,9 +25,21 @@ compatible, but provides similar functionality with some additional features.
 
 ## Installation
 
+### .NET Global Tool
+
 ```bash
 dotnet tool install -g Karls.Gitflow.Tool
 ```
+
+### Homebrew (OSX only)
+
+```bash
+brew install karl-sjogren/tap/karls-gitflow
+```
+
+### Windows
+
+Get the installer from the [latest release](https://github.com/karl-sjogren/karls-gitflow/releases/latest) on Github.
 
 ## Usage
 
