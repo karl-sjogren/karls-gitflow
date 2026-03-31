@@ -796,7 +796,7 @@ gitGraph
             <div class="step-num">3</div>
             <div class="step-body">
               <h4>Initialize a repository</h4>
-              <p>Navigate to your repo and run <code>git-flow init</code> to set up branches.</p>
+              <p>Navigate to your repo and run <code>git flow init</code> to set up branches.</p>
             </div>
           </div>
           <div class="step">
@@ -820,10 +820,10 @@ gitGraph
 <span class="cmd">dotnet tool install</span> <span class="flag">-g</span> Karls.Gitflow.Tool
 
 <span class="comment"># Initialize Gitflow in your repo</span>
-<span class="cmd">git-flow init</span> <span class="flag">-d</span>
+<span class="cmd">git flow init</span> <span class="flag">-d</span>
 
 <span class="comment"># Confirm it's working</span>
-<span class="cmd">git-flow</span> <span class="flag">--version</span></pre>
+<span class="cmd">git flow</span> <span class="flag">--version</span></pre>
           </div>
         </div>
       </div>
@@ -851,7 +851,7 @@ gitGraph
             <div class="step-num">3</div>
             <div class="step-body">
               <h4>Initialize a repository</h4>
-              <p>Navigate to your repo and run <code>git-flow init</code> to set up branches.</p>
+              <p>Navigate to your repo and run <code>git flow init</code> to set up branches.</p>
             </div>
           </div>
           <div class="step">
@@ -875,10 +875,10 @@ gitGraph
 <span class="cmd">brew install</span> karl-sjogren/tap/karls-gitflow
 
 <span class="comment"># Initialize Gitflow in your repo</span>
-<span class="cmd">git-flow init</span> <span class="flag">-d</span>
+<span class="cmd">git flow init</span> <span class="flag">-d</span>
 
 <span class="comment"># Confirm it's working</span>
-<span class="cmd">git-flow</span> <span class="flag">--version</span></pre>
+<span class="cmd">git flow</span> <span class="flag">--version</span></pre>
           </div>
         </div>
       </div>
@@ -906,7 +906,7 @@ gitGraph
             <div class="step-num">3</div>
             <div class="step-body">
               <h4>Initialize a repository</h4>
-              <p>Open a terminal, navigate to your repo, and run <code>git-flow init</code> to set up branches.</p>
+              <p>Open a terminal, navigate to your repo, and run <code>git flow init</code> to set up branches.</p>
             </div>
           </div>
           <div class="step">
@@ -928,13 +928,13 @@ gitGraph
             </div>
             <pre><span class="comment"># After running the MSI installer,</span>
 <span class="comment"># open a new terminal and verify the install:</span>
-<span class="cmd">git-flow</span> <span class="flag">--version</span>
+<span class="cmd">git flow</span> <span class="flag">--version</span>
 
 <span class="comment"># Initialize Gitflow in your repo</span>
-<span class="cmd">git-flow init</span> <span class="flag">-d</span>
+<span class="cmd">git flow init</span> <span class="flag">-d</span>
 
 <span class="comment"># Start your first feature</span>
-<span class="cmd">git-flow feature start</span> my-feature</pre>
+<span class="cmd">git flow feature start</span> my-feature</pre>
           </div>
         </div>
       </div>
@@ -968,16 +968,16 @@ gitGraph
         <div class="dot dot-red"></div>
         <div class="dot dot-yellow"></div>
         <div class="dot dot-green"></div>
-        <span class="code-filename">git-flow init</span>
+        <span class="code-filename">git flow init</span>
       </div>
       <pre><span class="comment"># Interactive setup — prompts for branch names</span>
-<span class="cmd">git-flow init</span>
+<span class="cmd">git flow init</span>
 
 <span class="comment"># Use sensible defaults (main / develop)</span>
-<span class="cmd">git-flow init</span> <span class="flag">-d</span>
+<span class="cmd">git flow init</span> <span class="flag">-d</span>
 
 <span class="comment"># Specify branch names explicitly</span>
-<span class="cmd">git-flow init</span> <span class="flag">--main</span> <span class="branch">main</span> <span class="flag">--develop</span> <span class="branch">develop</span></pre>
+<span class="cmd">git flow init</span> <span class="flag">--main</span> <span class="branch">main</span> <span class="flag">--develop</span> <span class="branch">develop</span></pre>
     </div>
   </div>
 
@@ -988,28 +988,28 @@ gitGraph
         <div class="dot dot-red"></div>
         <div class="dot dot-yellow"></div>
         <div class="dot dot-green"></div>
-        <span class="code-filename">git-flow feature</span>
+        <span class="code-filename">git flow feature</span>
       </div>
       <pre><span class="comment"># List all feature branches</span>
-<span class="cmd">git-flow feature list</span>
+<span class="cmd">git flow feature list</span>
 
 <span class="comment"># Start a new feature branch</span>
-<span class="cmd">git-flow feature start</span> <span class="branch">my-feature</span>
+<span class="cmd">git flow feature start</span> <span class="branch">my-feature</span>
 
 <span class="comment"># Finish a feature (merges to develop)</span>
-<span class="cmd">git-flow feature finish</span> <span class="branch">my-feature</span>
+<span class="cmd">git flow feature finish</span> <span class="branch">my-feature</span>
 
 <span class="comment"># Auto-detect branch name when already on it</span>
-<span class="cmd">git-flow feature finish</span>
+<span class="cmd">git flow feature finish</span>
 
 <span class="comment"># Publish feature to remote</span>
-<span class="cmd">git-flow feature publish</span> <span class="branch">my-feature</span>
+<span class="cmd">git flow feature publish</span> <span class="branch">my-feature</span>
 
 <span class="comment"># Track a remote feature branch</span>
-<span class="cmd">git-flow feature track</span> <span class="branch">my-feature</span>
+<span class="cmd">git flow feature track</span> <span class="branch">my-feature</span>
 
 <span class="comment"># Delete a feature branch</span>
-<span class="cmd">git-flow feature delete</span> <span class="branch">my-feature</span></pre>
+<span class="cmd">git flow feature delete</span> <span class="branch">my-feature</span></pre>
     </div>
   </div>
 
@@ -1020,25 +1020,25 @@ gitGraph
         <div class="dot dot-red"></div>
         <div class="dot dot-yellow"></div>
         <div class="dot dot-green"></div>
-        <span class="code-filename">git-flow bugfix</span>
+        <span class="code-filename">git flow bugfix</span>
       </div>
       <pre><span class="comment"># List all bugfix branches</span>
-<span class="cmd">git-flow bugfix list</span>
+<span class="cmd">git flow bugfix list</span>
 
 <span class="comment"># Start a new bugfix branch</span>
-<span class="cmd">git-flow bugfix start</span> <span class="branch">fix-null-check</span>
+<span class="cmd">git flow bugfix start</span> <span class="branch">fix-null-check</span>
 
 <span class="comment"># Finish a bugfix (merges to develop)</span>
-<span class="cmd">git-flow bugfix finish</span> <span class="branch">fix-null-check</span>
+<span class="cmd">git flow bugfix finish</span> <span class="branch">fix-null-check</span>
 
 <span class="comment"># Publish bugfix to remote</span>
-<span class="cmd">git-flow bugfix publish</span> <span class="branch">fix-null-check</span>
+<span class="cmd">git flow bugfix publish</span> <span class="branch">fix-null-check</span>
 
 <span class="comment"># Track a remote bugfix branch</span>
-<span class="cmd">git-flow bugfix track</span> <span class="branch">fix-null-check</span>
+<span class="cmd">git flow bugfix track</span> <span class="branch">fix-null-check</span>
 
 <span class="comment"># Delete a bugfix branch</span>
-<span class="cmd">git-flow bugfix delete</span> <span class="branch">fix-null-check</span></pre>
+<span class="cmd">git flow bugfix delete</span> <span class="branch">fix-null-check</span></pre>
     </div>
   </div>
 
@@ -1049,22 +1049,22 @@ gitGraph
         <div class="dot dot-red"></div>
         <div class="dot dot-yellow"></div>
         <div class="dot dot-green"></div>
-        <span class="code-filename">git-flow release</span>
+        <span class="code-filename">git flow release</span>
       </div>
       <pre><span class="comment"># Start a release branch</span>
-<span class="cmd">git-flow release start</span> <span class="version">1.0.0</span>
+<span class="cmd">git flow release start</span> <span class="version">1.0.0</span>
 
 <span class="comment"># Finish a release (merges to main + develop, tags)</span>
-<span class="cmd">git-flow release finish</span> <span class="version">1.0.0</span> <span class="flag">-m</span> <span class="version">"Release 1.0.0"</span>
+<span class="cmd">git flow release finish</span> <span class="version">1.0.0</span> <span class="flag">-m</span> <span class="version">"Release 1.0.0"</span>
 
 <span class="comment"># Skip the tag</span>
-<span class="cmd">git-flow release finish</span> <span class="version">1.0.0</span> <span class="flag">--notag</span>
+<span class="cmd">git flow release finish</span> <span class="version">1.0.0</span> <span class="flag">--notag</span>
 
 <span class="comment"># Publish release to remote</span>
-<span class="cmd">git-flow release publish</span> <span class="version">1.0.0</span>
+<span class="cmd">git flow release publish</span> <span class="version">1.0.0</span>
 
 <span class="comment"># Track a remote release branch</span>
-<span class="cmd">git-flow release track</span> <span class="version">1.0.0</span></pre>
+<span class="cmd">git flow release track</span> <span class="version">1.0.0</span></pre>
     </div>
   </div>
 
@@ -1075,19 +1075,19 @@ gitGraph
         <div class="dot dot-red"></div>
         <div class="dot dot-yellow"></div>
         <div class="dot dot-green"></div>
-        <span class="code-filename">git-flow hotfix</span>
+        <span class="code-filename">git flow hotfix</span>
       </div>
       <pre><span class="comment"># Start a hotfix from main</span>
-<span class="cmd">git-flow hotfix start</span> <span class="version">1.0.1</span>
+<span class="cmd">git flow hotfix start</span> <span class="version">1.0.1</span>
 
 <span class="comment"># Finish a hotfix (merges to main + develop, tags)</span>
-<span class="cmd">git-flow hotfix finish</span> <span class="version">1.0.1</span> <span class="flag">-m</span> <span class="version">"Hotfix 1.0.1"</span>
+<span class="cmd">git flow hotfix finish</span> <span class="version">1.0.1</span> <span class="flag">-m</span> <span class="version">"Hotfix 1.0.1"</span>
 
 <span class="comment"># Skip back-merge to develop</span>
-<span class="cmd">git-flow hotfix finish</span> <span class="version">1.0.1</span> <span class="flag">--nobackmerge</span>
+<span class="cmd">git flow hotfix finish</span> <span class="version">1.0.1</span> <span class="flag">--nobackmerge</span>
 
 <span class="comment"># Track a remote hotfix branch</span>
-<span class="cmd">git-flow hotfix track</span> <span class="version">1.0.1</span></pre>
+<span class="cmd">git flow hotfix track</span> <span class="version">1.0.1</span></pre>
     </div>
   </div>
 
@@ -1098,16 +1098,16 @@ gitGraph
         <div class="dot dot-red"></div>
         <div class="dot dot-yellow"></div>
         <div class="dot dot-green"></div>
-        <span class="code-filename">git-flow config</span>
+        <span class="code-filename">git flow config</span>
       </div>
       <pre><span class="comment"># List current configuration</span>
-<span class="cmd">git-flow config list</span>
+<span class="cmd">git flow config list</span>
 
 <span class="comment"># Override feature branch prefix</span>
-<span class="cmd">git-flow config set</span> <span class="branch">feature</span> <span class="version">feat/</span>
+<span class="cmd">git flow config set</span> <span class="branch">feature</span> <span class="version">feat/</span>
 
 <span class="comment"># Override release branch prefix</span>
-<span class="cmd">git-flow config set</span> <span class="branch">release</span> <span class="version">release/</span></pre>
+<span class="cmd">git flow config set</span> <span class="branch">release</span> <span class="version">release/</span></pre>
     </div>
   </div>
 

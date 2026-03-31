@@ -13,7 +13,7 @@ public sealed class ConfigListCommand : GitFlowCommand<ConfigListCommand.Setting
     public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             if(!Initializer.IsInitialized) {
-                throw new Core.GitFlowException("Gitflow is not initialized. Run 'git-flow init' first.");
+                throw new Core.GitFlowException("Gitflow is not initialized. Run 'git flow init' first.");
             }
 
             var config = GitService.GetGitFlowConfiguration();
@@ -95,7 +95,7 @@ public sealed class ConfigSaveCommand : GitFlowCommand<ConfigSaveCommand.Setting
     public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             if(!Initializer.IsInitialized) {
-                throw new Core.GitFlowException("Gitflow is not initialized. Run 'git-flow init' first.");
+                throw new Core.GitFlowException("Gitflow is not initialized. Run 'git flow init' first.");
             }
 
             var repositoryRoot = GitService.GetRepositoryRoot();
