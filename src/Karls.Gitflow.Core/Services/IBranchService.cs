@@ -38,7 +38,8 @@ public interface IBranchService {
     /// </summary>
     /// <param name="name">The branch name (without prefix).</param>
     /// <param name="baseBranch">Optional base branch to create from.</param>
-    void Start(string name, string? baseBranch = null);
+    /// <param name="options">Options for the start operation.</param>
+    void Start(string name, string? baseBranch = null, StartOptions? options = null);
 
     /// <summary>
     /// Finishes a branch by merging and cleaning up.
@@ -87,6 +88,21 @@ public sealed record FinishOptions {
     public bool Keep { get; init; }
 
     /// <summary>
+    /// Whether to keep only the local branch after merging (delete remote).
+    /// </summary>
+    public bool KeepLocal { get; init; }
+
+    /// <summary>
+    /// Whether to keep only the remote branch after merging (delete local).
+    /// </summary>
+    public bool KeepRemote { get; init; }
+
+    /// <summary>
+    /// Whether to rebase the branch onto the target branch before merging.
+    /// </summary>
+    public bool Rebase { get; init; }
+
+    /// <summary>
     /// Whether to squash commits during merge.
     /// </summary>
     public bool Squash { get; init; }
@@ -125,4 +141,14 @@ public sealed record DeleteOptions {
     /// Whether to also delete the remote branch.
     /// </summary>
     public bool Remote { get; init; }
+}
+
+/// <summary>
+/// Options for starting a branch.
+/// </summary>
+public sealed record StartOptions {
+    /// <summary>
+    /// Whether to fetch from origin before creating the branch.
+    /// </summary>
+    public bool Fetch { get; init; }
 }
