@@ -37,7 +37,7 @@ var app = new CommandApp();
 
 app.Configure(config => {
     config.SetApplicationName("git-flow");
-    config.SetApplicationVersion(Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0");
+    config.SetApplicationVersion(Assembly.GetExecutingAssembly().GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "0.0.0");
 
     // Init command
     config.AddCommand<InitCommand>("init")
@@ -50,6 +50,8 @@ app.Configure(config => {
             .WithDescription("List gitflow configuration.");
         config.AddCommand<ConfigSetCommand>("set")
             .WithDescription("Set a gitflow configuration value.");
+        config.AddCommand<ConfigSaveCommand>("save")
+            .WithDescription("Save the current gitflow configuration to a .gitflow file.");
     });
 
     // Version command
@@ -71,6 +73,8 @@ app.Configure(config => {
             .WithDescription("Finish a feature branch.");
         feature.AddCommand<FeaturePublishCommand>("publish")
             .WithDescription("Publish a feature branch to remote.");
+        feature.AddCommand<FeatureTrackCommand>("track")
+            .WithDescription("Track a remote feature branch.");
         feature.AddCommand<FeatureDeleteCommand>("delete")
             .WithDescription("Delete a feature branch.");
     });
@@ -86,6 +90,8 @@ app.Configure(config => {
             .WithDescription("Finish a bugfix branch.");
         bugfix.AddCommand<BugfixPublishCommand>("publish")
             .WithDescription("Publish a bugfix branch to remote.");
+        bugfix.AddCommand<BugfixTrackCommand>("track")
+            .WithDescription("Track a remote bugfix branch.");
         bugfix.AddCommand<BugfixDeleteCommand>("delete")
             .WithDescription("Delete a bugfix branch.");
     });
@@ -101,6 +107,8 @@ app.Configure(config => {
             .WithDescription("Finish a release branch.");
         release.AddCommand<ReleasePublishCommand>("publish")
             .WithDescription("Publish a release branch to remote.");
+        release.AddCommand<ReleaseTrackCommand>("track")
+            .WithDescription("Track a remote release branch.");
         release.AddCommand<ReleaseDeleteCommand>("delete")
             .WithDescription("Delete a release branch.");
     });
@@ -116,6 +124,8 @@ app.Configure(config => {
             .WithDescription("Finish a hotfix branch.");
         hotfix.AddCommand<HotfixPublishCommand>("publish")
             .WithDescription("Publish a hotfix branch to remote.");
+        hotfix.AddCommand<HotfixTrackCommand>("track")
+            .WithDescription("Track a remote hotfix branch.");
         hotfix.AddCommand<HotfixDeleteCommand>("delete")
             .WithDescription("Delete a hotfix branch.");
     });
@@ -129,6 +139,8 @@ app.Configure(config => {
             .WithDescription("Start a new support branch.");
         support.AddCommand<SupportPublishCommand>("publish")
             .WithDescription("Publish a support branch to remote.");
+        support.AddCommand<SupportTrackCommand>("track")
+            .WithDescription("Track a remote support branch.");
         support.AddCommand<SupportDeleteCommand>("delete")
             .WithDescription("Delete a support branch.");
     });

@@ -13,7 +13,10 @@ public sealed class VersionCommand : GitFlowCommand<VersionCommand.Settings> {
 
     public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
         var assembly = Assembly.GetExecutingAssembly();
-        var version = assembly.GetName().Version?.ToString() ?? "1.0.0";
+        var assemblyVersion = assembly.GetName().Version;
+        var version = assemblyVersion != null
+            ? $"{assemblyVersion.Major}.{assemblyVersion.Minor}.{assemblyVersion.Build}"
+            : "0.0.0";
 
         Console.MarkupLine($"[blue]git-flow[/] version [yellow]{version}[/]");
         Console.MarkupLine("[dim]A .NET reimplementation of gitflow-avh[/]");

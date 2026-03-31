@@ -27,6 +27,8 @@ public abstract class GitFlowCommand<TSettings> : Command<TSettings>
 
     protected GitFlowInitializer Initializer => field ??= new(GitService);
 
+    protected GitFlowConfigFile ConfigFile => field ??= new GitFlowConfigFile();
+
     /// <summary>
     /// Gets the console for output (supports thread-local override for testing).
     /// </summary>
@@ -130,6 +132,16 @@ public abstract class GitFlowCommand<TSettings> : Command<TSettings>
     }
 
     /// <summary>
+    /// Executes a track operation for the given branch service.
+    /// </summary>
+    protected int ExecuteTrack(IBranchService service, TrackSettings settings) {
+        return ExecuteSafe(() => {
+            service.Track(settings.Name);
+            WriteSuccess($"Tracking {service.TypeName} branch '{service.Prefix}{settings.Name}'");
+        });
+    }
+
+    /// <summary>
     /// Executes a simple finish operation (feature/bugfix pattern) for the given branch service.
     /// </summary>
     protected int ExecuteSimpleFinish(IBranchService service, FinishSettings settings) {
@@ -192,6 +204,12 @@ public class BranchNameSettings : CommandSettings {
 public class OptionalBranchNameSettings : CommandSettings {
     [CommandArgument(0, "[name]")]
     public string? Name { get; set; }
+}
+
+/// <summary>
+/// Settings for track commands.
+/// </summary>
+public class TrackSettings : BranchNameSettings {
 }
 
 /// <summary>
@@ -322,5 +340,16 @@ public abstract class BranchTagFinishCommand : GitFlowCommand<TagFinishSettings>
 
     public override int Execute(CommandContext context, TagFinishSettings settings, CancellationToken cancellationToken) {
         return ExecuteTagFinish(BranchService, settings);
+    }
+}
+
+/// <summary>
+/// Abstract base for track commands that delegate to a branch service.
+/// </summary>
+public abstract class BranchTrackCommand : GitFlowCommand<TrackSettings> {
+    protected abstract IBranchService BranchService { get; }
+
+    public override int Execute(CommandContext context, TrackSettings settings, CancellationToken cancellationToken) {
+        return ExecuteTrack(BranchService, settings);
     }
 }

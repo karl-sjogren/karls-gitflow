@@ -550,6 +550,76 @@ public class FeatureBranchServiceTests {
 
     #endregion
 
+    #region Track
+
+    [Fact]
+    public void Track_WhenNotGitRepository_ThrowsGitFlowException() {
+        // Arrange
+        A.CallTo(() => _fakeGitService.IsGitRepository()).Returns(false);
+
+        // Act & Assert
+        var ex = Should.Throw<GitFlowException>(() => _sut.Track("my-feature"));
+        ex.Message.ShouldContain("Not a git repository");
+    }
+
+    [Fact]
+    public void Track_WhenGitFlowNotInitialized_ThrowsGitFlowException() {
+        // Arrange
+        A.CallTo(() => _fakeGitService.IsGitRepository()).Returns(true);
+        A.CallTo(() => _fakeGitService.IsGitFlowInitialized()).Returns(false);
+
+        // Act & Assert
+        var ex = Should.Throw<GitFlowException>(() => _sut.Track("my-feature"));
+        ex.Message.ShouldContain("not initialized");
+    }
+
+    [Fact]
+    public void Track_WhenLocalBranchAlreadyExists_ChecksOutBranch() {
+        // Arrange
+        SetupValidRepository();
+        A.CallTo(() => _fakeGitService.LocalBranchExists("feature/my-feature")).Returns(true);
+
+        // Act
+        _sut.Track("my-feature");
+
+        // Assert
+        A.CallTo(() => _fakeGitService.CheckoutBranch("feature/my-feature"))
+            .MustHaveHappenedOnceExactly();
+        A.CallTo(() => _fakeGitService.CreateBranch(A<string>._, A<string>._))
+            .MustNotHaveHappened();
+    }
+
+    [Fact]
+    public void Track_WhenRemoteBranchDoesNotExist_ThrowsGitFlowException() {
+        // Arrange
+        SetupValidRepository();
+        A.CallTo(() => _fakeGitService.LocalBranchExists("feature/my-feature")).Returns(false);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists("feature/my-feature")).Returns(false);
+
+        // Act & Assert
+        var ex = Should.Throw<GitFlowException>(() => _sut.Track("my-feature"));
+        ex.Message.ShouldContain("does not exist on origin");
+    }
+
+    [Fact]
+    public void Track_CreatesLocalTrackingBranchFromRemote() {
+        // Arrange
+        SetupValidRepository();
+        A.CallTo(() => _fakeGitService.LocalBranchExists("feature/my-feature")).Returns(false);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists("feature/my-feature")).Returns(true);
+
+        // Act
+        _sut.Track("my-feature");
+
+        // Assert
+        A.CallTo(() => _fakeGitService.CreateBranch("feature/my-feature", "origin/feature/my-feature"))
+            .MustHaveHappenedOnceExactly();
+        A.CallTo(() => _fakeGitService.CheckoutBranch("feature/my-feature"))
+            .MustHaveHappenedOnceExactly();
+    }
+
+    #endregion
+
     #region Helper Methods
 
     private void SetupValidRepository() {

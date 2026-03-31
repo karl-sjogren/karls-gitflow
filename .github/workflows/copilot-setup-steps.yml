@@ -9,6 +9,9 @@ on:
     paths:
       - .github/workflows/copilot-setup-steps.yml
 
+env:
+  COPILOT_AGENT_FIREWALL_ALLOW_LIST_ADDITIONS: "cdn.jsdelivr.net,localhost"
+  
 jobs:
   copilot-setup-steps:
     runs-on: ubuntu-latest

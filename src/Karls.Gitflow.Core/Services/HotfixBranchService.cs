@@ -19,6 +19,13 @@ public sealed class HotfixBranchService : BranchServiceBase {
     protected override string DefaultBaseBranch => Config.MainBranch;
 
     /// <inheritdoc />
+    public override void Start(string name, string? baseBranch = null) {
+        var tagName = $"{Config.VersionTagPrefix}{name}";
+        ValidateTagDoesNotExist(tagName);
+        base.Start(name, baseBranch);
+    }
+
+    /// <inheritdoc />
     public override void Finish(string name, FinishOptions? options = null) {
         // For hotfixes, the name is typically the version number
         FinishDualMerge(name, name, options);

@@ -98,6 +98,12 @@ public abstract class BranchServiceBase : IBranchService {
         }
     }
 
+    protected void ValidateTagDoesNotExist(string tagName) {
+        if(GitService.TagExists(tagName)) {
+            throw new GitFlowException($"Tag '{tagName}' already exists.");
+        }
+    }
+
     protected void ValidateBaseBranchExists(string baseBranch) {
         // Check if it's a branch (local or remote) or any valid ref (tag, commit hash)
         if(!GitService.LocalBranchExists(baseBranch)
@@ -143,6 +149,24 @@ public abstract class BranchServiceBase : IBranchService {
 
     /// <inheritdoc />
     public abstract void Finish(string name, FinishOptions? options = null);
+
+    /// <inheritdoc />
+    public virtual void Track(string name) {
+        ValidateAll();
+
+        var fullBranchName = GetFullBranchName(name);
+
+        if(!GitService.LocalBranchExists(fullBranchName)) {
+            // Remote branch must exist to track it
+            if(!GitService.RemoteBranchExists(fullBranchName)) {
+                throw new GitFlowException($"Remote branch '{fullBranchName}' does not exist on origin.");
+            }
+
+            GitService.CreateBranch(fullBranchName, $"origin/{fullBranchName}");
+        }
+
+        GitService.CheckoutBranch(fullBranchName);
+    }
 
     /// <inheritdoc />
     public virtual void Publish(string name) {

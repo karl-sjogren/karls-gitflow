@@ -5,6 +5,7 @@
   <Folder Name="/src/">
     <Project Path="src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj" />
     <Project Path="src/Karls.Gitflow.Core/Karls.Gitflow.Core.csproj" />
+    <Project Path="src/Karls.Gitflow.WindowsInstaller/Karls.Gitflow.WindowsInstaller.wixproj" />
   </Folder>
   <Folder Name="/test/">
     <Project Path="test/Karls.Gitflow.Tool.Tests/Karls.Gitflow.Tool.Tests.csproj" />

@@ -14,6 +14,8 @@ on:
       - 'docs/*'
       - 'scripts/*'
       - '.vscode/*'
+      - 'gh-pages/**'
+      - '.github/workflows/deploy-gh-pages.yml'
 
 permissions:
   checks: write
@@ -38,7 +40,10 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [
+          ubuntu-latest,
+          windows-latest
+        ]
 
     steps:
     - name: Checkout sources
@@ -56,7 +61,7 @@ jobs:
       run: dotnet test --coverage --coverage-output-format cobertura --coverage-settings ./test/coverage.config --report-trx --configuration Release --no-progress
 
     - name: Upload test results
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       if: matrix.os == 'ubuntu-latest'
       with:
         name: net-test-results
@@ -77,32 +82,14 @@ jobs:
       uses: actions/checkout@v6
 
     - name: Download .NET tests results
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: net-test-results
         path: ./
 
-    - name: Publish .NET tests
-      uses: dorny/test-reporter@v2
-      with:
-        name: 🧪 .NET test results
-        path: ./**/*.trx
-        reporter: dotnet-trx
-
     - name: Create history folder
       run: mkdir ./coverage-history
       working-directory: ./
-
-    - name: Download historial coverage
-      uses: dawidd6/action-download-artifact@v16
-      with:
-        workflow_conclusion: success
-        branch: ${{ github.head_ref }}
-        name: coverage-history
-        path: ./coverage-history
-        check_artifacts:  true
-        search_artifacts: true
-        if_no_artifact_found: ignore
 
     - name: Install .NET
       uses: actions/setup-dotnet@v5
@@ -114,45 +101,37 @@ jobs:
       with:
         reports: './**/*.cobertura.xml;./**/cobertura-coverage.xml'
         targetdir: 'coverage-report'
-        historydir: 'coverage-history'
         reporttypes: 'MarkdownSummary;Cobertura'
         assemblyfilters: '-xunit*'
         verbosity: 'Info'
 
     - name: Upload coverage report
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
         name: coverage-report
         path: coverage-report
 
     - name: Upload to Codecov
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v6
       # To save on uploads, only upload coverage from the main branches and PRs
       if: env.PUBLISH_CODECOV
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: coverage-report/Cobertura.xml
 
-    - name: Upload coverage history
-      uses: actions/upload-artifact@v6
-      with:
-        name: coverage-history
-        path: coverage-history
-
-    - name: Publish code coverage summary to run
-      uses: LouisBrunner/checks-action@v2.0.0
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        conclusion: ${{ job.status }}
-        name: 📝 Code coverage
-        output: "{\"summary\":\"Summary of code coverage. For more detailed information, download the full artifact from the run.\"}"
-        output_text_description_file: ./coverage-report/Summary.md
-
   net-build:
-    name: .NET build
-    runs-on: ubuntu-latest
+    name: .NET build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
 
     needs: [ net-test ]
+
+    strategy:
+      matrix:
+        os: [
+          ubuntu-latest,
+          windows-latest,
+          macos-latest,
+          macos-26-intel]
 
     steps:
     - name: Checkout sources
@@ -166,15 +145,85 @@ jobs:
     - name: Restore NuGet packages
       run: dotnet restore --verbosity minimal
 
-    - name: Publish application
+    - name: Pack NuGet package
+      if: matrix.os == 'ubuntu-latest'
       run: dotnet pack --output ./artifacts --configuration Release ./src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj
       working-directory: ./
 
     - name: Upload packages
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
+      if: matrix.os == 'ubuntu-latest'
       with:
         name: packages
         path: ./artifacts/*.nupkg
+        if-no-files-found: error
+
+    - name: Publish tool for Windows x64
+      if: matrix.os == 'windows-latest'
+      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime win-x64 --self-contained --output ./artifacts/publish --no-restore
+
+    - name: Publish tool for macOS (arm64)
+      if: matrix.os == 'macos-latest'
+      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime osx-arm64 --self-contained --output ./artifacts/publish --no-restore
+
+    - name: Publish tool for macOS (x64)
+      if: matrix.os == 'macos-26-intel'
+      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime osx-x64 --self-contained --output ./artifacts/publish --no-restore
+
+    - name: Upload Windows publish artifacts
+      uses: actions/upload-artifact@v7
+      if: matrix.os == 'windows-latest'
+      with:
+        name: windows-publish
+        path: ./artifacts/publish
+        if-no-files-found: error
+
+    - name: Upload macOS publish artifacts
+      uses: actions/upload-artifact@v7
+      if: matrix.os == 'macos-26-intel'
+      with:
+        name: macos-x64-publish
+        path: ./artifacts/publish
+        if-no-files-found: error
+
+    - name: Upload macOS arm64 publish artifacts
+      uses: actions/upload-artifact@v7
+      if: matrix.os == 'macos-latest'
+      with:
+        name: macos-arm64-publish
+        path: ./artifacts/publish
+        if-no-files-found: error
+
+  windows-installer-build:
+    name: Windows installer build
+    runs-on: windows-latest
+    if: github.ref == 'refs/heads/main'
+
+    needs: [ net-build ]
+
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v6
+
+    - name: Install .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        global-json-file: global.json
+
+    - name: Download Windows publish artifacts
+      uses: actions/download-artifact@v8
+      with:
+        name: windows-publish
+        path: ./artifacts/publish/
+
+    - name: Build Windows installer
+      run: dotnet build src/Karls.Gitflow.WindowsInstaller/Karls.Gitflow.WindowsInstaller.wixproj --configuration Release "-p:ToolPublishDir=${{ github.workspace }}/artifacts/publish/"
+
+    - name: Upload installer artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: windows-installer
+        path: ./src/Karls.Gitflow.WindowsInstaller/bin/**/*.msi
         if-no-files-found: error
 
   publish:
@@ -195,7 +244,7 @@ jobs:
         sparse-checkout-cone-mode: false
 
     - name: Download artifacts
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: packages
         path: ./artifacts/

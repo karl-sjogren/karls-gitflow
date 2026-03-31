@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="WixToolset.Sdk/6.0.2">
+
+  <PropertyGroup>
+    <Platform>x64</Platform>
+    <OutputType>Package</OutputType>
+    <Manufacturer>Karl-Johan Sjögren</Manufacturer>
+    <!-- Default publish directory; override with -p:ToolPublishDir=<path> when building in CI -->
+    <ToolPublishDir Condition="'$(ToolPublishDir)' == ''">$(MSBuildThisFileDirectory)..\..\artifacts\publish\</ToolPublishDir>
+    <!-- Pass MSBuild properties to the WiX preprocessor so $(Version) and $(ToolPublishDir) resolve in .wxs files -->
+    <DefineConstants>$(DefineConstants);Version=$(Version);ToolPublishDir=$(ToolPublishDir)</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="6.0.2" />
+  </ItemGroup>
+
+</Project>
