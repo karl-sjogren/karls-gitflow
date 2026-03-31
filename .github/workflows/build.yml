@@ -170,11 +170,6 @@ jobs:
       if: matrix.os == 'macos-26-intel'
       run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime osx-x64 --self-contained --output ./artifacts/publish-macos-x64 --no-restore
 
-    - name: Generate checksums
-      uses: Solratic/checksum-action@v1
-      with:
-        pattern: ./artifacts/publish/**/*
-
     - name: Upload Windows publish artifacts
       uses: actions/upload-artifact@v7
       if: matrix.os == 'windows-latest'
