@@ -45,6 +45,9 @@ public sealed class UpdatePromptService : IUpdatePromptService {
         if(installType == InstallType.Msi) {
             AnsiConsole.MarkupLine("[green]To update karls-gitflow, download the latest installer from:[/]");
             AnsiConsole.MarkupLine("[cyan]  https://github.com/karl-sjogren/karls-gitflow/releases/latest[/]");
+        } else if(installType == InstallType.Homebrew) {
+            AnsiConsole.MarkupLine("[green]To update karls-gitflow, run:[/]");
+            AnsiConsole.MarkupLine("[cyan]  brew upgrade karl-sjogren/tap/karls-gitflow[/]");
         } else {
             AnsiConsole.MarkupLine("[green]To update karls-gitflow, run:[/]");
             AnsiConsole.MarkupLine("[cyan]  dotnet tool update -g Karls.Gitflow.Tool[/]");

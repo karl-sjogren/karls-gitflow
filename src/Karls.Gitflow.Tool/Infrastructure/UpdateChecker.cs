@@ -145,6 +145,12 @@ public sealed class UpdateChecker {
             return InstallType.DotNetTool;
         }
 
+        if(processPath.Contains("/homebrew/", StringComparison.OrdinalIgnoreCase) ||
+           processPath.Contains("/linuxbrew/", StringComparison.OrdinalIgnoreCase) ||
+           processPath.Contains("/.linuxbrew/", StringComparison.OrdinalIgnoreCase)) {
+            return InstallType.Homebrew;
+        }
+
         return InstallType.Msi;
     }
 }

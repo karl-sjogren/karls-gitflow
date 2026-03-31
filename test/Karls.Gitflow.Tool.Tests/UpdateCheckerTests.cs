@@ -170,5 +170,44 @@ public class UpdateCheckerTests {
         result.ShouldBe(InstallType.Msi);
     }
 
+    [Theory]
+    [InlineData("/opt/homebrew/bin/git-flow")]
+    [InlineData("/opt/homebrew/Cellar/karls-gitflow/1.0.0/bin/git-flow")]
+    [InlineData("/usr/local/Homebrew/bin/git-flow")]
+    public void DetectInstallType_WhenProcessPathIsInHomebrewDirectory_ReturnsHomebrew(string processPath) {
+        // Arrange
+        var userProfilePath = "/home/testuser";
+        var dotnetToolsPath = "/home/testuser/.dotnet/tools";
+
+        A.CallTo(() => _fakeFileSystem.Path.Combine(userProfilePath, ".dotnet", "tools"))
+            .Returns(dotnetToolsPath);
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+
+        // Act
+        var result = sut.DetectInstallType(processPath, userProfilePath);
+
+        // Assert
+        result.ShouldBe(InstallType.Homebrew);
+    }
+
+    [Fact]
+    public void DetectInstallType_WhenProcessPathIsInLinuxbrewDirectory_ReturnsHomebrew() {
+        // Arrange
+        var userProfilePath = "/home/testuser";
+        var dotnetToolsPath = "/home/testuser/.dotnet/tools";
+
+        A.CallTo(() => _fakeFileSystem.Path.Combine(userProfilePath, ".dotnet", "tools"))
+            .Returns(dotnetToolsPath);
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+
+        // Act
+        var result = sut.DetectInstallType("/home/linuxbrew/.linuxbrew/bin/git-flow", userProfilePath);
+
+        // Assert
+        result.ShouldBe(InstallType.Homebrew);
+    }
+
     #endregion
 }
