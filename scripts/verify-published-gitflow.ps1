@@ -1,10 +1,10 @@
-$ErrorActionPreference = 'Stop'
-$ProgressPreference = 'SilentlyContinue'
-
 param(
   [Parameter(Mandatory = $true)]
   [string]$PublishDirectory
 )
+
+$ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
 
 function Invoke-External {
   param(
@@ -19,7 +19,7 @@ function Invoke-External {
     & $FilePath @Arguments
     if($LASTEXITCODE -ne 0) {
       $joinedArguments = if($Arguments.Count -gt 0) { " $($Arguments -join ' ')" } else { '' }
-      throw "Command failed with exit code $LASTEXITCODE: $FilePath$joinedArguments"
+      throw "Command failed with exit code ${LASTEXITCODE}: $FilePath$joinedArguments"
     }
   } finally {
     Pop-Location
