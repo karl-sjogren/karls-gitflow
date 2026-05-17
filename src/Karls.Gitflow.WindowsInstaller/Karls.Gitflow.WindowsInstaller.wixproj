@@ -7,12 +7,32 @@
     <Manufacturer>Karl-Johan Sjögren</Manufacturer>
     <!-- Default publish directory; override with -p:ToolPublishDir=<path> when building in CI -->
     <ToolPublishDir Condition="'$(ToolPublishDir)' == ''">$(MSBuildThisFileDirectory)..\..\artifacts\publish\</ToolPublishDir>
+    <InstallerLicenseFile>$(MSBuildProjectDirectory)\..\..\LICENSE</InstallerLicenseFile>
+    <GeneratedInstallerLicenseRtf>$(IntermediateOutputPath)installer-license.rtf</GeneratedInstallerLicenseRtf>
+    <InstallerLicenseRtfHeader>{\rtf1\ansi\deff0{\fonttbl{\f0 Segoe UI;}}\f0\fs20</InstallerLicenseRtfHeader>
+    <InstallerLicenseRtfFooter>}</InstallerLicenseRtfFooter>
     <!-- Pass MSBuild properties to the WiX preprocessor so $(Version) and $(ToolPublishDir) resolve in .wxs files -->
-    <DefineConstants>$(DefineConstants);Version=$(Version);ToolPublishDir=$(ToolPublishDir)</DefineConstants>
+    <DefineConstants>$(DefineConstants);Version=$(Version);ToolPublishDir=$(ToolPublishDir);GeneratedInstallerLicenseRtf=$(GeneratedInstallerLicenseRtf)</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="WixToolset.UI.wixext" Version="6.0.2" />
   </ItemGroup>
+
+  <Target Name="GenerateInstallerLicenseRtf" BeforeTargets="Compile">
+    <Error Condition="!Exists('$(InstallerLicenseFile)')" Text="The installer license source file was not found at '$(InstallerLicenseFile)'." />
+    <ReadLinesFromFile File="$(InstallerLicenseFile)">
+      <Output TaskParameter="Lines" ItemName="InstallerLicenseLines" />
+    </ReadLinesFromFile>
+    <WriteLinesToFile File="$(GeneratedInstallerLicenseRtf)"
+                      Overwrite="true"
+                      Lines="$(InstallerLicenseRtfHeader)" />
+    <WriteLinesToFile File="$(GeneratedInstallerLicenseRtf)"
+                      Overwrite="false"
+                      Lines="@(InstallerLicenseLines->'%(Identity)\line')" />
+    <WriteLinesToFile File="$(GeneratedInstallerLicenseRtf)"
+                      Overwrite="false"
+                      Lines="$(InstallerLicenseRtfFooter)" />
+  </Target>
 
 </Project>
