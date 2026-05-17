@@ -304,7 +304,7 @@ public class ListSettings : CommandSettings {
 public abstract class BranchListCommand : GitFlowCommand<ListSettings> {
     protected abstract IBranchService BranchService { get; }
 
-    public override int Execute(CommandContext context, ListSettings settings, CancellationToken cancellationToken) {
+    protected override int Execute(CommandContext context, ListSettings settings, CancellationToken cancellationToken) {
         return ExecuteList(BranchService);
     }
 }
@@ -315,7 +315,7 @@ public abstract class BranchListCommand : GitFlowCommand<ListSettings> {
 public abstract class BranchStartCommand : GitFlowCommand<StartSettings> {
     protected abstract IBranchService BranchService { get; }
 
-    public override int Execute(CommandContext context, StartSettings settings, CancellationToken cancellationToken) {
+    protected override int Execute(CommandContext context, StartSettings settings, CancellationToken cancellationToken) {
         return ExecuteStart(BranchService, settings);
     }
 }
@@ -326,7 +326,7 @@ public abstract class BranchStartCommand : GitFlowCommand<StartSettings> {
 public abstract class BranchPublishCommand : GitFlowCommand<PublishSettings> {
     protected abstract IBranchService BranchService { get; }
 
-    public override int Execute(CommandContext context, PublishSettings settings, CancellationToken cancellationToken) {
+    protected override int Execute(CommandContext context, PublishSettings settings, CancellationToken cancellationToken) {
         return ExecutePublish(BranchService, settings);
     }
 }
@@ -337,7 +337,7 @@ public abstract class BranchPublishCommand : GitFlowCommand<PublishSettings> {
 public abstract class BranchDeleteCommand : GitFlowCommand<DeleteSettings> {
     protected abstract IBranchService BranchService { get; }
 
-    public override int Execute(CommandContext context, DeleteSettings settings, CancellationToken cancellationToken) {
+    protected override int Execute(CommandContext context, DeleteSettings settings, CancellationToken cancellationToken) {
         return ExecuteDelete(BranchService, settings);
     }
 }
@@ -348,7 +348,7 @@ public abstract class BranchDeleteCommand : GitFlowCommand<DeleteSettings> {
 public abstract class BranchSimpleFinishCommand : GitFlowCommand<SimpleFinishSettings> {
     protected abstract IBranchService BranchService { get; }
 
-    public override int Execute(CommandContext context, SimpleFinishSettings settings, CancellationToken cancellationToken) {
+    protected override int Execute(CommandContext context, SimpleFinishSettings settings, CancellationToken cancellationToken) {
         return ExecuteSimpleFinish(BranchService, settings);
     }
 }
@@ -359,7 +359,7 @@ public abstract class BranchSimpleFinishCommand : GitFlowCommand<SimpleFinishSet
 public abstract class BranchTagFinishCommand : GitFlowCommand<TagFinishSettings> {
     protected abstract IBranchService BranchService { get; }
 
-    public override int Execute(CommandContext context, TagFinishSettings settings, CancellationToken cancellationToken) {
+    protected override int Execute(CommandContext context, TagFinishSettings settings, CancellationToken cancellationToken) {
         return ExecuteTagFinish(BranchService, settings);
     }
 }
@@ -370,7 +370,7 @@ public abstract class BranchTagFinishCommand : GitFlowCommand<TagFinishSettings>
 public abstract class BranchTrackCommand : GitFlowCommand<TrackSettings> {
     protected abstract IBranchService BranchService { get; }
 
-    public override int Execute(CommandContext context, TrackSettings settings, CancellationToken cancellationToken) {
+    protected override int Execute(CommandContext context, TrackSettings settings, CancellationToken cancellationToken) {
         return ExecuteTrack(BranchService, settings);
     }
 }
