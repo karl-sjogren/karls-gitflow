@@ -151,19 +151,19 @@ jobs:
 
     - name: Publish tool for Linux x64
       if: matrix.os == 'ubuntu-latest'
-      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime linux-x64 --self-contained -p:PublishAot=false --output ./artifacts/publish --no-restore
+      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime linux-x64 --self-contained --output ./artifacts/publish --no-restore
 
     - name: Publish tool for Windows x64
       if: matrix.os == 'windows-latest'
-      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime win-x64 --self-contained -p:PublishAot=false --output ./artifacts/publish --no-restore
+      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime win-x64 --self-contained --output ./artifacts/publish --no-restore
 
     - name: Publish tool for macOS (arm64)
       if: matrix.os == 'macos-latest'
-      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime osx-arm64 --self-contained -p:PublishAot=false --output ./artifacts/publish --no-restore
+      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime osx-arm64 --self-contained --output ./artifacts/publish --no-restore
 
     - name: Publish tool for macOS (x64)
       if: matrix.os == 'macos-26-intel'
-      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime osx-x64 --self-contained -p:PublishAot=false --output ./artifacts/publish --no-restore
+      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime osx-x64 --self-contained --output ./artifacts/publish --no-restore
 
     - name: Verify published executable
       shell: pwsh

@@ -8,4 +8,12 @@
   -->
   <assembly fullname="git-flow" preserve="all" />
   <assembly fullname="Karls.Gitflow.Core" preserve="all" />
+  <assembly fullname="Spectre.Console.Cli">
+    <type fullname="Spectre.Console.Cli.EmptyCommandSettings" preserve="all" />
+    <type fullname="Spectre.Console.Cli.ExplainCommand" preserve="all" />
+    <type fullname="Spectre.Console.Cli.ExplainCommand/Settings" preserve="all" />
+    <type fullname="Spectre.Console.Cli.OpenCliGeneratorCommand" preserve="all" />
+    <type fullname="Spectre.Console.Cli.VersionCommand" preserve="all" />
+    <type fullname="Spectre.Console.Cli.XmlDocCommand" preserve="all" />
+  </assembly>
 </linker>
