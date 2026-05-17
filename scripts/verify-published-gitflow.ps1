@@ -57,6 +57,8 @@ try {
   if(-not (Test-Path -Path $configPath -PathType Leaf)) {
     throw "Expected gitflow configuration file not found at '$configPath'."
   }
+  Invoke-External -FilePath 'git' -Arguments @('add', '.gitflow') -WorkingDirectory $repoPath
+  Invoke-External -FilePath 'git' -Arguments @('commit', '-m', 'save gitflow config') -WorkingDirectory $repoPath
 
   Invoke-External -FilePath $executablePath -Arguments @('feature', 'start', 'aot-smoke-test') -WorkingDirectory $repoPath
   $currentBranch = (git -C $repoPath rev-parse --abbrev-ref HEAD).Trim()
