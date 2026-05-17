@@ -145,6 +145,14 @@ jobs:
     - name: Restore NuGet packages
       run: dotnet restore --verbosity minimal
 
+    - name: Install native build tools for NativeAOT (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt-get install -y clang zlib1g-dev
+
+    - name: Publish tool for Linux x64
+      if: matrix.os == 'ubuntu-latest'
+      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime linux-x64 --self-contained --output ./artifacts/publish --no-restore
+
     - name: Publish tool for Windows x64
       if: matrix.os == 'windows-latest'
       run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime win-x64 --self-contained --output ./artifacts/publish --no-restore
@@ -156,6 +164,14 @@ jobs:
     - name: Publish tool for macOS (x64)
       if: matrix.os == 'macos-26-intel'
       run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime osx-x64 --self-contained --output ./artifacts/publish --no-restore
+
+    - name: Upload Linux publish artifacts
+      uses: actions/upload-artifact@v7
+      if: matrix.os == 'ubuntu-latest'
+      with:
+        name: linux-x64-publish
+        path: ./artifacts/publish
+        if-no-files-found: error
 
     - name: Upload Windows publish artifacts
       uses: actions/upload-artifact@v7
