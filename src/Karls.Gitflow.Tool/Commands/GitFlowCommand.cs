@@ -100,7 +100,8 @@ public abstract class GitFlowCommand<TSettings> : Command<TSettings>
     /// </summary>
     protected int ExecuteStart(IBranchService service, StartSettings settings) {
         return ExecuteSafe(() => {
-            service.Start(settings.Name, settings.BaseBranch);
+            var options = new StartOptions { Fetch = settings.Fetch };
+            service.Start(settings.Name, settings.BaseBranch, options);
             WriteSuccess($"Started {service.TypeName} branch '{service.Prefix}{settings.Name}'");
         });
     }
@@ -144,13 +145,16 @@ public abstract class GitFlowCommand<TSettings> : Command<TSettings>
     /// <summary>
     /// Executes a simple finish operation (feature/bugfix pattern) for the given branch service.
     /// </summary>
-    protected int ExecuteSimpleFinish(IBranchService service, FinishSettings settings) {
+    protected int ExecuteSimpleFinish(IBranchService service, SimpleFinishSettings settings) {
         return ExecuteSafe(() => {
             var name = service.ResolveBranchName(settings.Name);
             var options = new FinishOptions {
                 Fetch = settings.Fetch,
                 Push = settings.Push,
                 Keep = settings.Keep,
+                KeepLocal = settings.KeepLocal,
+                KeepRemote = settings.KeepRemote,
+                Rebase = settings.Rebase,
                 Squash = settings.Squash,
                 OnProgress = CreateProgressCallback(settings.Quiet)
             };
@@ -218,6 +222,9 @@ public class TrackSettings : BranchNameSettings {
 public class StartSettings : BranchNameSettings {
     [CommandArgument(1, "[base]")]
     public string? BaseBranch { get; set; }
+
+    [CommandOption("-F|--fetch")]
+    public bool Fetch { get; set; }
 }
 
 /// <summary>
@@ -255,6 +262,20 @@ public class TagFinishSettings : FinishSettings {
 }
 
 /// <summary>
+/// Settings for simple finish commands (feature/bugfix pattern) with rebase and granular keep options.
+/// </summary>
+public class SimpleFinishSettings : FinishSettings {
+    [CommandOption("-r|--rebase")]
+    public bool Rebase { get; set; }
+
+    [CommandOption("--keeplocal")]
+    public bool KeepLocal { get; set; }
+
+    [CommandOption("--keepremote")]
+    public bool KeepRemote { get; set; }
+}
+
+/// <summary>
 /// Settings for publish commands (name optional - auto-detected from current branch).
 /// </summary>
 public class PublishSettings : OptionalBranchNameSettings {
@@ -283,7 +304,7 @@ public class ListSettings : CommandSettings {
 public abstract class BranchListCommand : GitFlowCommand<ListSettings> {
     protected abstract IBranchService BranchService { get; }
 
-    public override int Execute(CommandContext context, ListSettings settings, CancellationToken cancellationToken) {
+    protected override int Execute(CommandContext context, ListSettings settings, CancellationToken cancellationToken) {
         return ExecuteList(BranchService);
     }
 }
@@ -294,7 +315,7 @@ public abstract class BranchListCommand : GitFlowCommand<ListSettings> {
 public abstract class BranchStartCommand : GitFlowCommand<StartSettings> {
     protected abstract IBranchService BranchService { get; }
 
-    public override int Execute(CommandContext context, StartSettings settings, CancellationToken cancellationToken) {
+    protected override int Execute(CommandContext context, StartSettings settings, CancellationToken cancellationToken) {
         return ExecuteStart(BranchService, settings);
     }
 }
@@ -305,7 +326,7 @@ public abstract class BranchStartCommand : GitFlowCommand<StartSettings> {
 public abstract class BranchPublishCommand : GitFlowCommand<PublishSettings> {
     protected abstract IBranchService BranchService { get; }
 
-    public override int Execute(CommandContext context, PublishSettings settings, CancellationToken cancellationToken) {
+    protected override int Execute(CommandContext context, PublishSettings settings, CancellationToken cancellationToken) {
         return ExecutePublish(BranchService, settings);
     }
 }
@@ -316,7 +337,7 @@ public abstract class BranchPublishCommand : GitFlowCommand<PublishSettings> {
 public abstract class BranchDeleteCommand : GitFlowCommand<DeleteSettings> {
     protected abstract IBranchService BranchService { get; }
 
-    public override int Execute(CommandContext context, DeleteSettings settings, CancellationToken cancellationToken) {
+    protected override int Execute(CommandContext context, DeleteSettings settings, CancellationToken cancellationToken) {
         return ExecuteDelete(BranchService, settings);
     }
 }
@@ -324,10 +345,10 @@ public abstract class BranchDeleteCommand : GitFlowCommand<DeleteSettings> {
 /// <summary>
 /// Abstract base for simple finish commands (feature/bugfix pattern) that delegate to a branch service.
 /// </summary>
-public abstract class BranchSimpleFinishCommand : GitFlowCommand<FinishSettings> {
+public abstract class BranchSimpleFinishCommand : GitFlowCommand<SimpleFinishSettings> {
     protected abstract IBranchService BranchService { get; }
 
-    public override int Execute(CommandContext context, FinishSettings settings, CancellationToken cancellationToken) {
+    protected override int Execute(CommandContext context, SimpleFinishSettings settings, CancellationToken cancellationToken) {
         return ExecuteSimpleFinish(BranchService, settings);
     }
 }
@@ -338,7 +359,7 @@ public abstract class BranchSimpleFinishCommand : GitFlowCommand<FinishSettings>
 public abstract class BranchTagFinishCommand : GitFlowCommand<TagFinishSettings> {
     protected abstract IBranchService BranchService { get; }
 
-    public override int Execute(CommandContext context, TagFinishSettings settings, CancellationToken cancellationToken) {
+    protected override int Execute(CommandContext context, TagFinishSettings settings, CancellationToken cancellationToken) {
         return ExecuteTagFinish(BranchService, settings);
     }
 }
@@ -349,7 +370,7 @@ public abstract class BranchTagFinishCommand : GitFlowCommand<TagFinishSettings>
 public abstract class BranchTrackCommand : GitFlowCommand<TrackSettings> {
     protected abstract IBranchService BranchService { get; }
 
-    public override int Execute(CommandContext context, TrackSettings settings, CancellationToken cancellationToken) {
+    protected override int Execute(CommandContext context, TrackSettings settings, CancellationToken cancellationToken) {
         return ExecuteTrack(BranchService, settings);
     }
 }

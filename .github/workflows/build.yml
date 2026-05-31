@@ -145,18 +145,13 @@ jobs:
     - name: Restore NuGet packages
       run: dotnet restore --verbosity minimal
 
-    - name: Pack NuGet package
+    - name: Install native build tools for NativeAOT (Linux)
       if: matrix.os == 'ubuntu-latest'
-      run: dotnet pack --output ./artifacts --configuration Release ./src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj
-      working-directory: ./
+      run: sudo apt-get install -y clang zlib1g-dev
 
-    - name: Upload packages
-      uses: actions/upload-artifact@v7
+    - name: Publish tool for Linux x64
       if: matrix.os == 'ubuntu-latest'
-      with:
-        name: packages
-        path: ./artifacts/*.nupkg
-        if-no-files-found: error
+      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime linux-x64 --self-contained --output ./artifacts/publish --no-restore
 
     - name: Publish tool for Windows x64
       if: matrix.os == 'windows-latest'
@@ -169,6 +164,18 @@ jobs:
     - name: Publish tool for macOS (x64)
       if: matrix.os == 'macos-26-intel'
       run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime osx-x64 --self-contained --output ./artifacts/publish --no-restore
+
+    - name: Verify published executable
+      shell: pwsh
+      run: ./scripts/verify-published-gitflow.ps1 -PublishDirectory ./artifacts/publish
+
+    - name: Upload Linux publish artifacts
+      uses: actions/upload-artifact@v7
+      if: matrix.os == 'ubuntu-latest'
+      with:
+        name: linux-x64-publish
+        path: ./artifacts/publish
+        if-no-files-found: error
 
     - name: Upload Windows publish artifacts
       uses: actions/upload-artifact@v7
@@ -197,7 +204,6 @@ jobs:
   windows-installer-build:
     name: Windows installer build
     runs-on: windows-latest
-    if: github.ref == 'refs/heads/main'
 
     needs: [ net-build ]
 
@@ -225,41 +231,3 @@ jobs:
         name: windows-installer
         path: ./src/Karls.Gitflow.WindowsInstaller/bin/**/*.msi
         if-no-files-found: error
-
-  publish:
-    name: NuGet Publish
-    needs: net-build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-
-    permissions:
-      id-token: write
-
-    steps:
-    - name: Checkout sources
-      uses: actions/checkout@v6
-      with:
-        sparse-checkout: |
-          global.json
-        sparse-checkout-cone-mode: false
-
-    - name: Download artifacts
-      uses: actions/download-artifact@v8
-      with:
-        name: packages
-        path: ./artifacts/
-
-    - name: Install .NET
-      uses: actions/setup-dotnet@v5
-      with:
-        global-json-file: global.json
-
-    - name: NuGet login (OIDC → temp API key)
-      uses: NuGet/login@v1
-      id: login
-      with:
-        user: ${{ secrets.NUGET_PROFILE }}
-
-    - name: Publish package to NuGet.org
-      run: dotnet nuget push artifacts/*.nupkg --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
-      working-directory: ./

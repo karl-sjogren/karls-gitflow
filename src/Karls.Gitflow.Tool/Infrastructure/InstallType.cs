@@ -12,5 +12,10 @@ public enum InstallType {
     /// <summary>
     /// Installed via the Windows MSI installer.
     /// </summary>
-    Msi
+    Msi,
+
+    /// <summary>
+    /// Installed via Homebrew (macOS or Linux).
+    /// </summary>
+    Homebrew
 }

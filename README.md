@@ -25,9 +25,21 @@ compatible, but provides similar functionality with some additional features.
 
 ## Installation
 
+### .NET Global Tool
+
 ```bash
 dotnet tool install -g Karls.Gitflow.Tool
 ```
+
+### Homebrew (OSX only)
+
+```bash
+brew install karl-sjogren/tap/karls-gitflow
+```
+
+### Windows
+
+Get the installer from the [latest release](https://github.com/karl-sjogren/karls-gitflow/releases/latest) on Github.
 
 ## Usage
 
@@ -35,74 +47,83 @@ dotnet tool install -g Karls.Gitflow.Tool
 
 ```bash
 # Interactive initialization
-git-flow init
+git flow init
 
 # Use default settings
-git-flow init -d
+git flow init -d
 
 # Specify options
-git-flow init --main main --develop develop
+git flow init --main main --develop develop
 ```
 
 ### Feature Branches
 
 ```bash
 # List all feature branches
-git-flow feature list
+git flow feature list
 
 # Start a new feature
-git-flow feature start my-feature
+git flow feature start my-feature
+
+# Start a new feature, fetching from origin first
+git flow feature start my-feature -F
 
 # Finish a feature (merges to develop)
-git-flow feature finish my-feature
+git flow feature finish my-feature
 
 # Publish feature to remote
-git-flow feature publish my-feature
+git flow feature publish my-feature
 
 # Track a remote feature branch (created by a teammate)
-git-flow feature track my-feature
+git flow feature track my-feature
 
 # Delete a feature branch
-git-flow feature delete my-feature
+git flow feature delete my-feature
 ```
 
 ### Release Branches
 
 ```bash
 # Start a release
-git-flow release start 1.0.0
+git flow release start 1.0.0
+
+# Start a release, fetching from origin first
+git flow release start 1.0.0 -F
 
 # Finish a release (merges to main AND develop, creates tag)
-git-flow release finish 1.0.0 -m "Release 1.0.0"
+git flow release finish 1.0.0 -m "Release 1.0.0"
 
 # Publish release to remote
-git-flow release publish 1.0.0
+git flow release publish 1.0.0
 
 # Track a remote release branch
-git-flow release track 1.0.0
+git flow release track 1.0.0
 ```
 
 ### Hotfix Branches
 
 ```bash
 # Start a hotfix from main
-git-flow hotfix start 1.0.1
+git flow hotfix start 1.0.1
+
+# Start a hotfix, fetching from origin first
+git flow hotfix start 1.0.1 -F
 
 # Finish a hotfix (merges to main AND develop, creates tag)
-git-flow hotfix finish 1.0.1 -m "Hotfix 1.0.1"
+git flow hotfix finish 1.0.1 -m "Hotfix 1.0.1"
 
 # Track a remote hotfix branch
-git-flow hotfix track 1.0.1
+git flow hotfix track 1.0.1
 ```
 
 ### Configuration
 
 ```bash
 # List current configuration
-git-flow config list
+git flow config list
 
 # Set a configuration value
-git-flow config set feature feat/
+git flow config set feature feat/
 ```
 
 ## Branch Auto-Detection
@@ -111,17 +132,26 @@ When on a gitflow branch, you can omit the branch name for finish, publish, and 
 
 ```bash
 # While on feature/my-feature branch
-git-flow feature finish  # Automatically detects "my-feature"
+git flow feature finish  # Automatically detects "my-feature"
 ```
+
+## Start Options
+
+| Option | Description |
+|--------|-------------|
+| `-F, --fetch` | Fetch from origin before creating the branch |
 
 ## Finish Options
 
 | Option | Description |
 |--------|-------------|
-| `-k, --keep` | Keep the branch after finishing |
+| `-k, --keep` | Keep both local and remote branch after finishing |
+| `--keeplocal` | Keep local branch but delete remote after finishing |
+| `--keepremote` | Keep remote branch but delete local after finishing |
 | `-F, --fetch` | Fetch from origin before finishing |
 | `-p, --push` | Push to origin after finishing |
 | `-S, --squash` | Squash commits during merge |
+| `-r, --rebase` | Rebase onto target branch before merging (feature/bugfix only) |
 
 ### Release/Hotfix Specific Options
 
