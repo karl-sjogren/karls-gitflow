@@ -204,7 +204,6 @@ jobs:
   windows-installer-build:
     name: Windows installer build
     runs-on: windows-latest
-    if: github.ref == 'refs/heads/main'
 
     needs: [ net-build ]
 
