@@ -25,10 +25,9 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
-    <NoWarn>NU5100,NU5119</NoWarn>
     <!-- Spectre.Console.Cli carries [RequiresUnreferencedCode]/[RequiresDynamicCode] on its public API.
-         The TrimmerRoots.xml ensures our command types are preserved at runtime, so these are safe to downgrade. -->
-    <WarningsNotAsErrors>IL2026;IL3050</WarningsNotAsErrors>
+         The TrimmerRoots.xml ensures our command types are preserved at runtime, so these are safe to suppress. -->
+    <NoWarn>NU5100;NU5119;IL2026;IL3050</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
