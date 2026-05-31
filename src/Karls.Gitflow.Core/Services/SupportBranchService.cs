@@ -22,12 +22,12 @@ public sealed class SupportBranchService : BranchServiceBase {
     /// <remarks>
     /// Support branches require an explicit base branch (typically a tag or specific commit).
     /// </remarks>
-    public override void Start(string name, string? baseBranch = null) {
+    public override void Start(string name, string? baseBranch = null, StartOptions? options = null) {
         if(string.IsNullOrWhiteSpace(baseBranch)) {
             throw new GitFlowException("Support branches require a base branch (typically a tag or commit).");
         }
 
-        base.Start(name, baseBranch);
+        base.Start(name, baseBranch, options);
     }
 
     /// <inheritdoc />

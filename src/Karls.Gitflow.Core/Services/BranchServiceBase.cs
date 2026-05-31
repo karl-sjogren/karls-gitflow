@@ -72,7 +72,7 @@ public abstract class BranchServiceBase : IBranchService {
 
     protected void ValidateGitFlowInitialized() {
         if(!GitService.IsGitFlowInitialized()) {
-            throw new GitFlowException("Gitflow is not initialized. Run 'git-flow init' first.");
+            throw new GitFlowException("Gitflow is not initialized. Run 'git flow init' first.");
         }
     }
 
@@ -134,12 +134,17 @@ public abstract class BranchServiceBase : IBranchService {
     }
 
     /// <inheritdoc />
-    public virtual void Start(string name, string? baseBranch = null) {
+    public virtual void Start(string name, string? baseBranch = null, StartOptions? options = null) {
         ValidateAll();
         ValidateWorkingTreeClean();
 
         var fullBranchName = GetFullBranchName(name);
         var baseRef = baseBranch ?? DefaultBaseBranch;
+
+        // Optionally fetch from origin before creating the branch
+        if(options?.Fetch == true) {
+            GitService.Fetch();
+        }
 
         ValidateBranchDoesNotExist(fullBranchName);
         ValidateBaseBranchExists(baseRef);
@@ -238,6 +243,14 @@ public abstract class BranchServiceBase : IBranchService {
             GitService.Fetch();
         }
 
+        // Optionally rebase onto the target branch before merging
+        if(options.Rebase) {
+            progress?.Invoke($"Rebasing '{fullBranchName}' onto '{targetBranch}'...");
+            GitService.CheckoutBranch(fullBranchName);
+            GitService.RebaseBranch(targetBranch);
+            progress?.Invoke($"Rebased '{fullBranchName}' onto '{targetBranch}'");
+        }
+
         // Checkout target branch and merge
         progress?.Invoke($"Merging into '{targetBranch}'...");
         GitService.CheckoutBranch(targetBranch);
@@ -251,17 +264,22 @@ public abstract class BranchServiceBase : IBranchService {
 
         progress?.Invoke($"Merged into '{targetBranch}'");
 
-        // Delete the branch unless --keep
-        if(!options.Keep) {
-            progress?.Invoke($"Deleting branch '{fullBranchName}'...");
+        // Determine which copies of the branch to keep
+        var keepLocal = options.Keep || options.KeepLocal;
+        var keepRemote = options.Keep || options.KeepRemote;
+
+        // Delete the local branch unless requested to keep it
+        if(!keepLocal) {
+            progress?.Invoke($"Deleting local branch '{fullBranchName}'...");
             GitService.DeleteLocalBranch(fullBranchName, force: true);
+            progress?.Invoke($"Deleted local branch '{fullBranchName}'");
+        }
 
-            // Delete remote if it exists
-            if(GitService.RemoteBranchExists(fullBranchName)) {
-                GitService.DeleteRemoteBranch(fullBranchName);
-            }
-
-            progress?.Invoke($"Deleted branch '{fullBranchName}'");
+        // Delete the remote branch unless requested to keep it
+        if(!keepRemote && GitService.RemoteBranchExists(fullBranchName)) {
+            progress?.Invoke($"Deleting remote branch '{fullBranchName}'...");
+            GitService.DeleteRemoteBranch(fullBranchName);
+            progress?.Invoke($"Deleted remote branch '{fullBranchName}'");
         }
 
         // Optionally push
@@ -338,15 +356,19 @@ public abstract class BranchServiceBase : IBranchService {
         }
 
         // Step 4: Delete the branch unless --keep
-        if(!options.Keep) {
-            progress?.Invoke($"Deleting branch '{fullBranchName}'...");
+        var keepLocal = options.Keep || options.KeepLocal;
+        var keepRemote = options.Keep || options.KeepRemote;
+
+        if(!keepLocal) {
+            progress?.Invoke($"Deleting local branch '{fullBranchName}'...");
             GitService.DeleteLocalBranch(fullBranchName, force: true);
+            progress?.Invoke($"Deleted local branch '{fullBranchName}'");
+        }
 
-            if(GitService.RemoteBranchExists(fullBranchName)) {
-                GitService.DeleteRemoteBranch(fullBranchName);
-            }
-
-            progress?.Invoke($"Deleted branch '{fullBranchName}'");
+        if(!keepRemote && GitService.RemoteBranchExists(fullBranchName)) {
+            progress?.Invoke($"Deleting remote branch '{fullBranchName}'...");
+            GitService.DeleteRemoteBranch(fullBranchName);
+            progress?.Invoke($"Deleted remote branch '{fullBranchName}'");
         }
 
         // Step 5: Optionally push everything

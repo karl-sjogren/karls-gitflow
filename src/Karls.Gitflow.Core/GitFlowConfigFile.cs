@@ -8,17 +8,18 @@ namespace Karls.Gitflow.Core;
 /// Handles reading and writing the <c>.gitflow</c> configuration file that can be committed
 /// to a repository to share settings across a team.
 /// </summary>
-public sealed class GitFlowConfigFile {
+public sealed partial class GitFlowConfigFile {
     /// <summary>
     /// The name of the configuration file.
     /// </summary>
     public const string FileName = ".gitflow";
 
-    private static readonly JsonSerializerOptions _jsonOptions = new() {
+    [JsonSourceGenerationOptions(
         WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-    };
+        PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonSerializable(typeof(GitFlowConfigFileDto))]
+    private sealed partial class GitFlowConfigFileSerializerContext : JsonSerializerContext { }
 
     private readonly IFileSystem _fileSystem;
 
@@ -50,7 +51,7 @@ public sealed class GitFlowConfigFile {
 
         try {
             var json = _fileSystem.File.ReadAllText(path);
-            var dto = JsonSerializer.Deserialize<GitFlowConfigFileDto>(json, _jsonOptions);
+            var dto = JsonSerializer.Deserialize(json, GitFlowConfigFileSerializerContext.Default.GitFlowConfigFileDto);
             return dto?.ToConfiguration();
         } catch(JsonException) {
             return null;
@@ -63,7 +64,7 @@ public sealed class GitFlowConfigFile {
     public void Save(string repositoryRoot, GitFlowConfiguration config) {
         var path = _fileSystem.Path.Combine(repositoryRoot, FileName);
         var dto = GitFlowConfigFileDto.FromConfiguration(config);
-        var json = JsonSerializer.Serialize(dto, _jsonOptions);
+        var json = JsonSerializer.Serialize(dto, GitFlowConfigFileSerializerContext.Default.GitFlowConfigFileDto);
         _fileSystem.File.WriteAllText(path, json);
     }
 

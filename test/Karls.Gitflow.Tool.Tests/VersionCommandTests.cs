@@ -32,7 +32,7 @@ public class VersionCommandTests : IDisposable {
 
         // Assert
         result.Success.ShouldBeTrue();
-        result.Output.ShouldContain("git-flow");
+        result.Output.ShouldContain("git flow");
         result.Output.ShouldContain("version");
     }
 

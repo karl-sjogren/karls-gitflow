@@ -1,9 +1,10 @@
 name: 'Deploy GitHub Pages'
 
 on:
+  workflow_dispatch: 
   push:
     branches:
-      - main
+      - develop
     paths:
       - 'gh-pages/**'
       - '.github/workflows/deploy-gh-pages.yml'
@@ -31,10 +32,10 @@ jobs:
       uses: actions/checkout@v6
 
     - name: Setup Pages
-      uses: actions/configure-pages@v5
+      uses: actions/configure-pages@v6
 
     - name: Upload artifact
-      uses: actions/upload-pages-artifact@v4
+      uses: actions/upload-pages-artifact@v5
       with:
         path: './gh-pages'
 
