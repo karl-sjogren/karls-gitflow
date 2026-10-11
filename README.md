@@ -128,6 +128,9 @@ git flow config list
 
 # Set a configuration value
 git flow config set feature feat/
+
+# Force an immediate check for tool updates
+git flow update-check
 ```
 
 ## Branch Auto-Detection

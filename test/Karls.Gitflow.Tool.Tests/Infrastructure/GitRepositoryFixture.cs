@@ -155,6 +155,7 @@ public sealed class GitRepositoryFixture : IDisposable {
             });
 
             config.AddCommand<VersionCommand>("version");
+            config.AddCommand<UpdateCheckCommand>("update-check");
 
             config.AddBranch("feature", feature => {
                 feature.AddCommand<FeatureListCommand>("list");

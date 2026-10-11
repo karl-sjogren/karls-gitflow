@@ -12,23 +12,25 @@ using Spectre.Console.Cli;
 
 #region Check for updates
 
-try {
-    var gitExecutor = new GitExecutor();
-    var gitService = new GitService(gitExecutor);
-    var nugetClient = new NuGetApiClient();
-    var promptService = new UpdatePromptService();
-    var currentVersion = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0);
+if(args.Length == 0 || args[0] != "update-check") {
+    try {
+        var gitExecutor = new GitExecutor();
+        var gitService = new GitService(gitExecutor);
+        var nugetClient = new NuGetApiClient();
+        var promptService = new UpdatePromptService();
+        var currentVersion = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0);
 
-    var updateChecker = new UpdateChecker(gitService, nugetClient, promptService, currentVersion);
-    var shouldExit = await updateChecker.CheckForUpdatesAsync();
+        var updateChecker = new UpdateChecker(gitService, nugetClient, promptService, currentVersion);
+        var shouldExit = await updateChecker.CheckForUpdatesAsync();
 
-    nugetClient.Dispose();
+        nugetClient.Dispose();
 
-    if(shouldExit) {
-        return 0; // User chose to update, exit gracefully
+        if(shouldExit) {
+            return 0; // User chose to update, exit gracefully
+        }
+    } catch {
+        // Silent failure - never interrupt workflow
     }
-} catch {
-    // Silent failure - never interrupt workflow
 }
 
 #endregion
@@ -57,6 +59,9 @@ app.Configure(config => {
     // Version command
     config.AddCommand<VersionCommand>("version")
         .WithDescription("Show the git-flow version information.");
+
+    config.AddCommand<UpdateCheckCommand>("update-check")
+        .WithDescription("Check for tool updates now.");
 
     // Push command
     config.AddCommand<PushCommand>("push")

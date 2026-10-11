@@ -37,6 +37,46 @@ public class UpdateCheckerTests {
     }
 
     [Fact]
+    public async Task ForceCheckForUpdatesAsync_WhenAutomaticChecksAreDisabled_ChecksNuGetAsync() {
+        // Arrange
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.enabled"))
+            .Returns("false");
+        A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
+            .Returns(_currentVersion);
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion);
+
+        // Act
+        var result = await sut.ForceCheckForUpdatesAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.ShouldBe(UpdateCheckResult.UpToDate);
+        A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
+    public async Task ForceCheckForUpdatesAsync_WhenAutomaticCheckIntervalHasNotElapsed_ChecksNuGetAsync() {
+        // Arrange
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.enabled"))
+            .Returns("true");
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.lastcheck"))
+            .Returns(DateTimeOffset.UtcNow.ToString("o"));
+        A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
+            .Returns(_currentVersion);
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion);
+
+        // Act
+        var result = await sut.ForceCheckForUpdatesAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.ShouldBe(UpdateCheckResult.UpToDate);
+        A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
     public async Task CheckForUpdatesAsync_WhenFirstRun_SetsConfigAndReturnsFalseAsync() {
         // Arrange
         A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.enabled"))
