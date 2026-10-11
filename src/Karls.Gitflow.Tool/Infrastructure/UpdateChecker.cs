@@ -134,6 +134,10 @@ public sealed class UpdateChecker {
     /// <param name="userProfilePath">The user profile directory path.</param>
     /// <returns>The detected install type.</returns>
     internal InstallType DetectInstallType(string? processPath, string userProfilePath) {
+        return DetectInstallType(processPath, userProfilePath, OperatingSystem.IsWindows(), OperatingSystem.IsMacOS());
+    }
+
+    internal InstallType DetectInstallType(string? processPath, string userProfilePath, bool isWindows, bool isMacOS) {
         if(string.IsNullOrEmpty(processPath)) {
             return InstallType.DotNetTool; // Default to dotnet tool if path is unavailable
         }
@@ -151,6 +155,10 @@ public sealed class UpdateChecker {
             return InstallType.Homebrew;
         }
 
-        return InstallType.Msi;
+        if(isMacOS && string.Equals(processPath, "/usr/local/bin/git-flow", StringComparison.OrdinalIgnoreCase)) {
+            return InstallType.Pkg;
+        }
+
+        return isWindows ? InstallType.Msi : InstallType.Unknown;
     }
 }

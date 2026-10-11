@@ -52,15 +52,18 @@ public sealed class UpdatePromptService : IUpdatePromptService {
     /// <param name="installType">The type of installation, used to show appropriate update instructions.</param>
     public void DisplayUpdateInstructions(InstallType installType) {
         _console.WriteLine();
-        if(installType == InstallType.Msi) {
+        if(installType is InstallType.Msi or InstallType.Pkg) {
             _console.MarkupLine("[green]To update karls-gitflow, download the latest installer from:[/]");
             _console.MarkupLine("[cyan]  https://github.com/karl-sjogren/karls-gitflow/releases/latest[/]");
         } else if(installType == InstallType.Homebrew) {
             _console.MarkupLine("[green]To update karls-gitflow, run:[/]");
             _console.MarkupLine("[cyan]  brew upgrade karl-sjogren/tap/karls-gitflow[/]");
-        } else {
+        } else if(installType == InstallType.DotNetTool) {
             _console.MarkupLine("[green]To update karls-gitflow, run:[/]");
             _console.MarkupLine("[cyan]  dotnet tool update -g Karls.Gitflow.Tool[/]");
+        } else {
+            _console.MarkupLine("[green]Download the latest karls-gitflow installer from:[/]");
+            _console.MarkupLine("[cyan]  https://github.com/karl-sjogren/karls-gitflow/releases/latest[/]");
         }
 
         _console.WriteLine();

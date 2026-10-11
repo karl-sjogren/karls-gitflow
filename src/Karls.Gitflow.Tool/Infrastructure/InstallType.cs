@@ -5,6 +5,11 @@ namespace Karls.Gitflow.Tool.Infrastructure;
 /// </summary>
 public enum InstallType {
     /// <summary>
+    /// The installation type could not be determined.
+    /// </summary>
+    Unknown,
+
+    /// <summary>
     /// Installed as a .NET global tool (via dotnet tool install).
     /// </summary>
     DotNetTool,
@@ -13,6 +18,11 @@ public enum InstallType {
     /// Installed via the Windows MSI installer.
     /// </summary>
     Msi,
+
+    /// <summary>
+    /// Installed via the macOS installer package.
+    /// </summary>
+    Pkg,
 
     /// <summary>
     /// Installed via Homebrew (macOS or Linux).

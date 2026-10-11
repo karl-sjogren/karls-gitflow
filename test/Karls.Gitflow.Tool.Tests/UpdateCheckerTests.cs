@@ -312,7 +312,7 @@ public class UpdateCheckerTests {
         var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
 
         // Act
-        var result = sut.DetectInstallType(@"C:\Program Files\Karls Gitflow\git-flow.exe", userProfilePath);
+        var result = sut.DetectInstallType(@"C:\Program Files\Karls Gitflow\git-flow.exe", userProfilePath, isWindows: true, isMacOS: false);
 
         // Assert
         result.ShouldBe(InstallType.Msi);
@@ -344,7 +344,7 @@ public class UpdateCheckerTests {
         var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
 
         // Act
-        var result = sut.DetectInstallType("/home/testuser/.dotnet/tools-backup/git-flow", userProfilePath);
+        var result = sut.DetectInstallType("/home/testuser/.dotnet/tools-backup/git-flow", userProfilePath, isWindows: true, isMacOS: false);
 
         // Assert
         result.ShouldBe(InstallType.Msi);
@@ -387,6 +387,66 @@ public class UpdateCheckerTests {
 
         // Assert
         result.ShouldBe(InstallType.Homebrew);
+    }
+
+    [Fact]
+    public void DetectInstallType_WhenProcessPathIsInMacOsPkgInstallLocation_ReturnsPkg() {
+        // Arrange
+        A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
+            .Returns("/home/testuser/.dotnet/tools");
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+
+        // Act
+        var result = sut.DetectInstallType("/usr/local/bin/git-flow", "/home/testuser", isWindows: false, isMacOS: true);
+
+        // Assert
+        result.ShouldBe(InstallType.Pkg);
+    }
+
+    [Fact]
+    public void DetectInstallType_WhenProcessPathIsInMacOsPkgInstallLocationOnWindows_ReturnsMsi() {
+        // Arrange
+        A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
+            .Returns("/home/testuser/.dotnet/tools");
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+
+        // Act
+        var result = sut.DetectInstallType("/usr/local/bin/git-flow", "/home/testuser", isWindows: true, isMacOS: false);
+
+        // Assert
+        result.ShouldBe(InstallType.Msi);
+    }
+
+    [Fact]
+    public void DetectInstallType_WhenProcessPathIsWindowsStyleOutsideDotNetToolsOnMacOs_ReturnsUnknown() {
+        // Arrange
+        A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
+            .Returns("/home/testuser/.dotnet/tools");
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+
+        // Act
+        var result = sut.DetectInstallType(@"C:\Program Files\Karls Gitflow\git-flow.exe", "/home/testuser", isWindows: false, isMacOS: true);
+
+        // Assert
+        result.ShouldBe(InstallType.Unknown);
+    }
+
+    [Fact]
+    public void DetectInstallType_WhenProcessPathIsNearMacOsPkgInstallLocation_ReturnsUnknown() {
+        // Arrange
+        A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
+            .Returns("/home/testuser/.dotnet/tools");
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+
+        // Act
+        var result = sut.DetectInstallType("/usr/local/bin/git-flow-copy", "/home/testuser", isWindows: false, isMacOS: true);
+
+        // Assert
+        result.ShouldBe(InstallType.Unknown);
     }
 
     #endregion
