@@ -13,7 +13,7 @@ public sealed class UpdateCheckCommand : AsyncCommand<UpdateCheckCommand.Setting
     public sealed class Settings : CommandSettings {
     }
 
-    protected override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken) {
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken) {
         var console = GitFlowContext.EffectiveConsole;
         console.MarkupLine("[blue]Checking for updates...[/]");
 
