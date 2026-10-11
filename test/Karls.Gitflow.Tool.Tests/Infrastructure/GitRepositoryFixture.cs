@@ -31,21 +31,20 @@ public sealed class GitRepositoryFixture : IDisposable {
 
         _fileSystem.Directory.CreateDirectory(RepositoryPath);
 
-        // Initialize git repository
-        ExecuteGit("init");
-
-        // Configure git user for commits (required for commits to work)
-        ExecuteGit("config user.email \"test@example.com\"");
-        ExecuteGit("config user.name \"Test User\"");
-
-        // Disable GPG signing for tags (allows lightweight tags in tests)
-        ExecuteGit("config tag.gpgsign false");
-
-        // Set a default tag message template so tests don't need an editor
-        ExecuteGit("config gitflow.message.tag \"{version}\"");
+        // Initialize the repository and configure it locally without spawning git config processes.
+        ExecuteGit("init --initial-branch=main");
+        var gitConfigPath = _fileSystem.Path.Combine(RepositoryPath, ".git", "config");
+        _fileSystem.File.AppendAllText(gitConfigPath, Environment.NewLine + """
+            [user]
+                email = test@example.com
+                name = Test User
+            [tag]
+                gpgsign = false
+            [gitflow "message"]
+                tag = {version}
+            """);
 
         // Create initial commit on main branch
-        ExecuteGit("checkout -b main");
         CreateFile("README.md", "# Test Repository");
         ExecuteGit("add .");
         ExecuteGit("commit -m \"Initial commit\"");
