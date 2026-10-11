@@ -47,6 +47,9 @@ jobs:
     name: 'Build macOS arm64'
     runs-on: macos-latest
 
+    env:
+      RELEASE_VERSION: ${{ github.ref_name }}
+
     steps:
       - name: Checkout sources
         uses: actions/checkout@v7
@@ -65,16 +68,24 @@ jobs:
       - name: Create zip archive
         run: zip -j ./artifacts/karls-gitflow-${{ github.ref_name }}-osx-arm64.zip ./artifacts/publish/git-flow
 
+      - name: Create macOS installer package
+        run: ./scripts/create-macos-pkg.sh ./artifacts/publish "$RELEASE_VERSION" "./artifacts/karls-gitflow-${RELEASE_VERSION}-osx-arm64.pkg"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: osx-arm64
-          path: ./artifacts/karls-gitflow-${{ github.ref_name }}-osx-arm64.zip
+          path: |
+            ./artifacts/karls-gitflow-${{ github.ref_name }}-osx-arm64.zip
+            ./artifacts/karls-gitflow-${{ github.ref_name }}-osx-arm64.pkg
           if-no-files-found: error
 
   build-macos-x64:
     name: 'Build macOS x64'
     runs-on: macos-26-intel
+
+    env:
+      RELEASE_VERSION: ${{ github.ref_name }}
 
     steps:
       - name: Checkout sources
@@ -94,11 +105,16 @@ jobs:
       - name: Create zip archive
         run: zip -j ./artifacts/karls-gitflow-${{ github.ref_name }}-osx-x64.zip ./artifacts/publish/git-flow
 
+      - name: Create macOS installer package
+        run: ./scripts/create-macos-pkg.sh ./artifacts/publish "$RELEASE_VERSION" "./artifacts/karls-gitflow-${RELEASE_VERSION}-osx-x64.pkg"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: osx-x64
-          path: ./artifacts/karls-gitflow-${{ github.ref_name }}-osx-x64.zip
+          path: |
+            ./artifacts/karls-gitflow-${{ github.ref_name }}-osx-x64.zip
+            ./artifacts/karls-gitflow-${{ github.ref_name }}-osx-x64.pkg
           if-no-files-found: error
 
   build-windows-installer:

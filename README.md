@@ -41,6 +41,10 @@ brew install karl-sjogren/tap/karls-gitflow
 
 Get the installer from the [latest release](https://github.com/karl-sjogren/karls-gitflow/releases/latest) on Github.
 
+### macOS installer
+
+Download the `.pkg` for your Mac's architecture from the [latest release](https://github.com/karl-sjogren/karls-gitflow/releases/latest) and open it to install `git-flow` to `/usr/local/bin`.
+
 ## Usage
 
 ### Initialize Gitflow
@@ -185,6 +189,13 @@ dotnet test
 
 # Run the tool locally
 dotnet run --project src/Karls.Gitflow.Tool -- init -d
+
+# Create a macOS installer from published artifacts (run on macOS)
+dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj \
+  --configuration Release --runtime osx-arm64 --self-contained \
+  --output ./artifacts/publish
+./scripts/create-macos-pkg.sh ./artifacts/publish 0.0.14 \
+  ./artifacts/karls-gitflow-0.0.14-osx-arm64.pkg
 ```
 
 ## Requirements
