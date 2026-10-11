@@ -27,7 +27,7 @@ public class ConfigCommandTests : IDisposable {
     [Fact]
     public void ConfigList_WhenInitialized_ShowsConfiguration() {
         // Arrange
-        _repo.ExecuteGitFlow("init -d");
+        _repo.InitializeGitFlow();
 
         // Act
         var result = _repo.ExecuteGitFlow("config list");
@@ -41,7 +41,7 @@ public class ConfigCommandTests : IDisposable {
     [Fact]
     public void ConfigSet_SetsConfigValue() {
         // Arrange
-        _repo.ExecuteGitFlow("init -d");
+        _repo.InitializeGitFlow();
 
         // Act
         var result = _repo.ExecuteGitFlow("config set feature feat/");
@@ -54,7 +54,7 @@ public class ConfigCommandTests : IDisposable {
     [Fact]
     public void ConfigSet_WithInvalidKey_ReturnsError() {
         // Arrange
-        _repo.ExecuteGitFlow("init -d");
+        _repo.InitializeGitFlow();
 
         // Act
         var result = _repo.ExecuteGitFlow("config set invalidkey value");
@@ -81,7 +81,7 @@ public class ConfigCommandTests : IDisposable {
     [Fact]
     public void ConfigSave_WhenInitialized_CreatesGitFlowFile() {
         // Arrange
-        _repo.ExecuteGitFlow("init -d");
+        _repo.InitializeGitFlow();
 
         // Act
         var result = _repo.ExecuteGitFlow("config save -f");
@@ -128,7 +128,7 @@ public class ConfigCommandTests : IDisposable {
     [Fact]
     public void ConfigSave_OutputConfirmsSave() {
         // Arrange
-        _repo.ExecuteGitFlow("init -d");
+        _repo.InitializeGitFlow();
 
         // Act
         var result = _repo.ExecuteGitFlow("config save -f");

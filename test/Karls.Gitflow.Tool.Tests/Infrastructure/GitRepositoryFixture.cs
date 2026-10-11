@@ -22,6 +22,10 @@ public sealed class GitRepositoryFixture : IDisposable {
 
     public string RepositoryPath { get; }
 
+    public static void InitializeBareRepository(string repositoryPath) {
+        Repository.Init(repositoryPath, isBare: true);
+    }
+
     public GitRepositoryFixture(IFileSystem? fileSystem = null) {
         _fileSystem = fileSystem ?? new FileSystem();
 
@@ -286,6 +290,64 @@ public sealed class GitRepositoryFixture : IDisposable {
 
         var signature = new Signature("Test User", "test@example.com", DateTimeOffset.UtcNow);
         repository.Commit(message, signature, signature);
+    }
+
+    public void InitializeGitFlow() {
+        using var repository = new Repository(RepositoryPath);
+        var config = Karls.Gitflow.Core.GitFlowConfiguration.Default;
+        repository.Config.Set("gitflow.branch.master", config.MainBranch);
+        repository.Config.Set("gitflow.branch.develop", config.DevelopBranch);
+        repository.Config.Set("gitflow.prefix.feature", config.FeaturePrefix);
+        repository.Config.Set("gitflow.prefix.bugfix", config.BugfixPrefix);
+        repository.Config.Set("gitflow.prefix.release", config.ReleasePrefix);
+        repository.Config.Set("gitflow.prefix.hotfix", config.HotfixPrefix);
+        repository.Config.Set("gitflow.prefix.support", config.SupportPrefix);
+        repository.Config.Set("gitflow.prefix.versiontag", config.VersionTagPrefix);
+        if(!string.IsNullOrEmpty(config.TagMessageTemplate)) {
+            repository.Config.Set("gitflow.message.tag", config.TagMessageTemplate);
+        }
+
+        var develop = repository.Branches.Add(config.DevelopBranch, repository.Branches[config.MainBranch].Tip);
+        LibGit2Sharp.Commands.Checkout(repository, develop);
+    }
+
+    public void CheckoutBranch(string branchName) {
+        using var repository = new Repository(RepositoryPath);
+        var branch = repository.Branches[branchName]
+            ?? throw new InvalidOperationException($"Branch '{branchName}' does not exist.");
+        LibGit2Sharp.Commands.Checkout(repository, branch);
+    }
+
+    public void CreateBranch(string branchName, string? startPoint = null, bool checkout = true) {
+        using var repository = new Repository(RepositoryPath);
+        var startCommit = startPoint == null ? repository.Head.Tip : repository.Lookup<Commit>(startPoint)
+            ?? throw new InvalidOperationException($"Start point '{startPoint}' does not exist.");
+        var branch = repository.Branches.Add(branchName, startCommit);
+        if(checkout) {
+            LibGit2Sharp.Commands.Checkout(repository, branch);
+        }
+    }
+
+    public void CreateTag(string tagName) {
+        using var repository = new Repository(RepositoryPath);
+        repository.Tags.Add(tagName, repository.Head.Tip);
+    }
+
+    public void AddRemote(string name, string path) {
+        using var repository = new Repository(RepositoryPath);
+        repository.Network.Remotes.Add(name, path);
+    }
+
+    public void PushBranch(string branchName) {
+        using var repository = new Repository(RepositoryPath);
+        var remote = repository.Network.Remotes["origin"]
+            ?? throw new InvalidOperationException("Remote 'origin' does not exist.");
+        repository.Network.Push(remote, $"refs/heads/{branchName}:refs/heads/{branchName}");
+    }
+
+    public void FetchRemoteBranches() {
+        using var repository = new Repository(RepositoryPath);
+        repository.Network.Fetch("origin", ["+refs/heads/*:refs/remotes/origin/*"]);
     }
 
     /// <summary>

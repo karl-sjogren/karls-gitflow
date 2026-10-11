@@ -26,7 +26,7 @@ public class PublishCommandTests : IDisposable {
 
         // Create the main repository
         _repo = new GitRepositoryFixture();
-        _repo.ExecuteGitFlow("init -d");
+        _repo.InitializeGitFlow();
 
         // Add the remote
         _repo.ExecuteGit($"remote add origin \"{_remoteRepoPath}\"");
