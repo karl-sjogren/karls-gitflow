@@ -37,6 +37,9 @@ public sealed class GitRepositoryFixture : IDisposable {
         _fileSystem.Directory.CreateDirectory(RepositoryPath);
 
         Repository.Init(RepositoryPath);
+        _fileSystem.File.WriteAllText(
+            _fileSystem.Path.Combine(RepositoryPath, ".git", "HEAD"),
+            "ref: refs/heads/main" + Environment.NewLine);
         using var repository = new Repository(RepositoryPath);
         repository.Config.Set("user.email", "test@example.com");
         repository.Config.Set("user.name", "Test User");
