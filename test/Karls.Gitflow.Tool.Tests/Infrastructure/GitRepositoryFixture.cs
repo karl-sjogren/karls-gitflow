@@ -7,6 +7,7 @@ using Karls.Gitflow.Tool.Commands.Hotfix;
 using Karls.Gitflow.Tool.Commands.Release;
 using Karls.Gitflow.Tool.Commands.Support;
 using Karls.Gitflow.Tool.Infrastructure;
+using LibGit2Sharp;
 using Spectre.Console.Cli;
 
 namespace Karls.Gitflow.Tool.Tests.Infrastructure;
@@ -31,23 +32,19 @@ public sealed class GitRepositoryFixture : IDisposable {
 
         _fileSystem.Directory.CreateDirectory(RepositoryPath);
 
-        // Initialize the repository and configure it locally without spawning git config processes.
-        ExecuteGit("init --initial-branch=main");
-        var gitConfigPath = _fileSystem.Path.Combine(RepositoryPath, ".git", "config");
-        _fileSystem.File.AppendAllText(gitConfigPath, Environment.NewLine + """
-            [user]
-                email = test@example.com
-                name = Test User
-            [tag]
-                gpgsign = false
-            [gitflow "message"]
-                tag = {version}
-            """);
+        Repository.Init(RepositoryPath);
+        using var repository = new Repository(RepositoryPath);
+        repository.Config.Set("user.email", "test@example.com");
+        repository.Config.Set("user.name", "Test User");
+        repository.Config.Set("tag.gpgsign", false);
+        repository.Config.Set("gitflow.message.tag", "{version}");
 
-        // Create initial commit on main branch
         CreateFile("README.md", "# Test Repository");
-        ExecuteGit("add .");
-        ExecuteGit("commit -m \"Initial commit\"");
+        repository.Index.Add("README.md");
+        repository.Index.Write();
+
+        var signature = new Signature("Test User", "test@example.com", DateTimeOffset.UtcNow);
+        repository.Commit("Initial commit", signature, signature);
     }
 
     /// <summary>
@@ -225,52 +222,55 @@ public sealed class GitRepositoryFixture : IDisposable {
     /// Gets the current branch name.
     /// </summary>
     public string GetCurrentBranch() {
-        var result = ExecuteGit("rev-parse --abbrev-ref HEAD");
-        return result.Output;
+        using var repository = new Repository(RepositoryPath);
+        return repository.Head.FriendlyName;
     }
 
     /// <summary>
     /// Gets all local branch names.
     /// </summary>
     public string[] GetBranches() {
-        var result = ExecuteGit("branch --format=%(refname:short)");
-        return result.Output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        using var repository = new Repository(RepositoryPath);
+        return repository.Branches
+            .Where(branch => !branch.IsRemote)
+            .Select(branch => branch.FriendlyName)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
     }
 
     /// <summary>
     /// Gets all tag names.
     /// </summary>
     public string[] GetTags() {
-        var result = ExecuteGit("tag --list");
-        if(string.IsNullOrWhiteSpace(result.Output)) {
-            return [];
-        }
-
-        return result.Output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        using var repository = new Repository(RepositoryPath);
+        return repository.Tags
+            .Select(tag => tag.FriendlyName)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
     }
 
     /// <summary>
     /// Gets a git config value.
     /// </summary>
     public string? GetConfigValue(string key) {
-        var result = ExecuteGit($"config --get {key}");
-        return result.ExitCode == 0 ? result.Output : null;
+        using var repository = new Repository(RepositoryPath);
+        return repository.Config.Get<string>(key)?.Value;
     }
 
     /// <summary>
     /// Checks if a branch exists.
     /// </summary>
     public bool BranchExists(string branchName) {
-        var result = ExecuteGit($"show-ref --verify --quiet refs/heads/{branchName}");
-        return result.ExitCode == 0;
+        using var repository = new Repository(RepositoryPath);
+        return repository.Branches.Any(branch => !branch.IsRemote && branch.FriendlyName == branchName);
     }
 
     /// <summary>
     /// Checks if a tag exists.
     /// </summary>
     public bool TagExists(string tagName) {
-        var result = ExecuteGit($"show-ref --verify --quiet refs/tags/{tagName}");
-        return result.ExitCode == 0;
+        using var repository = new Repository(RepositoryPath);
+        return repository.Tags.Any(tag => tag.FriendlyName == tagName);
     }
 
     /// <summary>
@@ -279,16 +279,22 @@ public sealed class GitRepositoryFixture : IDisposable {
     public void CreateCommit(string message) {
         var fileName = $"file-{Guid.NewGuid():N}.txt";
         CreateFile(fileName, $"Content for {message}");
-        ExecuteGit("add .");
-        ExecuteGit($"commit -m \"{message}\"");
+
+        using var repository = new Repository(RepositoryPath);
+        repository.Index.Add(fileName);
+        repository.Index.Write();
+
+        var signature = new Signature("Test User", "test@example.com", DateTimeOffset.UtcNow);
+        repository.Commit(message, signature, signature);
     }
 
     /// <summary>
     /// Checks if gitflow is initialized.
     /// </summary>
     public bool IsGitFlowInitialized() {
-        return GetConfigValue("gitflow.branch.master") != null
-            && GetConfigValue("gitflow.branch.develop") != null;
+        using var repository = new Repository(RepositoryPath);
+        return repository.Config.Get<string>("gitflow.branch.master") != null
+            && repository.Config.Get<string>("gitflow.branch.develop") != null;
     }
 
     /// <summary>
