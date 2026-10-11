@@ -249,6 +249,34 @@ public class GitFlowInitializerTests {
         A.CallTo(() => _fakeGitService.SetConfigValue("gitflow.prefix.versiontag", "v")).MustHaveHappenedOnceExactly();
     }
 
+    [Fact]
+    public void Initialize_WhenTagMessageTemplateSet_WritesTagMessageConfig() {
+        // Arrange
+        SetupValidRepository();
+        var config = GitFlowConfiguration.Default with { TagMessageTemplate = "Release {version}" };
+
+        // Act
+        _sut.Initialize(config);
+
+        // Assert
+        A.CallTo(() => _fakeGitService.SetConfigValue("gitflow.message.tag", "Release {version}"))
+            .MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
+    public void Initialize_WhenTagMessageTemplateEmpty_DoesNotWriteTagMessageConfig() {
+        // Arrange
+        SetupValidRepository();
+        var config = GitFlowConfiguration.Default with { TagMessageTemplate = "" };
+
+        // Act
+        _sut.Initialize(config);
+
+        // Assert
+        A.CallTo(() => _fakeGitService.SetConfigValue("gitflow.message.tag", A<string>._))
+            .MustNotHaveHappened();
+    }
+
     #endregion
 
     #region InitializeWithDefaults

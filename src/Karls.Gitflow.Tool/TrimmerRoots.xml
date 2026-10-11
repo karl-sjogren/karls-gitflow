@@ -1,0 +1,19 @@
+<linker>
+  <!--
+    Preserve all types in our assemblies so Spectre.Console.Cli can reflect on command settings
+    at runtime. Spectre.Console.Cli uses [RequiresDynamicCode] internally, and granular preservation
+    of every individual command/settings type would be fragile to maintain. Our own assemblies are
+    small, so the binary size impact of preserving them in full is negligible compared to the
+    third-party libraries that are still trimmed normally.
+  -->
+  <assembly fullname="git-flow" preserve="all" />
+  <assembly fullname="Karls.Gitflow.Core" preserve="all" />
+  <assembly fullname="Spectre.Console.Cli">
+    <type fullname="Spectre.Console.Cli.EmptyCommandSettings" preserve="all" />
+    <type fullname="Spectre.Console.Cli.ExplainCommand" preserve="all" />
+    <type fullname="Spectre.Console.Cli.ExplainCommand/Settings" preserve="all" />
+    <type fullname="Spectre.Console.Cli.OpenCliGeneratorCommand" preserve="all" />
+    <type fullname="Spectre.Console.Cli.VersionCommand" preserve="all" />
+    <type fullname="Spectre.Console.Cli.XmlDocCommand" preserve="all" />
+  </assembly>
+</linker>

@@ -47,10 +47,10 @@ jobs:
 
     steps:
     - name: Checkout sources
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Install .NET
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@v6
       with:
         global-json-file: global.json
 
@@ -79,7 +79,7 @@ jobs:
     # While we don't use sources directly in this job the test reporter wants to check
     # some files through git so we need the sources.
     - name: Checkout sources
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Download .NET tests results
       uses: actions/download-artifact@v8
@@ -92,7 +92,7 @@ jobs:
       working-directory: ./
 
     - name: Install .NET
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@v6
       with:
         global-json-file: global.json
 
@@ -112,7 +112,7 @@ jobs:
         path: coverage-report
 
     - name: Upload to Codecov
-      uses: codecov/codecov-action@v6
+      uses: codecov/codecov-action@v7
       # To save on uploads, only upload coverage from the main branches and PRs
       if: env.PUBLISH_CODECOV
       with:
@@ -135,28 +135,23 @@ jobs:
 
     steps:
     - name: Checkout sources
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Install .NET
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@v6
       with:
         global-json-file: global.json
 
     - name: Restore NuGet packages
       run: dotnet restore --verbosity minimal
 
-    - name: Pack NuGet package
+    - name: Install native build tools for NativeAOT (Linux)
       if: matrix.os == 'ubuntu-latest'
-      run: dotnet pack --output ./artifacts --configuration Release ./src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj
-      working-directory: ./
+      run: sudo apt-get install -y clang zlib1g-dev
 
-    - name: Upload packages
-      uses: actions/upload-artifact@v7
+    - name: Publish tool for Linux x64
       if: matrix.os == 'ubuntu-latest'
-      with:
-        name: packages
-        path: ./artifacts/*.nupkg
-        if-no-files-found: error
+      run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime linux-x64 --self-contained --output ./artifacts/publish --no-restore
 
     - name: Publish tool for Windows x64
       if: matrix.os == 'windows-latest'
@@ -169,6 +164,18 @@ jobs:
     - name: Publish tool for macOS (x64)
       if: matrix.os == 'macos-26-intel'
       run: dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj --configuration Release --runtime osx-x64 --self-contained --output ./artifacts/publish --no-restore
+
+    - name: Verify published executable
+      shell: pwsh
+      run: ./scripts/verify-published-gitflow.ps1 -PublishDirectory ./artifacts/publish
+
+    - name: Upload Linux publish artifacts
+      uses: actions/upload-artifact@v7
+      if: matrix.os == 'ubuntu-latest'
+      with:
+        name: linux-x64-publish
+        path: ./artifacts/publish
+        if-no-files-found: error
 
     - name: Upload Windows publish artifacts
       uses: actions/upload-artifact@v7
@@ -197,16 +204,15 @@ jobs:
   windows-installer-build:
     name: Windows installer build
     runs-on: windows-latest
-    if: github.ref == 'refs/heads/main'
 
     needs: [ net-build ]
 
     steps:
     - name: Checkout sources
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Install .NET
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@v6
       with:
         global-json-file: global.json
 
@@ -225,41 +231,3 @@ jobs:
         name: windows-installer
         path: ./src/Karls.Gitflow.WindowsInstaller/bin/**/*.msi
         if-no-files-found: error
-
-  publish:
-    name: NuGet Publish
-    needs: net-build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-
-    permissions:
-      id-token: write
-
-    steps:
-    - name: Checkout sources
-      uses: actions/checkout@v6
-      with:
-        sparse-checkout: |
-          global.json
-        sparse-checkout-cone-mode: false
-
-    - name: Download artifacts
-      uses: actions/download-artifact@v8
-      with:
-        name: packages
-        path: ./artifacts/
-
-    - name: Install .NET
-      uses: actions/setup-dotnet@v5
-      with:
-        global-json-file: global.json
-
-    - name: NuGet login (OIDC → temp API key)
-      uses: NuGet/login@v1
-      id: login
-      with:
-        user: ${{ secrets.NUGET_PROFILE }}
-
-    - name: Publish package to NuGet.org
-      run: dotnet nuget push artifacts/*.nupkg --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
-      working-directory: ./

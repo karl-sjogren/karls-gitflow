@@ -268,6 +268,46 @@ public class FeatureBranchServiceTests {
             .MustHaveHappenedOnceExactly();
     }
 
+    [Fact]
+    public void Start_WithFetchOption_FetchesBeforeCreating() {
+        // Arrange
+        SetupValidRepositoryWithCleanWorkingTree();
+        A.CallTo(() => _fakeGitService.LocalBranchExists("feature/my-feature")).Returns(false);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists("feature/my-feature")).Returns(false);
+        A.CallTo(() => _fakeGitService.LocalBranchExists("develop")).Returns(true);
+        A.CallTo(() => _fakeGitService.CreateBranch(A<string>._, A<string>._))
+            .DoesNothing();
+
+        var options = new StartOptions { Fetch = true };
+
+        // Act
+        _sut.Start("my-feature", options: options);
+
+        // Assert
+        A.CallTo(() => _fakeGitService.Fetch())
+            .MustHaveHappenedOnceExactly();
+        A.CallTo(() => _fakeGitService.CreateBranch("feature/my-feature", "develop"))
+            .MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
+    public void Start_WithoutFetchOption_DoesNotFetch() {
+        // Arrange
+        SetupValidRepositoryWithCleanWorkingTree();
+        A.CallTo(() => _fakeGitService.LocalBranchExists("feature/my-feature")).Returns(false);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists("feature/my-feature")).Returns(false);
+        A.CallTo(() => _fakeGitService.LocalBranchExists("develop")).Returns(true);
+        A.CallTo(() => _fakeGitService.CreateBranch(A<string>._, A<string>._))
+            .DoesNothing();
+
+        // Act
+        _sut.Start("my-feature");
+
+        // Assert
+        A.CallTo(() => _fakeGitService.Fetch())
+            .MustNotHaveHappened();
+    }
+
     #endregion
 
     #region Finish
@@ -383,6 +423,80 @@ public class FeatureBranchServiceTests {
         A.CallTo(() => _fakeGitService.MergeBranchSquash("feature/my-feature"))
             .MustHaveHappenedOnceExactly();
         A.CallTo(() => _fakeGitService.MergeBranch(A<string>._, A<bool>._))
+            .MustNotHaveHappened();
+    }
+
+    [Fact]
+    public void Finish_WithRebaseOption_RebasesBeforeMerging() {
+        // Arrange
+        SetupValidRepositoryWithCleanWorkingTree();
+        A.CallTo(() => _fakeGitService.LocalBranchExists("feature/my-feature")).Returns(true);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists("feature/my-feature")).Returns(false);
+
+        var options = new FinishOptions { Rebase = true };
+
+        // Act
+        _sut.Finish("my-feature", options);
+
+        // Assert - rebase onto develop before checking out develop to merge
+        A.CallTo(() => _fakeGitService.CheckoutBranch("feature/my-feature"))
+            .MustHaveHappenedOnceExactly();
+        A.CallTo(() => _fakeGitService.RebaseBranch("develop"))
+            .MustHaveHappenedOnceExactly();
+        A.CallTo(() => _fakeGitService.MergeBranch("feature/my-feature", true))
+            .MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
+    public void Finish_WithoutRebaseOption_DoesNotRebase() {
+        // Arrange
+        SetupValidRepositoryWithCleanWorkingTree();
+        A.CallTo(() => _fakeGitService.LocalBranchExists("feature/my-feature")).Returns(true);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists("feature/my-feature")).Returns(false);
+
+        // Act
+        _sut.Finish("my-feature");
+
+        // Assert
+        A.CallTo(() => _fakeGitService.RebaseBranch(A<string>._))
+            .MustNotHaveHappened();
+    }
+
+    [Fact]
+    public void Finish_WithKeepLocalOption_DeletesRemoteButKeepsLocal() {
+        // Arrange
+        SetupValidRepositoryWithCleanWorkingTree();
+        A.CallTo(() => _fakeGitService.LocalBranchExists("feature/my-feature")).Returns(true);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists("feature/my-feature")).Returns(true);
+
+        var options = new FinishOptions { KeepLocal = true };
+
+        // Act
+        _sut.Finish("my-feature", options);
+
+        // Assert
+        A.CallTo(() => _fakeGitService.DeleteLocalBranch(A<string>._, A<bool>._))
+            .MustNotHaveHappened();
+        A.CallTo(() => _fakeGitService.DeleteRemoteBranch("feature/my-feature"))
+            .MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
+    public void Finish_WithKeepRemoteOption_DeletesLocalButKeepsRemote() {
+        // Arrange
+        SetupValidRepositoryWithCleanWorkingTree();
+        A.CallTo(() => _fakeGitService.LocalBranchExists("feature/my-feature")).Returns(true);
+        A.CallTo(() => _fakeGitService.RemoteBranchExists("feature/my-feature")).Returns(true);
+
+        var options = new FinishOptions { KeepRemote = true };
+
+        // Act
+        _sut.Finish("my-feature", options);
+
+        // Assert
+        A.CallTo(() => _fakeGitService.DeleteLocalBranch("feature/my-feature", true))
+            .MustHaveHappenedOnceExactly();
+        A.CallTo(() => _fakeGitService.DeleteRemoteBranch(A<string>._))
             .MustNotHaveHappened();
     }
 

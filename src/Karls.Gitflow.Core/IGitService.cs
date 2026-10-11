@@ -42,6 +42,7 @@ public interface IGitService {
     // Merge operations
     void MergeBranch(string sourceBranch, bool noFastForward = true);
     void MergeBranchSquash(string sourceBranch);
+    void RebaseBranch(string targetBranch);
 
     // Tag operations
     void CreateTag(string tagName, string? message = null);

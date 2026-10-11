@@ -110,6 +110,19 @@ public class FeatureCommandTests : IDisposable {
         result.Output.ShouldContain("already exists");
     }
 
+    [Fact]
+    public void FeatureStart_FetchFlag_IsRecognizedOption() {
+        // Verify the --fetch flag is a recognized option by checking that a failure
+        // is due to no remote, not due to an unknown option.
+        // When there is no remote, fetch will fail with a git error (not a parse error).
+        var result = _repo.ExecuteGitFlow("feature start my-feature -F");
+
+        // The flag should be recognized - if it were unrecognized, the error message
+        // would mention "Unknown option" rather than a git/fetch error.
+        result.Output.ShouldNotContain("Unknown option");
+        result.Output.ShouldNotContain("is not a recognized option");
+    }
+
     #endregion
 
     #region Finish
@@ -197,6 +210,61 @@ public class FeatureCommandTests : IDisposable {
 
         // One squash commit + one merge commit
         (afterCount - beforeCount).ShouldBeLessThanOrEqualTo(2);
+    }
+
+    [Fact]
+    public void FeatureFinish_WithRebase_RebasesBeforeMerging() {
+        // Arrange - start feature, add commit to develop (diverge histories), then add feature commit
+        _repo.ExecuteGitFlow("feature start my-feature");
+        _repo.CreateCommit("Feature commit");
+
+        // Add a commit to develop after the feature branch was created (to create divergence)
+        _repo.ExecuteGit("checkout develop");
+        _repo.CreateCommit("Develop commit after branch");
+        _repo.ExecuteGit("checkout feature/my-feature");
+
+        // Act
+        var result = _repo.ExecuteGitFlow("feature finish my-feature --rebase");
+
+        // Assert
+        result.Success.ShouldBeTrue();
+        _repo.GetCurrentBranch().ShouldBe("develop");
+        _repo.BranchExists("feature/my-feature").ShouldBeFalse();
+
+        // The feature commit should be in develop's log
+        var log = _repo.ExecuteGit("log --oneline");
+        log.Output.ShouldContain("Feature commit");
+        log.Output.ShouldContain("Develop commit after branch");
+    }
+
+    [Fact]
+    public void FeatureFinish_WithKeepLocal_KeepsLocalBranchOnly() {
+        // Arrange
+        _repo.ExecuteGitFlow("feature start my-feature");
+        _repo.CreateCommit("Feature work");
+
+        // Act
+        var result = _repo.ExecuteGitFlow("feature finish my-feature --keeplocal");
+
+        // Assert - local branch is kept, finish succeeds
+        result.Success.ShouldBeTrue();
+        _repo.BranchExists("feature/my-feature").ShouldBeTrue();
+        _repo.GetCurrentBranch().ShouldBe("develop");
+    }
+
+    [Fact]
+    public void FeatureFinish_WithKeepRemote_DeletesLocalBranch() {
+        // Arrange
+        _repo.ExecuteGitFlow("feature start my-feature");
+        _repo.CreateCommit("Feature work");
+
+        // Act
+        var result = _repo.ExecuteGitFlow("feature finish my-feature --keepremote");
+
+        // Assert - local branch is deleted (no remote in test), finish succeeds
+        result.Success.ShouldBeTrue();
+        _repo.BranchExists("feature/my-feature").ShouldBeFalse();
+        _repo.GetCurrentBranch().ShouldBe("develop");
     }
 
     #endregion

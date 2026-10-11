@@ -7,8 +7,9 @@
     <Manufacturer>Karl-Johan Sjögren</Manufacturer>
     <!-- Default publish directory; override with -p:ToolPublishDir=<path> when building in CI -->
     <ToolPublishDir Condition="'$(ToolPublishDir)' == ''">$(MSBuildThisFileDirectory)..\..\artifacts\publish\</ToolPublishDir>
+    <InstallerLicenseRtf>$(MSBuildProjectDirectory)\installer-license.rtf</InstallerLicenseRtf>
     <!-- Pass MSBuild properties to the WiX preprocessor so $(Version) and $(ToolPublishDir) resolve in .wxs files -->
-    <DefineConstants>$(DefineConstants);Version=$(Version);ToolPublishDir=$(ToolPublishDir)</DefineConstants>
+    <DefineConstants>$(DefineConstants);Version=$(Version);ToolPublishDir=$(ToolPublishDir);InstallerLicenseRtf=$(InstallerLicenseRtf)</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

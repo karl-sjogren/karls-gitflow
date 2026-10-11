@@ -253,6 +253,14 @@ public sealed class GitService : IGitService {
         }
     }
 
+    public void RebaseBranch(string targetBranch) {
+        var result = _gitExecutor.Execute(["rebase", targetBranch]);
+        if(result.ExitCode != 0) {
+            throw new GitException(
+                $"Failed to rebase onto '{targetBranch}'. If there are conflicts, resolve them and run 'git rebase --continue', or abort with 'git rebase --abort'.");
+        }
+    }
+
     #endregion
 
     #region Tag Operations

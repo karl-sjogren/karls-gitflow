@@ -49,28 +49,44 @@ public sealed class UpdateChecker {
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>True if the application should exit (user chose to update), false otherwise.</returns>
     public async Task<bool> CheckForUpdatesAsync(CancellationToken cancellationToken = default) {
+        var result = await CheckForUpdatesCoreAsync(forceCheck: false, cancellationToken);
+        return result == UpdateCheckResult.UpdateNow;
+    }
+
+    /// <summary>
+    /// Checks for updates immediately, regardless of the automatic check interval or preference.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The result of the update check.</returns>
+    public Task<UpdateCheckResult> ForceCheckForUpdatesAsync(CancellationToken cancellationToken = default) {
+        return CheckForUpdatesCoreAsync(forceCheck: true, cancellationToken);
+    }
+
+    private async Task<UpdateCheckResult> CheckForUpdatesCoreAsync(bool forceCheck, CancellationToken cancellationToken) {
         try {
             // Check if update checks are enabled
             var enabled = _gitService.GetGlobalConfigValue(_enabledConfigKey);
-            if(enabled == "false") {
-                return false; // User disabled update checks
+            if(!forceCheck && enabled == "false") {
+                return UpdateCheckResult.Skipped; // User disabled update checks
             }
 
             // Check if this is the first run
-            if(enabled == null) {
+            if(!forceCheck && enabled == null) {
                 // First run: enable by default and set lastcheck to now, but don't check yet
                 _gitService.SetGlobalConfigValue(_enabledConfigKey, "true");
                 _gitService.SetGlobalConfigValue(_lastCheckConfigKey, _timeProvider.GetUtcNow().ToString("o"));
-                return false;
+                return UpdateCheckResult.Skipped;
             }
 
             // Check if enough time has passed since last check
-            var lastCheckStr = _gitService.GetGlobalConfigValue(_lastCheckConfigKey);
-            if(lastCheckStr != null) {
-                if(DateTimeOffset.TryParse(lastCheckStr, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var lastCheck)) {
-                    var daysSinceLastCheck = (_timeProvider.GetUtcNow() - lastCheck).TotalDays;
-                    if(daysSinceLastCheck < _checkIntervalDays) {
-                        return false; // Not time to check yet
+            if(!forceCheck) {
+                var lastCheckStr = _gitService.GetGlobalConfigValue(_lastCheckConfigKey);
+                if(lastCheckStr != null) {
+                    if(DateTimeOffset.TryParse(lastCheckStr, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var lastCheck)) {
+                        var daysSinceLastCheck = (_timeProvider.GetUtcNow() - lastCheck).TotalDays;
+                        if(daysSinceLastCheck < _checkIntervalDays) {
+                            return UpdateCheckResult.Skipped; // Not time to check yet
+                        }
                     }
                 }
             }
@@ -82,12 +98,12 @@ public sealed class UpdateChecker {
             _gitService.SetGlobalConfigValue(_lastCheckConfigKey, _timeProvider.GetUtcNow().ToString("o"));
 
             if(latestVersion == null) {
-                return false; // Failed to fetch, skip silently
+                return UpdateCheckResult.Failed; // Failed to fetch
             }
 
             // Compare versions
             if(latestVersion <= _currentVersion) {
-                return false; // Already on latest or newer version
+                return UpdateCheckResult.UpToDate; // Already on latest or newer version
             }
 
             // Prompt user
@@ -98,22 +114,22 @@ public sealed class UpdateChecker {
             switch(result) {
                 case UpdatePromptResult.UpdateNow:
                     _promptService.DisplayUpdateInstructions(installType);
-                    return true; // Exit application
+                    return UpdateCheckResult.UpdateNow;
 
                 case UpdatePromptResult.RemindLater:
                     // lastcheck is already updated above
-                    return false; // Continue
+                    return UpdateCheckResult.UpdateAvailable;
 
                 case UpdatePromptResult.DontAskAgain:
                     _gitService.SetGlobalConfigValue(_enabledConfigKey, "false");
-                    return false; // Continue
+                    return UpdateCheckResult.UpdateAvailable;
 
                 default:
-                    return false; // Continue
+                    return UpdateCheckResult.UpdateAvailable;
             }
         } catch {
             // Silent failure - never interrupt the workflow
-            return false;
+            return UpdateCheckResult.Failed;
         }
     }
 
@@ -134,6 +150,10 @@ public sealed class UpdateChecker {
     /// <param name="userProfilePath">The user profile directory path.</param>
     /// <returns>The detected install type.</returns>
     internal InstallType DetectInstallType(string? processPath, string userProfilePath) {
+        return DetectInstallType(processPath, userProfilePath, OperatingSystem.IsWindows(), OperatingSystem.IsMacOS());
+    }
+
+    internal InstallType DetectInstallType(string? processPath, string userProfilePath, bool isWindows, bool isMacOS) {
         if(string.IsNullOrEmpty(processPath)) {
             return InstallType.DotNetTool; // Default to dotnet tool if path is unavailable
         }
@@ -145,6 +165,16 @@ public sealed class UpdateChecker {
             return InstallType.DotNetTool;
         }
 
-        return InstallType.Msi;
+        if(processPath.Contains("/homebrew/", StringComparison.OrdinalIgnoreCase) ||
+           processPath.Contains("/linuxbrew/", StringComparison.OrdinalIgnoreCase) ||
+           processPath.Contains("/.linuxbrew/", StringComparison.OrdinalIgnoreCase)) {
+            return InstallType.Homebrew;
+        }
+
+        if(isMacOS && string.Equals(processPath, "/usr/local/bin/git-flow", StringComparison.OrdinalIgnoreCase)) {
+            return InstallType.Pkg;
+        }
+
+        return isWindows ? InstallType.Msi : InstallType.Unknown;
     }
 }

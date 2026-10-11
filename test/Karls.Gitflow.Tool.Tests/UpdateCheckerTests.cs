@@ -37,6 +37,46 @@ public class UpdateCheckerTests {
     }
 
     [Fact]
+    public async Task ForceCheckForUpdatesAsync_WhenAutomaticChecksAreDisabled_ChecksNuGetAsync() {
+        // Arrange
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.enabled"))
+            .Returns("false");
+        A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
+            .Returns(_currentVersion);
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion);
+
+        // Act
+        var result = await sut.ForceCheckForUpdatesAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.ShouldBe(UpdateCheckResult.UpToDate);
+        A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
+    public async Task ForceCheckForUpdatesAsync_WhenAutomaticCheckIntervalHasNotElapsed_ChecksNuGetAsync() {
+        // Arrange
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.enabled"))
+            .Returns("true");
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.lastcheck"))
+            .Returns(DateTimeOffset.UtcNow.ToString("o"));
+        A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
+            .Returns(_currentVersion);
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion);
+
+        // Act
+        var result = await sut.ForceCheckForUpdatesAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.ShouldBe(UpdateCheckResult.UpToDate);
+        A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
     public async Task CheckForUpdatesAsync_WhenFirstRun_SetsConfigAndReturnsFalseAsync() {
         // Arrange
         A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.enabled"))
@@ -100,6 +140,186 @@ public class UpdateCheckerTests {
             .MustHaveHappenedOnceExactly();
     }
 
+    [Fact]
+    public async Task CheckForUpdatesAsync_WhenLastCheckNotRecorded_ChecksForUpdateAsync() {
+        // Arrange - enabled=true but no lastcheck stored
+        var fakeTime = new FakeTimeProvider(DateTimeOffset.UtcNow);
+
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.enabled"))
+            .Returns("true");
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.lastcheck"))
+            .Returns(null);
+        A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
+            .Returns(new Version("0.0.7")); // same as current - no update
+        A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
+            .Returns("/home/user/.dotnet/tools");
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
+
+        // Act
+        var result = await sut.CheckForUpdatesAsync(TestContext.Current.CancellationToken);
+
+        // Assert - proceeds to check NuGet even with no lastcheck
+        A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+        result.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task CheckForUpdatesAsync_WhenLastCheckInvalid_ChecksForUpdateAsync() {
+        // Arrange - enabled=true but lastcheck is not a valid date
+        var fakeTime = new FakeTimeProvider(DateTimeOffset.UtcNow);
+
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.enabled"))
+            .Returns("true");
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.lastcheck"))
+            .Returns("not-a-date");
+        A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
+            .Returns(new Version("0.0.7"));
+        A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
+            .Returns("/home/user/.dotnet/tools");
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
+
+        // Act
+        var result = await sut.CheckForUpdatesAsync(TestContext.Current.CancellationToken);
+
+        // Assert - invalid date falls through to check NuGet
+        A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+        result.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task CheckForUpdatesAsync_WhenCheckIntervalNotElapsed_ReturnsFalseAsync() {
+        // Arrange
+        var fakeTime = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var lastCheck = fakeTime.GetUtcNow().AddDays(-1).ToString("o"); // 1 day ago, interval is 14
+
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.enabled"))
+            .Returns("true");
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.lastcheck"))
+            .Returns(lastCheck);
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime);
+
+        // Act
+        var result = await sut.CheckForUpdatesAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.ShouldBeFalse();
+        A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
+            .MustNotHaveHappened();
+    }
+
+    [Fact]
+    public async Task CheckForUpdatesAsync_WhenLatestVersionIsNull_ReturnsFalseAsync() {
+        // Arrange
+        var fakeTime = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var lastCheck = fakeTime.GetUtcNow().AddDays(-30).ToString("o");
+
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.enabled"))
+            .Returns("true");
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.lastcheck"))
+            .Returns(lastCheck);
+        A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
+            .Returns((Version?)null);
+        A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
+            .Returns("/home/user/.dotnet/tools");
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
+
+        // Act
+        var result = await sut.CheckForUpdatesAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.ShouldBeFalse();
+        A.CallTo(() => _fakePromptService.PromptUser(A<Version>._, A<Version>._))
+            .MustNotHaveHappened();
+    }
+
+    [Fact]
+    public async Task CheckForUpdatesAsync_WhenAlreadyOnLatestVersion_ReturnsFalseAsync() {
+        // Arrange
+        var fakeTime = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var lastCheck = fakeTime.GetUtcNow().AddDays(-30).ToString("o");
+
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.enabled"))
+            .Returns("true");
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.lastcheck"))
+            .Returns(lastCheck);
+        A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
+            .Returns(new Version("0.0.7")); // same as _currentVersion
+        A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
+            .Returns("/home/user/.dotnet/tools");
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
+
+        // Act
+        var result = await sut.CheckForUpdatesAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.ShouldBeFalse();
+        A.CallTo(() => _fakePromptService.PromptUser(A<Version>._, A<Version>._))
+            .MustNotHaveHappened();
+    }
+
+    [Fact]
+    public async Task CheckForUpdatesAsync_WhenUserSelectsRemindLater_ReturnsFalseAsync() {
+        // Arrange
+        var fakeTime = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var lastCheck = fakeTime.GetUtcNow().AddDays(-30).ToString("o");
+
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.enabled"))
+            .Returns("true");
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.lastcheck"))
+            .Returns(lastCheck);
+        A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
+            .Returns(new Version("1.0.0"));
+        A.CallTo(() => _fakePromptService.PromptUser(A<Version>._, A<Version>._))
+            .Returns(UpdatePromptResult.RemindLater);
+        A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
+            .Returns("/home/user/.dotnet/tools");
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
+
+        // Act
+        var result = await sut.CheckForUpdatesAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.ShouldBeFalse();
+        A.CallTo(() => _fakePromptService.DisplayUpdateInstructions(A<InstallType>._))
+            .MustNotHaveHappened();
+    }
+
+    [Fact]
+    public async Task CheckForUpdatesAsync_WhenUserSelectsDontAskAgain_DisablesChecksAndReturnsFalseAsync() {
+        // Arrange
+        var fakeTime = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var lastCheck = fakeTime.GetUtcNow().AddDays(-30).ToString("o");
+
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.enabled"))
+            .Returns("true");
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.lastcheck"))
+            .Returns(lastCheck);
+        A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
+            .Returns(new Version("1.0.0"));
+        A.CallTo(() => _fakePromptService.PromptUser(A<Version>._, A<Version>._))
+            .Returns(UpdatePromptResult.DontAskAgain);
+        A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
+            .Returns("/home/user/.dotnet/tools");
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
+
+        // Act
+        var result = await sut.CheckForUpdatesAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.ShouldBeFalse();
+        A.CallTo(() => _fakeGitService.SetGlobalConfigValue("gitflow.updatecheck.enabled", "false"))
+            .MustHaveHappenedOnceExactly();
+    }
+
     #region DetectInstallType
 
     [Fact]
@@ -132,7 +352,7 @@ public class UpdateCheckerTests {
         var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
 
         // Act
-        var result = sut.DetectInstallType(@"C:\Program Files\Karls Gitflow\git-flow.exe", userProfilePath);
+        var result = sut.DetectInstallType(@"C:\Program Files\Karls Gitflow\git-flow.exe", userProfilePath, isWindows: true, isMacOS: false);
 
         // Assert
         result.ShouldBe(InstallType.Msi);
@@ -164,10 +384,109 @@ public class UpdateCheckerTests {
         var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
 
         // Act
-        var result = sut.DetectInstallType("/home/testuser/.dotnet/tools-backup/git-flow", userProfilePath);
+        var result = sut.DetectInstallType("/home/testuser/.dotnet/tools-backup/git-flow", userProfilePath, isWindows: true, isMacOS: false);
 
         // Assert
         result.ShouldBe(InstallType.Msi);
+    }
+
+    [Theory]
+    [InlineData("/opt/homebrew/bin/git-flow")]
+    [InlineData("/opt/homebrew/Cellar/karls-gitflow/1.0.0/bin/git-flow")]
+    [InlineData("/usr/local/Homebrew/bin/git-flow")]
+    public void DetectInstallType_WhenProcessPathIsInHomebrewDirectory_ReturnsHomebrew(string processPath) {
+        // Arrange
+        var userProfilePath = "/home/testuser";
+        var dotnetToolsPath = "/home/testuser/.dotnet/tools";
+
+        A.CallTo(() => _fakeFileSystem.Path.Combine(userProfilePath, ".dotnet", "tools"))
+            .Returns(dotnetToolsPath);
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+
+        // Act
+        var result = sut.DetectInstallType(processPath, userProfilePath);
+
+        // Assert
+        result.ShouldBe(InstallType.Homebrew);
+    }
+
+    [Fact]
+    public void DetectInstallType_WhenProcessPathIsInLinuxbrewDirectory_ReturnsHomebrew() {
+        // Arrange
+        var userProfilePath = "/home/testuser";
+        var dotnetToolsPath = "/home/testuser/.dotnet/tools";
+
+        A.CallTo(() => _fakeFileSystem.Path.Combine(userProfilePath, ".dotnet", "tools"))
+            .Returns(dotnetToolsPath);
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+
+        // Act
+        var result = sut.DetectInstallType("/home/linuxbrew/.linuxbrew/bin/git-flow", userProfilePath);
+
+        // Assert
+        result.ShouldBe(InstallType.Homebrew);
+    }
+
+    [Fact]
+    public void DetectInstallType_WhenProcessPathIsInMacOsPkgInstallLocation_ReturnsPkg() {
+        // Arrange
+        A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
+            .Returns("/home/testuser/.dotnet/tools");
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+
+        // Act
+        var result = sut.DetectInstallType("/usr/local/bin/git-flow", "/home/testuser", isWindows: false, isMacOS: true);
+
+        // Assert
+        result.ShouldBe(InstallType.Pkg);
+    }
+
+    [Fact]
+    public void DetectInstallType_WhenProcessPathIsInMacOsPkgInstallLocationOnWindows_ReturnsMsi() {
+        // Arrange
+        A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
+            .Returns("/home/testuser/.dotnet/tools");
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+
+        // Act
+        var result = sut.DetectInstallType("/usr/local/bin/git-flow", "/home/testuser", isWindows: true, isMacOS: false);
+
+        // Assert
+        result.ShouldBe(InstallType.Msi);
+    }
+
+    [Fact]
+    public void DetectInstallType_WhenProcessPathIsWindowsStyleOutsideDotNetToolsOnMacOs_ReturnsUnknown() {
+        // Arrange
+        A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
+            .Returns("/home/testuser/.dotnet/tools");
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+
+        // Act
+        var result = sut.DetectInstallType(@"C:\Program Files\Karls Gitflow\git-flow.exe", "/home/testuser", isWindows: false, isMacOS: true);
+
+        // Assert
+        result.ShouldBe(InstallType.Unknown);
+    }
+
+    [Fact]
+    public void DetectInstallType_WhenProcessPathIsNearMacOsPkgInstallLocation_ReturnsUnknown() {
+        // Arrange
+        A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
+            .Returns("/home/testuser/.dotnet/tools");
+
+        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+
+        // Act
+        var result = sut.DetectInstallType("/usr/local/bin/git-flow-copy", "/home/testuser", isWindows: false, isMacOS: true);
+
+        // Assert
+        result.ShouldBe(InstallType.Unknown);
     }
 
     #endregion
