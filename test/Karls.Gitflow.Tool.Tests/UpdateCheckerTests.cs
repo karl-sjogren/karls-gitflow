@@ -25,7 +25,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.enabled"))
             .Returns("false");
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion);
 
         // Act
         var result = await sut.CheckForUpdatesAsync(TestContext.Current.CancellationToken);
@@ -44,7 +44,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
             .Returns(_currentVersion);
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion);
 
         // Act
         var result = await sut.ForceCheckForUpdatesAsync(TestContext.Current.CancellationToken);
@@ -65,7 +65,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
             .Returns(_currentVersion);
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion);
 
         // Act
         var result = await sut.ForceCheckForUpdatesAsync(TestContext.Current.CancellationToken);
@@ -82,7 +82,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.enabled"))
             .Returns(null);
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion);
 
         // Act
         var result = await sut.CheckForUpdatesAsync(TestContext.Current.CancellationToken);
@@ -103,7 +103,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeGitService.GetGlobalConfigValue(A<string>._))
             .Throws<Exception>();
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion);
 
         // Act
         var result = await sut.CheckForUpdatesAsync(TestContext.Current.CancellationToken);
@@ -129,7 +129,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
             .Returns("/home/user/.dotnet/tools");
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
 
         // Act
         var result = await sut.CheckForUpdatesAsync(TestContext.Current.CancellationToken);
@@ -154,7 +154,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
             .Returns("/home/user/.dotnet/tools");
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
 
         // Act
         var result = await sut.CheckForUpdatesAsync(TestContext.Current.CancellationToken);
@@ -179,7 +179,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
             .Returns("/home/user/.dotnet/tools");
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
 
         // Act
         var result = await sut.CheckForUpdatesAsync(TestContext.Current.CancellationToken);
@@ -201,7 +201,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.lastcheck"))
             .Returns(lastCheck);
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime);
 
         // Act
         var result = await sut.CheckForUpdatesAsync(TestContext.Current.CancellationToken);
@@ -210,6 +210,36 @@ public class UpdateCheckerTests {
         result.ShouldBeFalse();
         A.CallTo(() => _fakeNugetClient.GetLatestVersionAsync(A<CancellationToken>._))
             .MustNotHaveHappened();
+    }
+
+    [Fact]
+    public async Task CheckForUpdatesAsync_WhenCheckIntervalNotElapsed_DoesNotInvokeClientFactoryAsync() {
+        // Arrange
+        var fakeTime = new FakeTimeProvider(DateTimeOffset.UtcNow);
+        var lastCheck = fakeTime.GetUtcNow().AddDays(-1).ToString("o"); // 1 day ago, interval is 14
+        var factoryInvoked = false;
+
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.enabled"))
+            .Returns("true");
+        A.CallTo(() => _fakeGitService.GetGlobalConfigValue("gitflow.updatecheck.lastcheck"))
+            .Returns(lastCheck);
+
+        var sut = new UpdateChecker(
+            _fakeGitService,
+            () => {
+                factoryInvoked = true;
+                return _fakeNugetClient;
+            },
+            _fakePromptService,
+            _currentVersion,
+            fakeTime);
+
+        // Act
+        var result = await sut.CheckForUpdatesAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        result.ShouldBeFalse();
+        factoryInvoked.ShouldBeFalse();
     }
 
     [Fact]
@@ -227,7 +257,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
             .Returns("/home/user/.dotnet/tools");
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
 
         // Act
         var result = await sut.CheckForUpdatesAsync(TestContext.Current.CancellationToken);
@@ -253,7 +283,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
             .Returns("/home/user/.dotnet/tools");
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
 
         // Act
         var result = await sut.CheckForUpdatesAsync(TestContext.Current.CancellationToken);
@@ -281,7 +311,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
             .Returns("/home/user/.dotnet/tools");
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
 
         // Act
         var result = await sut.CheckForUpdatesAsync(TestContext.Current.CancellationToken);
@@ -309,7 +339,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
             .Returns("/home/user/.dotnet/tools");
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion, fakeTime, _fakeFileSystem);
 
         // Act
         var result = await sut.CheckForUpdatesAsync(TestContext.Current.CancellationToken);
@@ -331,7 +361,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeFileSystem.Path.Combine(userProfilePath, ".dotnet", "tools"))
             .Returns(dotnetToolsPath);
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
 
         // Act
         var result = sut.DetectInstallType($"{dotnetToolsPath}/git-flow", userProfilePath);
@@ -349,7 +379,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeFileSystem.Path.Combine(userProfilePath, ".dotnet", "tools"))
             .Returns(dotnetToolsPath);
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
 
         // Act
         var result = sut.DetectInstallType(@"C:\Program Files\Karls Gitflow\git-flow.exe", userProfilePath, isWindows: true, isMacOS: false);
@@ -363,7 +393,7 @@ public class UpdateCheckerTests {
     [InlineData("")]
     public void DetectInstallType_WhenProcessPathIsNullOrEmpty_ReturnsDotNetTool(string? processPath) {
         // Arrange
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
 
         // Act
         var result = sut.DetectInstallType(processPath, "/home/testuser");
@@ -381,7 +411,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeFileSystem.Path.Combine(userProfilePath, ".dotnet", "tools"))
             .Returns(dotnetToolsPath);
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
 
         // Act
         var result = sut.DetectInstallType("/home/testuser/.dotnet/tools-backup/git-flow", userProfilePath, isWindows: true, isMacOS: false);
@@ -402,7 +432,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeFileSystem.Path.Combine(userProfilePath, ".dotnet", "tools"))
             .Returns(dotnetToolsPath);
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
 
         // Act
         var result = sut.DetectInstallType(processPath, userProfilePath);
@@ -420,7 +450,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeFileSystem.Path.Combine(userProfilePath, ".dotnet", "tools"))
             .Returns(dotnetToolsPath);
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
 
         // Act
         var result = sut.DetectInstallType("/home/linuxbrew/.linuxbrew/bin/git-flow", userProfilePath);
@@ -435,7 +465,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
             .Returns("/home/testuser/.dotnet/tools");
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
 
         // Act
         var result = sut.DetectInstallType("/usr/local/bin/git-flow", "/home/testuser", isWindows: false, isMacOS: true);
@@ -450,7 +480,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
             .Returns("/home/testuser/.dotnet/tools");
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
 
         // Act
         var result = sut.DetectInstallType("/usr/local/bin/git-flow", "/home/testuser", isWindows: true, isMacOS: false);
@@ -465,7 +495,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
             .Returns("/home/testuser/.dotnet/tools");
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
 
         // Act
         var result = sut.DetectInstallType(@"C:\Program Files\Karls Gitflow\git-flow.exe", "/home/testuser", isWindows: false, isMacOS: true);
@@ -480,7 +510,7 @@ public class UpdateCheckerTests {
         A.CallTo(() => _fakeFileSystem.Path.Combine(A<string>._, A<string>._, A<string>._))
             .Returns("/home/testuser/.dotnet/tools");
 
-        var sut = new UpdateChecker(_fakeGitService, _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
+        var sut = new UpdateChecker(_fakeGitService, () => _fakeNugetClient, _fakePromptService, _currentVersion, fileSystem: _fakeFileSystem);
 
         // Act
         var result = sut.DetectInstallType("/usr/local/bin/git-flow-copy", "/home/testuser", isWindows: false, isMacOS: true);

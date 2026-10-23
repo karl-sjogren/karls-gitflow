@@ -10,26 +10,31 @@ using Karls.Gitflow.Tool.Infrastructure;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
+var currentVersion = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0);
+
 #region Check for updates
 
-if(args.Length == 0 || args[0] != "update-check") {
+if(!ShouldSkipUpdateCheck(args)) {
+    NuGetApiClient? nugetClient = null;
     try {
         var gitExecutor = new GitExecutor();
         var gitService = new GitService(gitExecutor);
-        var nugetClient = new NuGetApiClient();
         var promptService = new UpdatePromptService();
-        var currentVersion = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0);
 
-        var updateChecker = new UpdateChecker(gitService, nugetClient, promptService, currentVersion);
+        var updateChecker = new UpdateChecker(
+            gitService,
+            () => nugetClient ??= new NuGetApiClient(),
+            promptService,
+            currentVersion);
         var shouldExit = await updateChecker.CheckForUpdatesAsync();
-
-        nugetClient.Dispose();
 
         if(shouldExit) {
             return 0; // User chose to update, exit gracefully
         }
     } catch {
         // Silent failure - never interrupt workflow
+    } finally {
+        nugetClient?.Dispose();
     }
 }
 
@@ -39,7 +44,7 @@ var app = new CommandApp();
 
 app.Configure(config => {
     config.SetApplicationName("git flow");
-    config.SetApplicationVersion(Assembly.GetExecutingAssembly().GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "0.0.0");
+    config.SetApplicationVersion($"{currentVersion.Major}.{currentVersion.Minor}.{currentVersion.Build}");
 
     // Init command
     config.AddCommand<InitCommand>("init")
@@ -55,10 +60,6 @@ app.Configure(config => {
         config.AddCommand<ConfigSaveCommand>("save")
             .WithDescription("Save the current gitflow configuration to a .gitflow file.");
     });
-
-    // Version command
-    config.AddCommand<VersionCommand>("version")
-        .WithDescription("Show the git-flow version information.");
 
     config.AddCommand<UpdateCheckCommand>("update-check")
         .WithDescription("Check for tool updates now.");
@@ -158,4 +159,13 @@ try {
 } catch(CommandRuntimeException ex) {
     AnsiConsole.MarkupLine($"[red]Error:[/] {ex.Message}");
     return 1;
+}
+
+static bool ShouldSkipUpdateCheck(string[] args) {
+    if(args.Length == 0) {
+        return false;
+    }
+
+    var first = args[0];
+    return first is "-v" or "--version" or "-h" or "--help" or "-?" or "update-check";
 }

@@ -71,9 +71,9 @@ public sealed class GitExecutor : IGitExecutor {
         // When not capturing, git writes directly to console's stdout/stderr
         if(!captureOutput) {
             return new GitExecutorResult(
-                Output: Array.Empty<string>(),
+                Output: [],
                 ExitCode: process.ExitCode,
-                Messages: Array.Empty<string>()
+                Messages: []
             );
         }
 

@@ -21,7 +21,7 @@ public sealed class UpdateCheckCommand : AsyncCommand<UpdateCheckCommand.Setting
         var gitService = new GitService(new GitExecutor());
         var promptService = new UpdatePromptService(console);
         var currentVersion = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0);
-        var updateChecker = new UpdateChecker(gitService, nugetClient, promptService, currentVersion);
+        var updateChecker = new UpdateChecker(gitService, () => nugetClient, promptService, currentVersion);
 
         var result = await updateChecker.ForceCheckForUpdatesAsync(cancellationToken);
 
