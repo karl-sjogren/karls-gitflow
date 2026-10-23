@@ -1,6 +1,6 @@
 # Gitflow-AVH Analysis
 
-This document analyzes the gitflow-avh project (https://github.com/petervanderdoes/gitflow-avh) to serve as a reference for reimplementation in .NET.
+This document analyzes the gitflow-avh project (<https://github.com/petervanderdoes/gitflow-avh>) to serve as a reference for reimplementation in .NET.
 
 ## Overview
 
@@ -25,7 +25,7 @@ The project is written entirely in shell scripts (~98% shell code) and was archi
 ### Branch Types
 
 | Type | Base | Merges Into | Purpose |
-|------|------|-------------|---------|
+| ------ | ------ | ------------- | --------- |
 | `feature` | develop | develop | New features |
 | `bugfix` | develop | develop | Bug fixes (non-urgent) |
 | `release` | develop | main + develop | Prepare release |
@@ -41,14 +41,16 @@ The project is written entirely in shell scripts (~98% shell code) and was archi
 Initializes a repository for gitflow usage.
 
 **Usage:**
+
 ```bash
 git flow init [-d] [-f]
 git flow init [-d] [-f] -p <feature> -b <bugfix> -r <release> -x <hotfix> -s <support> -t <tag>
 ```
 
 **Flags:**
+
 | Flag | Description |
-|------|-------------|
+| ------ | ------------- |
 | `-d, --defaults` | Use default branch names and prefixes |
 | `-f, --force` | Force reconfiguration even if already initialized |
 | `-p, --feature` | Feature branch prefix |
@@ -60,6 +62,7 @@ git flow init [-d] [-f] -p <feature> -b <bugfix> -r <release> -x <hotfix> -s <su
 | `--local/--global/--system` | Configuration scope |
 
 **Behavior:**
+
 1. Checks if already initialized (exits unless `-f`)
 2. Prompts for production branch (tries: production, main, master)
 3. Prompts for development branch (tries: develop, int, integration)
@@ -69,6 +72,7 @@ git flow init [-d] [-f] -p <feature> -b <bugfix> -r <release> -x <hotfix> -s <su
 7. Writes configuration to git config
 
 **Configuration Keys:**
+
 ```
 gitflow.branch.master = main
 gitflow.branch.develop = develop
@@ -90,15 +94,19 @@ Manages feature branches for new development.
 **Subcommands:**
 
 #### `feature list`
+
 ```bash
 git flow feature [list] [-v]
 ```
+
 Lists all feature branches. Verbose mode shows more details.
 
 #### `feature start`
+
 ```bash
 git flow feature start [-F] <name> [<base>]
 ```
+
 Creates a new feature branch from base (default: develop).
 
 | Flag | Description |
@@ -106,19 +114,22 @@ Creates a new feature branch from base (default: develop).
 | `-F, --fetch` | Fetch from origin before creating |
 
 **Workflow:**
+
 1. Validate base branch exists
 2. Optionally fetch from origin
 3. Create branch `<prefix><name>` from `<base>`
 4. Checkout new branch
 
 #### `feature finish`
+
 ```bash
 git flow feature finish [-rFkDS] [--no-ff] [--push] <name|nameprefix>
 ```
+
 Merges feature into develop and cleans up.
 
 | Flag | Description |
-|------|-------------|
+| ------ | ------------- |
 | `-r, --rebase` | Rebase before merging |
 | `-p, --preserve-merges` | Preserve merges during rebase |
 | `-F, --fetch` | Fetch from origin first |
@@ -131,6 +142,7 @@ Merges feature into develop and cleans up.
 | `--push` | Push to origin after finish |
 
 **Workflow:**
+
 1. Validate working tree is clean
 2. Optionally fetch from origin
 3. Optionally rebase on develop
@@ -140,20 +152,25 @@ Merges feature into develop and cleans up.
 7. Optionally push develop
 
 #### `feature publish`
+
 ```bash
 git flow feature publish <name>
 ```
+
 Pushes feature branch to origin with upstream tracking.
 
 **Workflow:**
+
 1. Create remote tracking branch
 2. Push to origin
 3. Set upstream
 
 #### `feature delete`
+
 ```bash
 git flow feature delete [-f] [-r] <name>
 ```
+
 Deletes a feature branch.
 
 | Flag | Description |
@@ -180,24 +197,29 @@ Manages release branches for preparing production releases.
 **Subcommands:**
 
 #### `release list`
+
 ```bash
 git flow release [list] [-v]
 ```
 
 #### `release start`
+
 ```bash
 git flow release start [-F] <version> [<base>]
 ```
+
 Creates release branch from develop (default).
 
 #### `release finish`
+
 ```bash
 git flow release finish [-Fsumpkn] [--push] [--nobackmerge] <version>
 ```
+
 Completes a release: merges to main AND develop, creates tag.
 
 | Flag | Description |
-|------|-------------|
+| ------ | ------------- |
 | `-F, --fetch` | Fetch from origin first |
 | `-s, --sign` | Sign the tag with GPG |
 | `-u, --signingkey` | GPG key to use for signing |
@@ -211,6 +233,7 @@ Completes a release: merges to main AND develop, creates tag.
 | `--ff-master` | Allow fast-forward on master |
 
 **Workflow:**
+
 1. Validate working tree is clean
 2. Optionally fetch from origin
 3. Checkout main/master
@@ -222,11 +245,13 @@ Completes a release: merges to main AND develop, creates tag.
 9. Optionally push main, develop, and tags
 
 #### `release publish`
+
 ```bash
 git flow release publish <version>
 ```
 
 #### `release delete`
+
 ```bash
 git flow release delete [-f] [-r] <version>
 ```
@@ -240,32 +265,39 @@ Manages hotfix branches for urgent production fixes.
 **Subcommands:**
 
 #### `hotfix list`
+
 ```bash
 git flow hotfix [list] [-v]
 ```
 
 #### `hotfix start`
+
 ```bash
 git flow hotfix start [-F] <version> [<base>]
 ```
+
 Creates hotfix branch from main (default).
 
 **Note:** Only one hotfix at a time unless `gitflow.multi-hotfix` is enabled.
 
 #### `hotfix finish`
+
 ```bash
 git flow hotfix finish [-Fsumpkn] [--push] [--nobackmerge] <version>
 ```
+
 Completes a hotfix: merges to main AND develop, creates tag.
 
 **Workflow:** Same as release finish.
 
 #### `hotfix publish`
+
 ```bash
 git flow hotfix publish <version>
 ```
 
 #### `hotfix delete`
+
 ```bash
 git flow hotfix delete [-f] [-r] <version>
 ```
@@ -279,14 +311,17 @@ Manages support branches for maintaining old versions.
 **Subcommands:**
 
 #### `support list`
+
 ```bash
 git flow support [list] [-v]
 ```
 
 #### `support start`
+
 ```bash
 git flow support start <version> <base>
 ```
+
 Creates support branch from specific tag/commit. Base is required.
 
 **Note:** Support branches are long-lived. There is no `finish` command.
@@ -300,18 +335,23 @@ Manages gitflow configuration.
 **Subcommands:**
 
 #### `config list`
+
 ```bash
 git flow config [list]
 ```
+
 Shows all gitflow configuration.
 
 #### `config set`
+
 ```bash
 git flow config set <option> <value>
 ```
+
 Sets a configuration option.
 
 **Options:**
+
 - `master` - Production branch name
 - `develop` - Development branch name
 - `feature` - Feature prefix
@@ -323,9 +363,11 @@ Sets a configuration option.
 - `allowmultihotfix` - Allow multiple hotfixes (true/false)
 
 #### `config base`
+
 ```bash
 git flow config base <branch> [<base>]
 ```
+
 Get or set the base branch for a specific branch.
 
 ---
@@ -366,11 +408,13 @@ Get or set the base branch for a specific branch.
 ## Merge Strategies
 
 ### Feature/Bugfix Finish
+
 - Default: `--no-ff` (no fast-forward) to preserve branch history
 - Single commit exception: fast-forward allowed unless `--no-ff` explicitly set
 - Squash option: combine all commits into one
 
 ### Release/Hotfix Finish
+
 - Always `--no-ff` to main
 - Tag created on main after merge
 - Back-merge uses tag reference (not branch) to ensure tagged commit is in develop
@@ -382,12 +426,13 @@ Get or set the base branch for a specific branch.
 Gitflow-AVH supports hooks at various points:
 
 | Hook | When |
-|------|------|
+| ------ | ------ |
 | `pre-flow-<command>-<action>` | Before action (can abort) |
 | `post-flow-<command>-<action>` | After action (cleanup) |
 | `filter-flow-<command>-<action>-<param>` | Transform parameters |
 
 Example hooks:
+
 - `pre-flow-feature-start`
 - `post-flow-release-finish`
 - `filter-flow-release-finish-version`
@@ -405,6 +450,7 @@ variables, and exit/output behavior.
 ## Implementation Notes for .NET
 
 ### Command Structure
+
 ```
 git-flow <command> <action> [flags] [arguments]
          │         │
@@ -430,6 +476,7 @@ git-flow <command> <action> [flags] [arguments]
    - Dual: release/hotfix (merge to main + develop + tag)
 
 ### Configuration Default Values
+
 ```csharp
 public static class GitFlowDefaults
 {
@@ -447,7 +494,7 @@ public static class GitFlowDefaults
 ### Git Commands Used
 
 | Operation | Git Command |
-|-----------|-------------|
+| ----------- | ------------- |
 | Current branch | `git rev-parse --abbrev-ref HEAD` |
 | List local branches | `git for-each-ref --format='%(refname:short)' refs/heads` |
 | List remote branches | `git for-each-ref --format='%(refname:short)' refs/remotes` |
