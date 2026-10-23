@@ -178,6 +178,46 @@ available, with Windows PowerShell as a Windows fallback. POSIX hooks without
 an extension must be executable; Windows also supports `.exe` hooks. If both
 `.sh` and `.ps1` versions exist, the `.sh` hook is preferred.
 
+### Example: block a branch name
+
+Create `pre-flow-feature-start.sh` or `pre-flow-feature-start.ps1` in the hooks
+directory. A non-zero exit prevents the branch from being created:
+
+```sh
+# pre-flow-feature-start.sh
+if [ "$GITFLOW_PARAM_NAME" = "wip" ]; then
+  echo "Choose a more descriptive feature name." >&2
+  exit 1
+fi
+```
+
+```powershell
+# pre-flow-feature-start.ps1
+if ($env:GITFLOW_PARAM_NAME -eq "wip") {
+    [Console]::Error.WriteLine("Choose a more descriptive feature name.")
+    exit 1
+}
+```
+
+### Example: normalize a feature name
+
+A filter receives the original value as its first argument and replaces it
+with its standard output. These scripts turn the supplied name into lowercase
+words separated by hyphens:
+
+```sh
+# filter-flow-feature-start-name.sh
+printf '%s\n' "$1" | tr '[:upper:]' '[:lower:]' | tr ' ' '-'
+```
+
+```powershell
+# filter-flow-feature-start-name.ps1
+$args[0].ToLowerInvariant().Replace(" ", "-")
+```
+
+For example, `git flow feature start "My New Feature"` creates
+`feature/my-new-feature`.
+
 Hooks receive `GITFLOW_COMMAND`, `GITFLOW_ACTION`, `GITFLOW_REPOSITORY`, and
 `GITFLOW_PARAM_<NAME>` environment variables. Filter hooks additionally receive
 the current value as their first argument and in `GITFLOW_VALUE`; write the

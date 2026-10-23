@@ -572,6 +572,7 @@
   <ul class="nav-links" id="nav-menu">
     <li><a href="#why">Why</a></li>
     <li><a href="#flows">Flows</a></li>
+    <li><a href="#hook-examples">Hooks</a></li>
     <li><a href="#install">Install</a></li>
     <li><a href="#usage">Usage</a></li>
     <li><a href="https://github.com/karl-sjogren/karls-gitflow" target="_blank" rel="noopener">GitHub</a></li>
@@ -644,6 +645,83 @@
       <h3>Custom Hooks</h3>
       <p>Run scripts around Gitflow operations or transform parameters to fit
          your team's workflow.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── Hook examples ────────────────────────────────────────────── -->
+<section id="hook-examples">
+  <p class="section-label">// Hook examples</p>
+  <h2>Make Gitflow work <span class="glow-purple">your way</span></h2>
+  <p class="section-intro">
+    Add a hook script to Git's hooks directory (or your configured hooks path).
+    Choose shell or PowerShell on any platform; when both are present, the
+    <code>.sh</code> version runs first.
+  </p>
+
+  <div class="install-grid">
+    <div>
+      <h3>Guard a feature start</h3>
+      <p class="flow-description">
+        A non-zero exit from a pre-hook stops the operation. Save either version
+        as <code>pre-flow-feature-start.sh</code> or
+        <code>pre-flow-feature-start.ps1</code>.
+      </p>
+      <div class="code-window">
+        <div class="code-titlebar">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <span class="code-filename">pre-flow-feature-start.sh</span>
+        </div>
+        <pre>if [ "$GITFLOW_PARAM_NAME" = "wip" ]; then
+  echo "Choose a more descriptive feature name." &gt;&amp;2
+  exit 1
+fi</pre>
+      </div>
+      <div class="code-window" style="margin-top:1rem;">
+        <div class="code-titlebar">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <span class="code-filename">pre-flow-feature-start.ps1</span>
+        </div>
+        <pre>if ($env:GITFLOW_PARAM_NAME -eq "wip") {
+    [Console]::Error.WriteLine("Choose a more descriptive feature name.")
+    exit 1
+}</pre>
+      </div>
+    </div>
+    <div>
+      <h3>Normalize feature names</h3>
+      <p class="flow-description">
+        A filter reads its original value as the first argument and returns the
+        replacement on standard output.
+      </p>
+      <div class="code-window">
+        <div class="code-titlebar">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <span class="code-filename">filter-flow-feature-start-name.sh</span>
+        </div>
+        <pre>printf '%s\n' "$1" | tr '[:upper:]' '[:lower:]' | tr ' ' '-'</pre>
+      </div>
+      <div class="code-window" style="margin-top:1rem;">
+        <div class="code-titlebar">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <span class="code-filename">filter-flow-feature-start-name.ps1</span>
+        </div>
+        <pre>$args[0].ToLowerInvariant().Replace(" ", "-")</pre>
+      </div>
+      <p class="flow-description" style="margin-top:1rem;">
+        <code>git flow feature start "My New Feature"</code> then creates
+        <code>feature/my-new-feature</code>.
+      </p>
     </div>
   </div>
 </section>
