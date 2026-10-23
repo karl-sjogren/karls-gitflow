@@ -1,7 +1,7 @@
+using System.IO.Abstractions;
 using Karls.Gitflow.Core;
 using Karls.Gitflow.Core.Services;
 using Karls.Gitflow.Tool.Infrastructure;
-using System.IO.Abstractions;
 using Spectre.Console;
 using Spectre.Console.Cli;
 

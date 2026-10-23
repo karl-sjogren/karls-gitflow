@@ -1,5 +1,5 @@
-using System.Diagnostics;
 using System.ComponentModel;
+using System.Diagnostics;
 using Karls.Gitflow.Tool.Tests.Infrastructure;
 
 namespace Karls.Gitflow.Tool.Tests;
