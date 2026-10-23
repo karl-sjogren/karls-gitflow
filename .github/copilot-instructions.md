@@ -8,7 +8,7 @@ Karl's Gitflow is a .NET global command-line tool implementing the Gitflow branc
 
 | Area | Technology |
 |------|------------|
-| Runtime | .NET 10 (`net10.0`); SDK 10.0.400 with `latestFeature` roll-forward |
+| Runtime | .NET 11 RC 2 (`net11.0`); SDK 11.0.100-rc.2.26504.105 with `latestFeature` roll-forward |
 | CLI | Spectre.Console.Cli and Spectre.Console |
 | Tests | xUnit v3 on Microsoft.Testing.Platform, FakeItEasy, Shouldly |
 | Analysis | Roslynator, Karls.Analyzers, BannedApiAnalyzers |

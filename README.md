@@ -203,7 +203,7 @@ dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj \
 
 ## Requirements
 
-- .NET 10 SDK
+- .NET 11 SDK (RC 2)
 - Git installed and available in PATH
 
 ## License
