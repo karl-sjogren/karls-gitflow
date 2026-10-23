@@ -13,30 +13,30 @@ public sealed class UpdateChecker {
     private const int _checkIntervalDays = 14;
 
     private readonly IGitService _gitService;
-    private readonly INuGetApiClient _nugetClient;
+    private readonly Func<INuGetApiClient> _nugetClientFactory;
     private readonly IUpdatePromptService _promptService;
     private readonly Version _currentVersion;
     private readonly TimeProvider _timeProvider;
     private readonly IFileSystem _fileSystem;
 
     /// <summary>
-    /// Creates a new UpdateChecker.
+    /// Creates a new UpdateChecker with a lazy NuGet client factory.
     /// </summary>
     /// <param name="gitService">The git service for reading/writing config.</param>
-    /// <param name="nugetClient">The NuGet API client.</param>
+    /// <param name="nugetClientFactory">Factory to create the NuGet API client only when needed.</param>
     /// <param name="promptService">The prompt service for user interaction.</param>
     /// <param name="currentVersion">The current version of the tool.</param>
     /// <param name="timeProvider">The time provider for getting current time (optional, defaults to system time).</param>
     /// <param name="fileSystem">The file system abstraction (optional, defaults to real file system).</param>
     public UpdateChecker(
-        IGitService gitService,
-        INuGetApiClient nugetClient,
-        IUpdatePromptService promptService,
-        Version currentVersion,
-        TimeProvider? timeProvider = null,
-        IFileSystem? fileSystem = null) {
+            IGitService gitService,
+            Func<INuGetApiClient> nugetClientFactory,
+            IUpdatePromptService promptService,
+            Version currentVersion,
+            TimeProvider? timeProvider = null,
+            IFileSystem? fileSystem = null) {
         _gitService = gitService;
-        _nugetClient = nugetClient;
+        _nugetClientFactory = nugetClientFactory;
         _promptService = promptService;
         _currentVersion = currentVersion;
         _timeProvider = timeProvider ?? TimeProvider.System;
@@ -76,7 +76,8 @@ public sealed class UpdateChecker {
             }
 
             // Fetch latest version from NuGet
-            var latestVersion = await _nugetClient.GetLatestVersionAsync(cancellationToken);
+            var nugetClient = _nugetClientFactory();
+            var latestVersion = await nugetClient.GetLatestVersionAsync(cancellationToken);
 
             // Update last check time
             _gitService.SetGlobalConfigValue(_lastCheckConfigKey, _timeProvider.GetUtcNow().ToString("o"));
