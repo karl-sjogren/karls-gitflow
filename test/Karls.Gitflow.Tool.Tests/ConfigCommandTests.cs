@@ -52,6 +52,19 @@ public class ConfigCommandTests : IDisposable {
     }
 
     [Fact]
+    public void ConfigSet_HooksPath_SetsAndListsHooksDirectory() {
+        _repo.InitializeGitFlow();
+
+        var setResult = _repo.ExecuteGitFlow("config set hooks \".git/custom hooks\"");
+        var listResult = _repo.ExecuteGitFlow("config list");
+
+        setResult.Success.ShouldBeTrue();
+        _repo.GetConfigValue("gitflow.path.hooks").ShouldBe(".git/custom hooks");
+        listResult.Output.ShouldContain("Hooks path");
+        listResult.Output.ShouldContain(".git/custom hooks");
+    }
+
+    [Fact]
     public void ConfigSet_WithInvalidKey_ReturnsError() {
         // Arrange
         _repo.InitializeGitFlow();

@@ -1,6 +1,7 @@
 using Karls.Gitflow.Core;
 using Karls.Gitflow.Core.Services;
 using Karls.Gitflow.Tool.Infrastructure;
+using System.IO.Abstractions;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -29,13 +30,15 @@ public abstract class GitFlowCommand<TSettings> : Command<TSettings>
 
     protected GitFlowConfigFile ConfigFile => field ??= new GitFlowConfigFile();
 
+    private GitFlowHookRunner HookRunner => field ??= new GitFlowHookRunner(GitService, GitExecutor, Console, new FileSystem());
+
     /// <summary>
     /// Gets the console for output (supports thread-local override for testing).
     /// </summary>
     protected IAnsiConsole Console => GitFlowContext.EffectiveConsole;
 
     protected void WriteError(string message) {
-        Console.MarkupLine($"[red]Error:[/] {message}");
+        Console.MarkupLine($"[red]Error:[/] {Markup.Escape(message)}");
     }
 
     protected void WriteSuccess(string message) {
@@ -75,11 +78,28 @@ public abstract class GitFlowCommand<TSettings> : Command<TSettings>
         }
     }
 
+    protected int ExecuteHooked(
+        string command,
+        string? action,
+        IReadOnlyDictionary<string, string?> parameters,
+        IReadOnlySet<string> filterableParameters,
+        Action<IReadOnlyDictionary<string, string?>> operation) {
+        return ExecuteSafe(() => HookRunner.Run(command, action, parameters, filterableParameters, operation));
+    }
+
+    protected static string BranchNameParameter(IBranchService service) {
+        return service.TypeName is "release" or "hotfix" or "support" ? "version" : "name";
+    }
+
+    protected static string RequiredParameter(IReadOnlyDictionary<string, string?> parameters, string name) {
+        return parameters[name] ?? string.Empty;
+    }
+
     /// <summary>
     /// Executes a list operation for the given branch service, displaying all branches.
     /// </summary>
     protected int ExecuteList(IBranchService service) {
-        return ExecuteSafe(() => {
+        return ExecuteHooked(service.TypeName, "list", new Dictionary<string, string?>(), new HashSet<string>(), _ => {
             var branches = service.List();
             var currentBranch = GitService.GetCurrentBranchName();
             var prefix = service.Prefix;
@@ -99,10 +119,18 @@ public abstract class GitFlowCommand<TSettings> : Command<TSettings>
     /// Executes a start operation for the given branch service.
     /// </summary>
     protected int ExecuteStart(IBranchService service, StartSettings settings) {
-        return ExecuteSafe(() => {
-            var options = new StartOptions { Fetch = settings.Fetch };
-            service.Start(settings.Name, settings.BaseBranch, options);
-            WriteSuccess($"Started {service.TypeName} branch '{service.Prefix}{settings.Name}'");
+        var nameParameter = BranchNameParameter(service);
+        var parameters = new Dictionary<string, string?> {
+            [nameParameter] = settings.Name,
+            ["base"] = settings.BaseBranch,
+            ["fetch"] = settings.Fetch.ToString()
+        };
+
+        return ExecuteHooked(service.TypeName, "start", parameters, new HashSet<string>([nameParameter, "base"]), values => {
+            var name = RequiredParameter(values, nameParameter);
+            var baseBranch = values["base"];
+            service.Start(name, baseBranch, new StartOptions { Fetch = settings.Fetch });
+            WriteSuccess($"Started {service.TypeName} branch '{service.Prefix}{name}'");
         });
     }
 
@@ -110,8 +138,11 @@ public abstract class GitFlowCommand<TSettings> : Command<TSettings>
     /// Executes a publish operation for the given branch service.
     /// </summary>
     protected int ExecutePublish(IBranchService service, PublishSettings settings) {
-        return ExecuteSafe(() => {
-            var name = service.ResolveBranchName(settings.Name);
+        var nameParameter = BranchNameParameter(service);
+        var parameters = new Dictionary<string, string?> { [nameParameter] = settings.Name };
+
+        return ExecuteHooked(service.TypeName, "publish", parameters, new HashSet<string>([nameParameter]), values => {
+            var name = service.ResolveBranchName(values[nameParameter]);
             service.Publish(name);
             WriteSuccess($"Published {service.TypeName} branch '{service.Prefix}{name}' to origin");
         });
@@ -121,8 +152,15 @@ public abstract class GitFlowCommand<TSettings> : Command<TSettings>
     /// Executes a delete operation for the given branch service.
     /// </summary>
     protected int ExecuteDelete(IBranchService service, DeleteSettings settings) {
-        return ExecuteSafe(() => {
-            var name = service.ResolveBranchName(settings.Name);
+        var nameParameter = BranchNameParameter(service);
+        var parameters = new Dictionary<string, string?> {
+            [nameParameter] = settings.Name,
+            ["force"] = settings.Force.ToString(),
+            ["remote"] = settings.Remote.ToString()
+        };
+
+        return ExecuteHooked(service.TypeName, "delete", parameters, new HashSet<string>([nameParameter]), values => {
+            var name = service.ResolveBranchName(values[nameParameter]);
             var options = new DeleteOptions {
                 Force = settings.Force,
                 Remote = settings.Remote
@@ -136,9 +174,13 @@ public abstract class GitFlowCommand<TSettings> : Command<TSettings>
     /// Executes a track operation for the given branch service.
     /// </summary>
     protected int ExecuteTrack(IBranchService service, TrackSettings settings) {
-        return ExecuteSafe(() => {
-            service.Track(settings.Name);
-            WriteSuccess($"Tracking {service.TypeName} branch '{service.Prefix}{settings.Name}'");
+        var nameParameter = BranchNameParameter(service);
+        var parameters = new Dictionary<string, string?> { [nameParameter] = settings.Name };
+
+        return ExecuteHooked(service.TypeName, "track", parameters, new HashSet<string>([nameParameter]), values => {
+            var name = RequiredParameter(values, nameParameter);
+            service.Track(name);
+            WriteSuccess($"Tracking {service.TypeName} branch '{service.Prefix}{name}'");
         });
     }
 
@@ -146,8 +188,18 @@ public abstract class GitFlowCommand<TSettings> : Command<TSettings>
     /// Executes a simple finish operation (feature/bugfix pattern) for the given branch service.
     /// </summary>
     protected int ExecuteSimpleFinish(IBranchService service, SimpleFinishSettings settings) {
-        return ExecuteSafe(() => {
-            var name = service.ResolveBranchName(settings.Name);
+        var nameParameter = BranchNameParameter(service);
+        var parameters = new Dictionary<string, string?> {
+            [nameParameter] = settings.Name,
+            ["fetch"] = settings.Fetch.ToString(),
+            ["push"] = settings.Push.ToString(),
+            ["keep"] = settings.Keep.ToString(),
+            ["squash"] = settings.Squash.ToString(),
+            ["rebase"] = settings.Rebase.ToString()
+        };
+
+        return ExecuteHooked(service.TypeName, "finish", parameters, new HashSet<string>([nameParameter]), values => {
+            var name = service.ResolveBranchName(values[nameParameter]);
             var options = new FinishOptions {
                 Fetch = settings.Fetch,
                 Push = settings.Push,
@@ -171,15 +223,27 @@ public abstract class GitFlowCommand<TSettings> : Command<TSettings>
     /// Executes a tag-based finish operation (release/hotfix pattern) for the given branch service.
     /// </summary>
     protected int ExecuteTagFinish(IBranchService service, TagFinishSettings settings) {
-        return ExecuteSafe(() => {
-            var name = service.ResolveBranchName(settings.Name);
+        var nameParameter = BranchNameParameter(service);
+        var parameters = new Dictionary<string, string?> {
+            [nameParameter] = settings.Name,
+            ["message"] = settings.Message,
+            ["fetch"] = settings.Fetch.ToString(),
+            ["push"] = settings.Push.ToString(),
+            ["keep"] = settings.Keep.ToString(),
+            ["squash"] = settings.Squash.ToString(),
+            ["notag"] = settings.NoTag.ToString(),
+            ["nobackmerge"] = settings.NoBackMerge.ToString()
+        };
+
+        return ExecuteHooked(service.TypeName, "finish", parameters, new HashSet<string>([nameParameter, "message"]), values => {
+            var name = service.ResolveBranchName(values[nameParameter]);
 
             var options = new FinishOptions {
                 Fetch = settings.Fetch,
                 Push = settings.Push,
                 Keep = settings.Keep,
                 Squash = settings.Squash,
-                TagMessage = settings.Message,
+                TagMessage = values["message"],
                 NoTag = settings.NoTag,
                 NoBackMerge = settings.NoBackMerge,
                 OnProgress = CreateProgressCallback(settings.Quiet)

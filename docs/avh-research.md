@@ -379,7 +379,7 @@ Get or set the base branch for a specific branch.
 
 ## Hook System
 
-Gitflow supports hooks at various points (not implementing initially):
+Gitflow-AVH supports hooks at various points:
 
 | Hook | When |
 |------|------|
@@ -391,6 +391,14 @@ Example hooks:
 - `pre-flow-feature-start`
 - `post-flow-release-finish`
 - `filter-flow-release-finish-version`
+
+Karl's Gitflow implements pre- and post-hooks for initialization, push, and
+branch list/start/finish/publish/track/delete operations. Filter hooks can
+transform applicable parameters, including explicitly supplied init options,
+branch names, bases, release versions, and tag messages. Hooks are loaded from
+Git's hooks directory or the directory configured by `gitflow.path.hooks`. See
+the root README's **Hooks** section for supported script formats, environment
+variables, and exit/output behavior.
 
 ---
 

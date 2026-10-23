@@ -161,6 +161,42 @@ git flow feature finish  # Automatically detects "my-feature"
 - Run `git flow push` to push the main and develop branches and all tags.
 - Use `git flow update-check` to check for updates immediately.
 
+## Hooks
+
+Hooks let you run scripts before or after Gitflow operations, or transform
+operation parameters. They are discovered in Git's hooks directory by default;
+set a custom directory with `git flow config set hooks <path>`. Relative paths
+are resolved from the repository root.
+
+For example, `pre-flow-feature-start` runs before `git flow feature start`,
+`post-flow-release-finish` runs after a successful release finish, and
+`filter-flow-release-start-version` can change the release version before the
+branch is created. The same hook names can be installed with a `.sh` extension
+or `.ps1` on any supported platform. Shell hooks run with `sh` (Git for Windows
+is searched for on Windows); PowerShell hooks use PowerShell 7 (`pwsh`) where
+available, with Windows PowerShell as a Windows fallback. POSIX hooks without
+an extension must be executable; Windows also supports `.exe` hooks. If both
+`.sh` and `.ps1` versions exist, the `.sh` hook is preferred.
+
+Hooks receive `GITFLOW_COMMAND`, `GITFLOW_ACTION`, `GITFLOW_REPOSITORY`, and
+`GITFLOW_PARAM_<NAME>` environment variables. Filter hooks additionally receive
+the current value as their first argument and in `GITFLOW_VALUE`; write the
+replacement value to standard output. A trailing line ending is removed;
+branch-name and base filters must return a single-line value, while tag-message
+filters can return multiple lines. Pre- and post-hooks receive applicable
+parameters as sorted `name=value` arguments. A non-zero
+pre-hook or filter-hook exit stops the operation. Post-hooks run only after a
+successful operation; a failing post-hook reports failure but cannot undo an
+operation that already completed. Hook output and errors are shown in the
+terminal.
+
+Hooks are supported for `init`, `push`, and branch `list`, `start`, `finish`,
+`publish`, `track`, and `delete` operations. For `init` and `push`, hook names
+omit the action segment (for example, `pre-flow-init`); config-management and
+update-check commands do not run hooks. Init filters apply to values supplied
+as command-line options; values chosen interactively or loaded from `.gitflow`
+are not filtered.
+
 ## Start Options
 
 | Option | Description |
