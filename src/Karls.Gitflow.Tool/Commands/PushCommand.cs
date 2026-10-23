@@ -9,7 +9,7 @@ public sealed class PushCommand : GitFlowCommand<PushCommand.Settings> {
     public sealed class Settings : CommandSettings {
     }
 
-    protected override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             var config = GitService.GetGitFlowConfiguration();
 

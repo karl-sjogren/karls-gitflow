@@ -4,4 +4,8 @@
     <ProjectReference Include="..\..\src\Karls.Gitflow.Tool\Karls.Gitflow.Tool.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="LibGit2Sharp" />
+  </ItemGroup>
+
 </Project>

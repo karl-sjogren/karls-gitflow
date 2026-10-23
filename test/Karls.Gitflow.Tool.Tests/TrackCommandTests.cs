@@ -15,28 +15,20 @@ public class TrackCommandTests : IDisposable {
         _remoteRepoPath = _fileSystem.Path.Combine(tempPath, $"gitflow-remote-{Guid.NewGuid():N}");
         _fileSystem.Directory.CreateDirectory(_remoteRepoPath);
 
-        // Initialize as bare repository
-        var bareInit = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo {
-            FileName = "git",
-            Arguments = "init --bare",
-            WorkingDirectory = _remoteRepoPath,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        });
-        bareInit?.WaitForExit();
+        GitRepositoryFixture.InitializeBareRepository(_remoteRepoPath);
 
         // Create the "origin" repository (where branches are published from)
         _otherRepo = new GitRepositoryFixture();
-        _otherRepo.ExecuteGitFlow("init -d");
-        _otherRepo.ExecuteGit($"remote add origin \"{_remoteRepoPath}\"");
-        _otherRepo.ExecuteGit("push -u origin main");
-        _otherRepo.ExecuteGit("push -u origin develop");
+        _otherRepo.InitializeGitFlow();
+        _otherRepo.AddRemote("origin", _remoteRepoPath);
+        _otherRepo.PushBranch("main");
+        _otherRepo.PushBranch("develop");
 
         // Create the main repository that will track branches from the remote
         _repo = new GitRepositoryFixture();
-        _repo.ExecuteGitFlow("init -d");
-        _repo.ExecuteGit($"remote add origin \"{_remoteRepoPath}\"");
-        _repo.ExecuteGit("fetch origin");
+        _repo.InitializeGitFlow();
+        _repo.AddRemote("origin", _remoteRepoPath);
+        _repo.FetchRemoteBranches();
     }
 
     public void Dispose() {
@@ -64,12 +56,12 @@ public class TrackCommandTests : IDisposable {
     [Fact]
     public void FeatureTrack_CreatesLocalTrackingBranch() {
         // Arrange - Publish a feature branch from the other repo
-        _otherRepo.ExecuteGitFlow("feature start my-feature");
+        _otherRepo.CreateBranch("feature/my-feature", "develop");
         _otherRepo.CreateCommit("Feature work");
-        _otherRepo.ExecuteGitFlow("feature publish my-feature");
+        _otherRepo.PushBranch("feature/my-feature");
 
         // Fetch to see the remote branch
-        _repo.ExecuteGit("fetch origin");
+        _repo.FetchRemoteBranches();
 
         // Act
         var result = _repo.ExecuteGitFlow("feature track my-feature");
@@ -93,12 +85,12 @@ public class TrackCommandTests : IDisposable {
     [Fact]
     public void FeatureTrack_WhenLocalBranchAlreadyExists_SwitchesToIt() {
         // Arrange - Publish a feature branch from the other repo
-        _otherRepo.ExecuteGitFlow("feature start my-feature");
+        _otherRepo.CreateBranch("feature/my-feature", "develop");
         _otherRepo.CreateCommit("Feature work");
-        _otherRepo.ExecuteGitFlow("feature publish my-feature");
+        _otherRepo.PushBranch("feature/my-feature");
 
         // Create local branch in our repo first, then leave it
-        _repo.ExecuteGit("fetch origin");
+        _repo.FetchRemoteBranches();
         _repo.ExecuteGit("checkout -b feature/my-feature");
         _repo.ExecuteGit("checkout develop");
 
@@ -117,11 +109,11 @@ public class TrackCommandTests : IDisposable {
     [Fact]
     public void BugfixTrack_CreatesLocalTrackingBranch() {
         // Arrange
-        _otherRepo.ExecuteGitFlow("bugfix start fix-123");
+        _otherRepo.CreateBranch("bugfix/fix-123", "develop");
         _otherRepo.CreateCommit("Bugfix work");
-        _otherRepo.ExecuteGitFlow("bugfix publish fix-123");
+        _otherRepo.PushBranch("bugfix/fix-123");
 
-        _repo.ExecuteGit("fetch origin");
+        _repo.FetchRemoteBranches();
 
         // Act
         var result = _repo.ExecuteGitFlow("bugfix track fix-123");
@@ -138,11 +130,11 @@ public class TrackCommandTests : IDisposable {
     [Fact]
     public void ReleaseTrack_CreatesLocalTrackingBranch() {
         // Arrange
-        _otherRepo.ExecuteGitFlow("release start 1.0.0");
+        _otherRepo.CreateBranch("release/1.0.0", "develop");
         _otherRepo.CreateCommit("Release prep");
-        _otherRepo.ExecuteGitFlow("release publish 1.0.0");
+        _otherRepo.PushBranch("release/1.0.0");
 
-        _repo.ExecuteGit("fetch origin");
+        _repo.FetchRemoteBranches();
 
         // Act
         var result = _repo.ExecuteGitFlow("release track 1.0.0");
@@ -159,11 +151,11 @@ public class TrackCommandTests : IDisposable {
     [Fact]
     public void HotfixTrack_CreatesLocalTrackingBranch() {
         // Arrange
-        _otherRepo.ExecuteGitFlow("hotfix start 1.0.1");
+        _otherRepo.CreateBranch("hotfix/1.0.1", "main");
         _otherRepo.CreateCommit("Hotfix work");
-        _otherRepo.ExecuteGitFlow("hotfix publish 1.0.1");
+        _otherRepo.PushBranch("hotfix/1.0.1");
 
-        _repo.ExecuteGit("fetch origin");
+        _repo.FetchRemoteBranches();
 
         // Act
         var result = _repo.ExecuteGitFlow("hotfix track 1.0.1");
@@ -180,13 +172,13 @@ public class TrackCommandTests : IDisposable {
     [Fact]
     public void SupportTrack_CreatesLocalTrackingBranch() {
         // Arrange
-        _otherRepo.ExecuteGit("checkout main");
-        _otherRepo.ExecuteGit("tag v1.0.0");
-        _otherRepo.ExecuteGitFlow("support start 1.x v1.0.0");
+        _otherRepo.CheckoutBranch("main");
+        _otherRepo.CreateTag("v1.0.0");
+        _otherRepo.CreateBranch("support/1.x", "v1.0.0");
         _otherRepo.CreateCommit("Support work");
-        _otherRepo.ExecuteGitFlow("support publish 1.x");
+        _otherRepo.PushBranch("support/1.x");
 
-        _repo.ExecuteGit("fetch origin");
+        _repo.FetchRemoteBranches();
 
         // Act
         var result = _repo.ExecuteGitFlow("support track 1.x");

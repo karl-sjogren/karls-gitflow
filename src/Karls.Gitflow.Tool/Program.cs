@@ -61,9 +61,8 @@ app.Configure(config => {
             .WithDescription("Save the current gitflow configuration to a .gitflow file.");
     });
 
-    // Version command
-    config.AddCommand<VersionCommand>("version")
-        .WithDescription("Show the git-flow version information.");
+    config.AddCommand<UpdateCheckCommand>("update-check")
+        .WithDescription("Check for tool updates now.");
 
     // Push command
     config.AddCommand<PushCommand>("push")
@@ -168,5 +167,5 @@ static bool ShouldSkipUpdateCheck(string[] args) {
     }
 
     var first = args[0];
-    return first is "-v" or "--version" or "version" or "-h" or "--help" or "-?" or "help";
+    return first is "-v" or "--version" or "-h" or "--help" or "-?" or "update-check";
 }

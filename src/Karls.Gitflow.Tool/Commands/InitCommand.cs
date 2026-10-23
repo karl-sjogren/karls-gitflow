@@ -49,7 +49,7 @@ public sealed class InitCommand : GitFlowCommand<InitCommand.Settings> {
         public string? TagMessageTemplate { get; set; }
     }
 
-    protected override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             if(!GitService.IsGitRepository()) {
                 throw new GitFlowException("Not a git repository.");

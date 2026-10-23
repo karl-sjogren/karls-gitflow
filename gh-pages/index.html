@@ -764,13 +764,14 @@ gitGraph
     <p class="section-label">// Installation</p>
     <h2>Up and running in <span class="glow-green">seconds</span></h2>
     <p class="section-intro">
-      Karl's Gitflow is available as a .NET global tool, via Homebrew on macOS, and
-      as a Windows installer — choose the method that suits your platform.
+      Karl's Gitflow is available as a .NET global tool, via Homebrew or a macOS installer package,
+      and as a Windows installer — choose the method that suits your platform.
     </p>
 
     <div class="tabs" role="tablist">
       <button class="tab-btn active" role="tab" aria-selected="true"  aria-controls="install-tab-dotnet"  onclick="showInstallTab('dotnet',  this)">.NET Tool</button>
       <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="install-tab-homebrew" onclick="showInstallTab('homebrew', this)">Homebrew</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="install-tab-macos"   onclick="showInstallTab('macos',   this)">macOS .pkg</button>
       <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="install-tab-windows"  onclick="showInstallTab('windows',  this)">Windows</button>
     </div>
 
@@ -879,6 +880,51 @@ gitGraph
 
 <span class="comment"># Confirm it's working</span>
 <span class="cmd">git flow</span> <span class="flag">--version</span></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- macOS installer package -->
+    <div id="install-tab-macos" class="tab-panel" role="tabpanel">
+      <div class="install-grid">
+        <div class="install-steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <h4>Download the installer</h4>
+              <p>From the <a href="https://github.com/karl-sjogren/karls-gitflow/releases/latest" target="_blank" rel="noopener">latest release</a>, download the <code>.pkg</code> matching your Mac: <code>osx-arm64</code> for Apple silicon or <code>osx-x64</code> for Intel.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <h4>Install Karl's Gitflow</h4>
+              <p>Open the downloaded package and follow the installer. It installs <code>git-flow</code> to <code>/usr/local/bin</code>, which is commonly on your <code>PATH</code>.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <h4>Verify the install</h4>
+              <p>Open a terminal and run <code>git flow --version</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="code-window">
+            <div class="code-titlebar">
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
+              <span class="code-filename">macOS</span>
+            </div>
+            <pre><span class="comment"># After installing the matching .pkg:</span>
+<span class="cmd">git flow</span> <span class="flag">--version</span>
+
+<span class="comment"># Initialize Gitflow in your repo</span>
+<span class="cmd">git flow init</span> <span class="flag">-d</span></pre>
           </div>
         </div>
       </div>

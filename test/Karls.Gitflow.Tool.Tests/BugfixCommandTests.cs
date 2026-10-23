@@ -8,7 +8,7 @@ public class BugfixCommandTests : IDisposable {
     public BugfixCommandTests() {
         _repo = new GitRepositoryFixture();
         // Initialize gitflow for all bugfix tests
-        _repo.ExecuteGitFlow("init -d");
+        _repo.InitializeGitFlow();
     }
 
     public void Dispose() {

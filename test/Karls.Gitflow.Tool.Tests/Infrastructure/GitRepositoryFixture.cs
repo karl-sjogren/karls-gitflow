@@ -7,6 +7,7 @@ using Karls.Gitflow.Tool.Commands.Hotfix;
 using Karls.Gitflow.Tool.Commands.Release;
 using Karls.Gitflow.Tool.Commands.Support;
 using Karls.Gitflow.Tool.Infrastructure;
+using LibGit2Sharp;
 using Spectre.Console.Cli;
 
 namespace Karls.Gitflow.Tool.Tests.Infrastructure;
@@ -21,6 +22,10 @@ public sealed class GitRepositoryFixture : IDisposable {
 
     public string RepositoryPath { get; }
 
+    public static void InitializeBareRepository(string repositoryPath) {
+        Repository.Init(repositoryPath, isBare: true);
+    }
+
     public GitRepositoryFixture(IFileSystem? fileSystem = null) {
         _fileSystem = fileSystem ?? new FileSystem();
 
@@ -31,24 +36,22 @@ public sealed class GitRepositoryFixture : IDisposable {
 
         _fileSystem.Directory.CreateDirectory(RepositoryPath);
 
-        // Initialize git repository
-        ExecuteGit("init");
+        Repository.Init(RepositoryPath);
+        _fileSystem.File.WriteAllText(
+            _fileSystem.Path.Combine(RepositoryPath, ".git", "HEAD"),
+            "ref: refs/heads/main" + Environment.NewLine);
+        using var repository = new Repository(RepositoryPath);
+        repository.Config.Set("user.email", "test@example.com");
+        repository.Config.Set("user.name", "Test User");
+        repository.Config.Set("tag.gpgsign", false);
+        repository.Config.Set("gitflow.message.tag", "{version}");
 
-        // Configure git user for commits (required for commits to work)
-        ExecuteGit("config user.email \"test@example.com\"");
-        ExecuteGit("config user.name \"Test User\"");
-
-        // Disable GPG signing for tags (allows lightweight tags in tests)
-        ExecuteGit("config tag.gpgsign false");
-
-        // Set a default tag message template so tests don't need an editor
-        ExecuteGit("config gitflow.message.tag \"{version}\"");
-
-        // Create initial commit on main branch
-        ExecuteGit("checkout -b main");
         CreateFile("README.md", "# Test Repository");
-        ExecuteGit("add .");
-        ExecuteGit("commit -m \"Initial commit\"");
+        repository.Index.Add("README.md");
+        repository.Index.Write();
+
+        var signature = new Signature("Test User", "test@example.com", DateTimeOffset.UtcNow);
+        repository.Commit("Initial commit", signature, signature);
     }
 
     /// <summary>
@@ -154,7 +157,7 @@ public sealed class GitRepositoryFixture : IDisposable {
                 cfg.AddCommand<ConfigSaveCommand>("save");
             });
 
-            config.AddCommand<VersionCommand>("version");
+            config.AddCommand<UpdateCheckCommand>("update-check");
 
             config.AddBranch("feature", feature => {
                 feature.AddCommand<FeatureListCommand>("list");
@@ -225,52 +228,55 @@ public sealed class GitRepositoryFixture : IDisposable {
     /// Gets the current branch name.
     /// </summary>
     public string GetCurrentBranch() {
-        var result = ExecuteGit("rev-parse --abbrev-ref HEAD");
-        return result.Output;
+        using var repository = new Repository(RepositoryPath);
+        return repository.Head.FriendlyName;
     }
 
     /// <summary>
     /// Gets all local branch names.
     /// </summary>
     public string[] GetBranches() {
-        var result = ExecuteGit("branch --format=%(refname:short)");
-        return result.Output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        using var repository = new Repository(RepositoryPath);
+        return repository.Branches
+            .Where(branch => !branch.IsRemote)
+            .Select(branch => branch.FriendlyName)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
     }
 
     /// <summary>
     /// Gets all tag names.
     /// </summary>
     public string[] GetTags() {
-        var result = ExecuteGit("tag --list");
-        if(string.IsNullOrWhiteSpace(result.Output)) {
-            return [];
-        }
-
-        return result.Output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        using var repository = new Repository(RepositoryPath);
+        return repository.Tags
+            .Select(tag => tag.FriendlyName)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
     }
 
     /// <summary>
     /// Gets a git config value.
     /// </summary>
     public string? GetConfigValue(string key) {
-        var result = ExecuteGit($"config --get {key}");
-        return result.ExitCode == 0 ? result.Output : null;
+        using var repository = new Repository(RepositoryPath);
+        return repository.Config.Get<string>(key)?.Value;
     }
 
     /// <summary>
     /// Checks if a branch exists.
     /// </summary>
     public bool BranchExists(string branchName) {
-        var result = ExecuteGit($"show-ref --verify --quiet refs/heads/{branchName}");
-        return result.ExitCode == 0;
+        using var repository = new Repository(RepositoryPath);
+        return repository.Branches.Any(branch => !branch.IsRemote && branch.FriendlyName == branchName);
     }
 
     /// <summary>
     /// Checks if a tag exists.
     /// </summary>
     public bool TagExists(string tagName) {
-        var result = ExecuteGit($"show-ref --verify --quiet refs/tags/{tagName}");
-        return result.ExitCode == 0;
+        using var repository = new Repository(RepositoryPath);
+        return repository.Tags.Any(tag => tag.FriendlyName == tagName);
     }
 
     /// <summary>
@@ -279,16 +285,80 @@ public sealed class GitRepositoryFixture : IDisposable {
     public void CreateCommit(string message) {
         var fileName = $"file-{Guid.NewGuid():N}.txt";
         CreateFile(fileName, $"Content for {message}");
-        ExecuteGit("add .");
-        ExecuteGit($"commit -m \"{message}\"");
+
+        using var repository = new Repository(RepositoryPath);
+        repository.Index.Add(fileName);
+        repository.Index.Write();
+
+        var signature = new Signature("Test User", "test@example.com", DateTimeOffset.UtcNow);
+        repository.Commit(message, signature, signature);
+    }
+
+    public void InitializeGitFlow() {
+        using var repository = new Repository(RepositoryPath);
+        var config = Karls.Gitflow.Core.GitFlowConfiguration.Default;
+        repository.Config.Set("gitflow.branch.master", config.MainBranch);
+        repository.Config.Set("gitflow.branch.develop", config.DevelopBranch);
+        repository.Config.Set("gitflow.prefix.feature", config.FeaturePrefix);
+        repository.Config.Set("gitflow.prefix.bugfix", config.BugfixPrefix);
+        repository.Config.Set("gitflow.prefix.release", config.ReleasePrefix);
+        repository.Config.Set("gitflow.prefix.hotfix", config.HotfixPrefix);
+        repository.Config.Set("gitflow.prefix.support", config.SupportPrefix);
+        repository.Config.Set("gitflow.prefix.versiontag", config.VersionTagPrefix);
+        if(!string.IsNullOrEmpty(config.TagMessageTemplate)) {
+            repository.Config.Set("gitflow.message.tag", config.TagMessageTemplate);
+        }
+
+        var develop = repository.Branches.Add(config.DevelopBranch, repository.Branches[config.MainBranch].Tip);
+        LibGit2Sharp.Commands.Checkout(repository, develop);
+    }
+
+    public void CheckoutBranch(string branchName) {
+        using var repository = new Repository(RepositoryPath);
+        var branch = repository.Branches[branchName]
+            ?? throw new InvalidOperationException($"Branch '{branchName}' does not exist.");
+        LibGit2Sharp.Commands.Checkout(repository, branch);
+    }
+
+    public void CreateBranch(string branchName, string? startPoint = null, bool checkout = true) {
+        using var repository = new Repository(RepositoryPath);
+        var startCommit = startPoint == null ? repository.Head.Tip : repository.Lookup<Commit>(startPoint)
+            ?? throw new InvalidOperationException($"Start point '{startPoint}' does not exist.");
+        var branch = repository.Branches.Add(branchName, startCommit);
+        if(checkout) {
+            LibGit2Sharp.Commands.Checkout(repository, branch);
+        }
+    }
+
+    public void CreateTag(string tagName) {
+        using var repository = new Repository(RepositoryPath);
+        repository.Tags.Add(tagName, repository.Head.Tip);
+    }
+
+    public void AddRemote(string name, string path) {
+        using var repository = new Repository(RepositoryPath);
+        repository.Network.Remotes.Add(name, path);
+    }
+
+    public void PushBranch(string branchName) {
+        using var repository = new Repository(RepositoryPath);
+        var remote = repository.Network.Remotes["origin"]
+            ?? throw new InvalidOperationException("Remote 'origin' does not exist.");
+        repository.Network.Push(remote, $"refs/heads/{branchName}:refs/heads/{branchName}");
+    }
+
+    public void FetchRemoteBranches() {
+        using var repository = new Repository(RepositoryPath);
+        repository.Network.Fetch("origin", ["+refs/heads/*:refs/remotes/origin/*"]);
     }
 
     /// <summary>
     /// Checks if gitflow is initialized.
     /// </summary>
     public bool IsGitFlowInitialized() {
-        return GetConfigValue("gitflow.branch.master") != null
-            && GetConfigValue("gitflow.branch.develop") != null;
+        using var repository = new Repository(RepositoryPath);
+        return repository.Config.Get<string>("gitflow.branch.master") != null
+            && repository.Config.Get<string>("gitflow.branch.develop") != null;
     }
 
     /// <summary>
