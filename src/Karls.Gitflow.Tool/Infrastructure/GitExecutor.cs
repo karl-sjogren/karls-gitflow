@@ -31,7 +31,8 @@ public sealed class GitExecutor : IGitExecutor {
             UseShellExecute = false,
             RedirectStandardOutput = captureOutput,
             RedirectStandardError = captureOutput,
-            CreateNoWindow = true
+            // Interactive commands must inherit the parent's console so Git can launch its editor.
+            CreateNoWindow = captureOutput
         };
 
         foreach(var arg in args) {
