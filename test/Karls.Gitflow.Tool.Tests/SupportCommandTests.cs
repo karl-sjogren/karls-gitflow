@@ -8,7 +8,7 @@ public class SupportCommandTests : IDisposable {
     public SupportCommandTests() {
         _repo = new GitRepositoryFixture();
         // Initialize gitflow for all support tests
-        _repo.ExecuteGitFlow("init -d");
+        _repo.InitializeGitFlow();
     }
 
     public void Dispose() {

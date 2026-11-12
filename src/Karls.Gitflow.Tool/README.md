@@ -128,6 +128,14 @@ without needing to specify it each time.
 git flow config set tagmessage "Version {version} released on {date}"
 ```
 
+### Check for updates
+
+To bypass the automatic update-check interval and check immediately, run:
+
+```bash
+git flow update-check
+```
+
 When you finish a release or hotfix, the `{version}` placeholder will be
 replaced with the version number, and `{date}` will be replaced with the
 current date.

@@ -10,7 +10,7 @@ public sealed class ConfigListCommand : GitFlowCommand<ConfigListCommand.Setting
     public sealed class Settings : CommandSettings {
     }
 
-    protected override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             if(!Initializer.IsInitialized) {
                 throw new Core.GitFlowException("Gitflow is not initialized. Run 'git flow init' first.");
@@ -35,6 +35,7 @@ public sealed class ConfigListCommand : GitFlowCommand<ConfigListCommand.Setting
             table.AddRow("Support prefix", config.SupportPrefix);
             table.AddRow("Version tag prefix", string.IsNullOrEmpty(config.VersionTagPrefix) ? "(none)" : config.VersionTagPrefix);
             table.AddRow("Tag message template", string.IsNullOrEmpty(config.TagMessageTemplate) ? "(none)" : config.TagMessageTemplate);
+            table.AddRow("Hooks path", GitService.GetConfigValue("gitflow.path.hooks") ?? "(Git default hooks directory)");
 
             Console.Write(table);
         });
@@ -64,10 +65,11 @@ public sealed class ConfigSetCommand : GitFlowCommand<ConfigSetCommand.Settings>
         ["support"] = "gitflow.prefix.support",
         ["versiontag"] = "gitflow.prefix.versiontag",
         ["tag"] = "gitflow.prefix.versiontag",
-        ["tagmessage"] = "gitflow.message.tag"
+        ["tagmessage"] = "gitflow.message.tag",
+        ["hooks"] = "gitflow.path.hooks"
     };
 
-    protected override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             if(!_configKeyMap.TryGetValue(settings.Key, out var configKey)) {
                 var validKeys = string.Join(", ", _configKeyMap.Keys.Distinct());
@@ -92,7 +94,7 @@ public sealed class ConfigSaveCommand : GitFlowCommand<ConfigSaveCommand.Setting
         public bool Force { get; set; }
     }
 
-    protected override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
         return ExecuteSafe(() => {
             if(!Initializer.IsInitialized) {
                 throw new Core.GitFlowException("Gitflow is not initialized. Run 'git flow init' first.");

@@ -17,10 +17,17 @@ public sealed class SupportStartCommand : GitFlowCommand<SupportStartCommand.Set
         public string BaseBranch { get; set; } = string.Empty;
     }
 
-    protected override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
-        return ExecuteSafe(() => {
-            SupportService.Start(settings.Name, settings.BaseBranch);
-            WriteSuccess($"Started support branch '{SupportService.Prefix}{settings.Name}' from '{settings.BaseBranch}'");
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
+        var parameters = new Dictionary<string, string?> {
+            ["version"] = settings.Name,
+            ["base"] = settings.BaseBranch
+        };
+
+        return ExecuteHooked("support", "start", parameters, new HashSet<string>(["version", "base"]), values => {
+            var version = RequiredParameter(values, "version");
+            var baseBranch = RequiredParameter(values, "base");
+            SupportService.Start(version, baseBranch);
+            WriteSuccess($"Started support branch '{SupportService.Prefix}{version}' from '{baseBranch}'");
         });
     }
 }

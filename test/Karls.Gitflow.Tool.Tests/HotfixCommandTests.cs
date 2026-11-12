@@ -8,7 +8,7 @@ public class HotfixCommandTests : IDisposable {
     public HotfixCommandTests() {
         _repo = new GitRepositoryFixture();
         // Initialize gitflow for all hotfix tests
-        _repo.ExecuteGitFlow("init -d");
+        _repo.InitializeGitFlow();
     }
 
     public void Dispose() {

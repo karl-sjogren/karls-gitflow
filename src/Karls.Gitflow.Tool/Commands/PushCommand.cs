@@ -9,8 +9,8 @@ public sealed class PushCommand : GitFlowCommand<PushCommand.Settings> {
     public sealed class Settings : CommandSettings {
     }
 
-    protected override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
-        return ExecuteSafe(() => {
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
+        return ExecuteHooked("push", null, new Dictionary<string, string?>(), new HashSet<string>(), _ => {
             var config = GitService.GetGitFlowConfiguration();
 
             WriteInfo("Pushing main branch...");

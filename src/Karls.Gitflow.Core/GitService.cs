@@ -172,6 +172,10 @@ public sealed class GitService : IGitService {
         var configDict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         if(result.ExitCode == 0) {
             foreach(var line in result.Output) {
+                if(!line.StartsWith("gitflow.", StringComparison.OrdinalIgnoreCase)) {
+                    continue;
+                }
+
                 var idx = line.IndexOf('=', StringComparison.Ordinal);
                 if(idx > 0) {
                     // Later entries override earlier ones (local config wins over global)

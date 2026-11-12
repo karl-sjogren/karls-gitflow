@@ -27,7 +27,7 @@ public class ConfigCommandTests : IDisposable {
     [Fact]
     public void ConfigList_WhenInitialized_ShowsConfiguration() {
         // Arrange
-        _repo.ExecuteGitFlow("init -d");
+        _repo.InitializeGitFlow();
 
         // Act
         var result = _repo.ExecuteGitFlow("config list");
@@ -41,7 +41,7 @@ public class ConfigCommandTests : IDisposable {
     [Fact]
     public void ConfigSet_SetsConfigValue() {
         // Arrange
-        _repo.ExecuteGitFlow("init -d");
+        _repo.InitializeGitFlow();
 
         // Act
         var result = _repo.ExecuteGitFlow("config set feature feat/");
@@ -52,9 +52,22 @@ public class ConfigCommandTests : IDisposable {
     }
 
     [Fact]
+    public void ConfigSet_HooksPath_SetsAndListsHooksDirectory() {
+        _repo.InitializeGitFlow();
+
+        var setResult = _repo.ExecuteGitFlow("config set hooks \".git/custom hooks\"");
+        var listResult = _repo.ExecuteGitFlow("config list");
+
+        setResult.Success.ShouldBeTrue();
+        _repo.GetConfigValue("gitflow.path.hooks").ShouldBe(".git/custom hooks");
+        listResult.Output.ShouldContain("Hooks path");
+        listResult.Output.ShouldContain(".git/custom hooks");
+    }
+
+    [Fact]
     public void ConfigSet_WithInvalidKey_ReturnsError() {
         // Arrange
-        _repo.ExecuteGitFlow("init -d");
+        _repo.InitializeGitFlow();
 
         // Act
         var result = _repo.ExecuteGitFlow("config set invalidkey value");
@@ -81,7 +94,7 @@ public class ConfigCommandTests : IDisposable {
     [Fact]
     public void ConfigSave_WhenInitialized_CreatesGitFlowFile() {
         // Arrange
-        _repo.ExecuteGitFlow("init -d");
+        _repo.InitializeGitFlow();
 
         // Act
         var result = _repo.ExecuteGitFlow("config save -f");
@@ -128,7 +141,7 @@ public class ConfigCommandTests : IDisposable {
     [Fact]
     public void ConfigSave_OutputConfirmsSave() {
         // Arrange
-        _repo.ExecuteGitFlow("init -d");
+        _repo.InitializeGitFlow();
 
         // Act
         var result = _repo.ExecuteGitFlow("config save -f");

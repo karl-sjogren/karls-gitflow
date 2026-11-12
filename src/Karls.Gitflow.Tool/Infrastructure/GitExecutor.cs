@@ -31,7 +31,8 @@ public sealed class GitExecutor : IGitExecutor {
             UseShellExecute = false,
             RedirectStandardOutput = captureOutput,
             RedirectStandardError = captureOutput,
-            CreateNoWindow = true
+            // Interactive commands must inherit the parent's console so Git can launch its editor.
+            CreateNoWindow = captureOutput
         };
 
         foreach(var arg in args) {
@@ -71,9 +72,9 @@ public sealed class GitExecutor : IGitExecutor {
         // When not capturing, git writes directly to console's stdout/stderr
         if(!captureOutput) {
             return new GitExecutorResult(
-                Output: Array.Empty<string>(),
+                Output: [],
                 ExitCode: process.ExitCode,
-                Messages: Array.Empty<string>()
+                Messages: []
             );
         }
 

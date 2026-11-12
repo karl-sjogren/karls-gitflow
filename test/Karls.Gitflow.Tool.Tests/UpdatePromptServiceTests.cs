@@ -33,6 +33,34 @@ public sealed class UpdatePromptServiceTests {
     }
 
     [Fact]
+    public void DisplayUpdateInstructions_WithPkg_ShowsReleasesLink() {
+        // Arrange
+        var console = new TestConsole();
+        var sut = new UpdatePromptService(console);
+
+        // Act
+        sut.DisplayUpdateInstructions(InstallType.Pkg);
+
+        // Assert
+        console.Output.ShouldContain("download the latest installer");
+        console.Output.ShouldContain("https://github.com/karl-sjogren/karls-gitflow/releases/latest");
+    }
+
+    [Fact]
+    public void DisplayUpdateInstructions_WithUnknown_ShowsReleasesLink() {
+        // Arrange
+        var console = new TestConsole();
+        var sut = new UpdatePromptService(console);
+
+        // Act
+        sut.DisplayUpdateInstructions(InstallType.Unknown);
+
+        // Assert
+        console.Output.ShouldContain("https://github.com/karl-sjogren/karls-gitflow/releases/latest");
+        console.Output.ShouldNotContain("dotnet tool update");
+    }
+
+    [Fact]
     public void DisplayUpdateInstructions_WithHomebrew_ShowsBrewUpgradeCommand() {
         // Arrange
         var console = new TestConsole();

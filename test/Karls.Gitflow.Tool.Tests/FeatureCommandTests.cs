@@ -8,7 +8,7 @@ public class FeatureCommandTests : IDisposable {
     public FeatureCommandTests() {
         _repo = new GitRepositoryFixture();
         // Initialize gitflow for all feature tests
-        _repo.ExecuteGitFlow("init -d");
+        _repo.InitializeGitFlow();
     }
 
     public void Dispose() {

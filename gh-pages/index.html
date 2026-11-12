@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Karl's Gitflow — A Modern .NET Git Flow Tool</title>
+  <title>Karl's Gitflow — A Modern Gitflow-AVH Reimplementation</title>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
   <style>
     /* ── Reset & base ─────────────────────────────────────────────── */
@@ -572,6 +572,7 @@
   <ul class="nav-links" id="nav-menu">
     <li><a href="#why">Why</a></li>
     <li><a href="#flows">Flows</a></li>
+    <li><a href="#hook-examples">Hooks</a></li>
     <li><a href="#install">Install</a></li>
     <li><a href="#usage">Usage</a></li>
     <li><a href="https://github.com/karl-sjogren/karls-gitflow" target="_blank" rel="noopener">GitHub</a></li>
@@ -580,10 +581,10 @@
 
 <!-- ── Hero ─────────────────────────────────────────────────────── -->
 <header class="hero">
-  <div class="badge">✦ Global .NET Tool</div>
+  <div class="badge">Modern Gitflow-AVH reimplementation</div>
   <h1>Karl's <span class="glow-cyan">Gitflow</span></h1>
-  <p>A modern, lightweight .NET CLI tool for managing Git branches using the
-     Gitflow branching model — structured, predictable, and production-ready.</p>
+  <p>Familiar feature, bugfix, release, hotfix, and support workflows inspired by
+     gitflow-avh, with useful extras and native installers for Windows and macOS.</p>
   <div class="btn-group">
     <a class="btn btn-primary" href="#install">Get Started</a>
     <a class="btn btn-outline" href="#usage">Explore Commands</a>
@@ -595,8 +596,11 @@
   <p class="section-label">// Why Gitflow</p>
   <h2>Bring order to your <span class="glow-pink">branches</span></h2>
   <p class="section-intro">
-    Gitflow gives your team a clear, consistent branching strategy so that
-    features, releases, and hotfixes never step on each other.
+    Karl's Gitflow is a modern reimplementation of
+    <a href="https://github.com/petervanderdoes/gitflow-avh">gitflow-avh</a>,
+    with familiar branch workflows plus branch-name auto-detection, flexible
+    finish options, custom tag messages, and hooks for your own scripts. It is
+    not a fully compatible drop-in replacement.
   </p>
 
   <div class="cards">
@@ -635,6 +639,89 @@
       <h3>Long-Term Support</h3>
       <p>Support branches let you maintain older versions alongside active
          development without merge chaos.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🪝</div>
+      <h3>Custom Hooks</h3>
+      <p>Run scripts around Gitflow operations or transform parameters to fit
+         your team's workflow.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="divider" />
+
+<!-- ── Hook examples ────────────────────────────────────────────── -->
+<section id="hook-examples">
+  <p class="section-label">// Hook examples</p>
+  <h2>Make Gitflow work <span class="glow-purple">your way</span></h2>
+  <p class="section-intro">
+    Add a hook script to Git's hooks directory (or your configured hooks path).
+    Choose shell or PowerShell on any platform; when both are present, the
+    <code>.sh</code> version runs first.
+  </p>
+
+  <div class="install-grid">
+    <div>
+      <h3>Guard a feature start</h3>
+      <p class="flow-description">
+        A non-zero exit from a pre-hook stops the operation. Save either version
+        as <code>pre-flow-feature-start.sh</code> or
+        <code>pre-flow-feature-start.ps1</code>.
+      </p>
+      <div class="code-window">
+        <div class="code-titlebar">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <span class="code-filename">pre-flow-feature-start.sh</span>
+        </div>
+        <pre>if [ "$GITFLOW_PARAM_NAME" = "wip" ]; then
+  echo "Choose a more descriptive feature name." &gt;&amp;2
+  exit 1
+fi</pre>
+      </div>
+      <div class="code-window" style="margin-top:1rem;">
+        <div class="code-titlebar">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <span class="code-filename">pre-flow-feature-start.ps1</span>
+        </div>
+        <pre>if ($env:GITFLOW_PARAM_NAME -eq "wip") {
+    [Console]::Error.WriteLine("Choose a more descriptive feature name.")
+    exit 1
+}</pre>
+      </div>
+    </div>
+    <div>
+      <h3>Normalize feature names</h3>
+      <p class="flow-description">
+        A filter reads its original value as the first argument and returns the
+        replacement on standard output.
+      </p>
+      <div class="code-window">
+        <div class="code-titlebar">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <span class="code-filename">filter-flow-feature-start-name.sh</span>
+        </div>
+        <pre>printf '%s\n' "$1" | tr '[:upper:]' '[:lower:]' | tr ' ' '-'</pre>
+      </div>
+      <div class="code-window" style="margin-top:1rem;">
+        <div class="code-titlebar">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <span class="code-filename">filter-flow-feature-start-name.ps1</span>
+        </div>
+        <pre>$args[0].ToLowerInvariant().Replace(" ", "-")</pre>
+      </div>
+      <p class="flow-description" style="margin-top:1rem;">
+        <code>git flow feature start "My New Feature"</code> then creates
+        <code>feature/my-new-feature</code>.
+      </p>
     </div>
   </div>
 </section>
@@ -764,18 +851,20 @@ gitGraph
     <p class="section-label">// Installation</p>
     <h2>Up and running in <span class="glow-green">seconds</span></h2>
     <p class="section-intro">
-      Karl's Gitflow is available as a .NET global tool, via Homebrew on macOS, and
-      as a Windows installer — choose the method that suits your platform.
+      Install a self-contained native build on Windows x64 or macOS (Apple silicon
+      and Intel), or use Homebrew on macOS. Native installs do not require .NET;
+      an optional .NET global tool is available too.
     </p>
 
     <div class="tabs" role="tablist">
-      <button class="tab-btn active" role="tab" aria-selected="true"  aria-controls="install-tab-dotnet"  onclick="showInstallTab('dotnet',  this)">.NET Tool</button>
-      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="install-tab-homebrew" onclick="showInstallTab('homebrew', this)">Homebrew</button>
-      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="install-tab-windows"  onclick="showInstallTab('windows',  this)">Windows</button>
+      <button class="tab-btn active" role="tab" aria-selected="true"  aria-controls="install-tab-homebrew" onclick="showInstallTab('homebrew', this)">Homebrew</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="install-tab-macos"   onclick="showInstallTab('macos',   this)">macOS .pkg</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="install-tab-windows"  onclick="showInstallTab('windows',  this)">Windows x64 MSI</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="install-tab-dotnet"  onclick="showInstallTab('dotnet',  this)">.NET Tool</button>
     </div>
 
     <!-- .NET Tool -->
-    <div id="install-tab-dotnet" class="tab-panel active" role="tabpanel">
+    <div id="install-tab-dotnet" class="tab-panel" role="tabpanel">
       <div class="install-grid">
         <div class="install-steps">
           <div class="step">
@@ -830,7 +919,7 @@ gitGraph
     </div>
 
     <!-- Homebrew -->
-    <div id="install-tab-homebrew" class="tab-panel" role="tabpanel">
+    <div id="install-tab-homebrew" class="tab-panel active" role="tabpanel">
       <div class="install-grid">
         <div class="install-steps">
           <div class="step">
@@ -879,6 +968,51 @@ gitGraph
 
 <span class="comment"># Confirm it's working</span>
 <span class="cmd">git flow</span> <span class="flag">--version</span></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- macOS installer package -->
+    <div id="install-tab-macos" class="tab-panel" role="tabpanel">
+      <div class="install-grid">
+        <div class="install-steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <h4>Download the installer</h4>
+              <p>From the <a href="https://github.com/karl-sjogren/karls-gitflow/releases/latest" target="_blank" rel="noopener">latest release</a>, download the <code>.pkg</code> matching your Mac: <code>osx-arm64</code> for Apple silicon or <code>osx-x64</code> for Intel.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <h4>Install Karl's Gitflow</h4>
+              <p>Open the downloaded package and follow the installer. It installs <code>git-flow</code> to <code>/usr/local/bin</code>, which is commonly on your <code>PATH</code>.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <h4>Verify the install</h4>
+              <p>Open a terminal and run <code>git flow --version</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="code-window">
+            <div class="code-titlebar">
+              <div class="dot dot-red"></div>
+              <div class="dot dot-yellow"></div>
+              <div class="dot dot-green"></div>
+              <span class="code-filename">macOS</span>
+            </div>
+            <pre><span class="comment"># After installing the matching .pkg:</span>
+<span class="cmd">git flow</span> <span class="flag">--version</span>
+
+<span class="comment"># Initialize Gitflow in your repo</span>
+<span class="cmd">git flow init</span> <span class="flag">-d</span></pre>
           </div>
         </div>
       </div>

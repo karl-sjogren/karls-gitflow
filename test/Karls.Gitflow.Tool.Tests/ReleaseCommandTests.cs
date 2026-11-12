@@ -8,7 +8,7 @@ public class ReleaseCommandTests : IDisposable {
     public ReleaseCommandTests() {
         _repo = new GitRepositoryFixture();
         // Initialize gitflow for all release tests
-        _repo.ExecuteGitFlow("init -d");
+        _repo.InitializeGitFlow();
     }
 
     public void Dispose() {

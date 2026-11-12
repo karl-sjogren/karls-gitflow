@@ -1,9 +1,10 @@
-# Git flow commands as a global .NET tool [![codecov](https://codecov.io/github/karl-sjogren/karls-gitflow/graph/badge.svg?token=XnSJ1qvn15)](https://codecov.io/github/karl-sjogren/karls-gitflow) [![NuGet Version](https://img.shields.io/nuget/v/Karls.Gitflow.Tool)](https://www.nuget.org/packages/Karls.Gitflow.Tool#readme-body-tab)
+# Karl's Gitflow — a modern Gitflow-AVH implementation [![codecov](https://codecov.io/github/karl-sjogren/karls-gitflow/graph/badge.svg?token=XnSJ1qvn15)](https://codecov.io/github/karl-sjogren/karls-gitflow) [![NuGet Version](https://img.shields.io/nuget/v/Karls.Gitflow.Tool)](https://www.nuget.org/packages/Karls.Gitflow.Tool#readme-body-tab)
 
-A modern .NET command-line tool for managing Git branches using the Gitflow
-branching model. This tool is a reimplementation of parts of
-[gitflow-avh](https://github.com/petervanderdoes/gitflow-avh). It isn't 100%
-compatible, but provides similar functionality with some additional features.
+A modern reimplementation of [gitflow-avh](https://github.com/petervanderdoes/gitflow-avh)
+for managing feature, bugfix, release, hotfix, and support branches. It brings
+the familiar Gitflow workflow with practical extras like automatic branch-name
+detection, flexible finish options, custom tag messages, and update checks.
+It is not a fully compatible drop-in replacement.
 
 ## Features
 
@@ -25,21 +26,35 @@ compatible, but provides similar functionality with some additional features.
 
 ## Installation
 
-### .NET Global Tool
+### Native installers
 
-```bash
-dotnet tool install -g Karls.Gitflow.Tool
-```
+Native builds are available for Windows x64 and macOS (Apple silicon and Intel)
+and do not require installing .NET. Choose the option for your platform:
 
-### Homebrew (OSX only)
+#### Homebrew (macOS)
 
 ```bash
 brew install karl-sjogren/tap/karls-gitflow
 ```
 
-### Windows
+#### Windows x64
 
-Get the installer from the [latest release](https://github.com/karl-sjogren/karls-gitflow/releases/latest) on Github.
+Download and run the `.msi` installer from the
+[latest release](https://github.com/karl-sjogren/karls-gitflow/releases/latest).
+
+#### macOS installer
+
+Download the `.pkg` for your Mac's architecture from the
+[latest release](https://github.com/karl-sjogren/karls-gitflow/releases/latest)
+and open it to install `git-flow` to `/usr/local/bin`.
+
+### .NET Global Tool
+
+If you already use the .NET tool ecosystem, install it with:
+
+```bash
+dotnet tool install -g Karls.Gitflow.Tool
+```
 
 ## Usage
 
@@ -124,6 +139,9 @@ git flow config list
 
 # Set a configuration value
 git flow config set feature feat/
+
+# Force an immediate check for tool updates
+git flow update-check
 ```
 
 ## Branch Auto-Detection
@@ -134,6 +152,90 @@ When on a gitflow branch, you can omit the branch name for finish, publish, and 
 # While on feature/my-feature branch
 git flow feature finish  # Automatically detects "my-feature"
 ```
+
+## Extra conveniences
+
+- Finish options include fetching before an operation, pushing after a finish,
+  squashing commits, and rebasing feature or bugfix branches.
+- Configure a tag-message template for releases and hotfixes.
+- Run `git flow push` to push the main and develop branches and all tags.
+- Use `git flow update-check` to check for updates immediately.
+
+## Hooks
+
+Hooks let you run scripts before or after Gitflow operations, or transform
+operation parameters. They are discovered in Git's hooks directory by default;
+set a custom directory with `git flow config set hooks <path>`. Relative paths
+are resolved from the repository root.
+
+For example, `pre-flow-feature-start` runs before `git flow feature start`,
+`post-flow-release-finish` runs after a successful release finish, and
+`filter-flow-release-start-version` can change the release version before the
+branch is created. The same hook names can be installed with a `.sh` extension
+or `.ps1` on any supported platform. Shell hooks run with `sh` (Git for Windows
+is searched for on Windows); PowerShell hooks use PowerShell 7 (`pwsh`) where
+available, with Windows PowerShell as a Windows fallback. POSIX hooks without
+an extension must be executable; Windows also supports `.exe` hooks. If both
+`.sh` and `.ps1` versions exist, the `.sh` hook is preferred.
+
+### Example: block a branch name
+
+Create `pre-flow-feature-start.sh` or `pre-flow-feature-start.ps1` in the hooks
+directory. A non-zero exit prevents the branch from being created:
+
+```sh
+# pre-flow-feature-start.sh
+if [ "$GITFLOW_PARAM_NAME" = "wip" ]; then
+  echo "Choose a more descriptive feature name." >&2
+  exit 1
+fi
+```
+
+```powershell
+# pre-flow-feature-start.ps1
+if ($env:GITFLOW_PARAM_NAME -eq "wip") {
+    [Console]::Error.WriteLine("Choose a more descriptive feature name.")
+    exit 1
+}
+```
+
+### Example: normalize a feature name
+
+A filter receives the original value as its first argument and replaces it
+with its standard output. These scripts turn the supplied name into lowercase
+words separated by hyphens:
+
+```sh
+# filter-flow-feature-start-name.sh
+printf '%s\n' "$1" | tr '[:upper:]' '[:lower:]' | tr ' ' '-'
+```
+
+```powershell
+# filter-flow-feature-start-name.ps1
+$args[0].ToLowerInvariant().Replace(" ", "-")
+```
+
+For example, `git flow feature start "My New Feature"` creates
+`feature/my-new-feature`.
+
+Hooks receive `GITFLOW_COMMAND`, `GITFLOW_ACTION`, `GITFLOW_REPOSITORY`, and
+`GITFLOW_PARAM_<NAME>` environment variables. Filter hooks additionally receive
+the current value as their first argument and in `GITFLOW_VALUE`; write the
+replacement value to standard output. A trailing line ending is removed;
+branch-name and base filters must return a single-line value, while tag-message
+filters can return multiple lines. Pre- and post-hooks receive applicable
+parameters as sorted `name=value` arguments. A non-zero
+pre-hook or filter-hook exit stops the operation. Post-hooks run only after a
+successful operation; a failing post-hook reports failure but cannot undo an
+operation that already completed. Hook output and errors are shown in the
+terminal.
+
+Hooks are supported for `init`, `push`, and branch `list`, `start`, `finish`,
+`publish`, `track`, and `delete` operations. For `init` and `push`, hook names
+omit the action segment (for example, `pre-flow-init`); config-management and
+update-check commands do not run hooks. Init filters apply to values supplied
+as command-line options; values chosen interactively or loaded from `.gitflow`
+are not filtered.
 
 ## Start Options
 
@@ -185,11 +287,18 @@ dotnet test
 
 # Run the tool locally
 dotnet run --project src/Karls.Gitflow.Tool -- init -d
+
+# Create a macOS installer from published artifacts (run on macOS)
+dotnet publish src/Karls.Gitflow.Tool/Karls.Gitflow.Tool.csproj \
+  --configuration Release --runtime osx-arm64 --self-contained \
+  --output ./artifacts/publish
+./scripts/create-macos-pkg.sh ./artifacts/publish 0.0.14 \
+  ./artifacts/karls-gitflow-0.0.14-osx-arm64.pkg
 ```
 
 ## Requirements
 
-- .NET 10 SDK
+- .NET 11 SDK
 - Git installed and available in PATH
 
 ## License
