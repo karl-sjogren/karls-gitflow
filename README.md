@@ -1,9 +1,10 @@
-# Git flow commands as a global .NET tool [![codecov](https://codecov.io/github/karl-sjogren/karls-gitflow/graph/badge.svg?token=XnSJ1qvn15)](https://codecov.io/github/karl-sjogren/karls-gitflow) [![NuGet Version](https://img.shields.io/nuget/v/Karls.Gitflow.Tool)](https://www.nuget.org/packages/Karls.Gitflow.Tool#readme-body-tab)
+# Karl's Gitflow — a modern Gitflow-AVH implementation [![codecov](https://codecov.io/github/karl-sjogren/karls-gitflow/graph/badge.svg?token=XnSJ1qvn15)](https://codecov.io/github/karl-sjogren/karls-gitflow) [![NuGet Version](https://img.shields.io/nuget/v/Karls.Gitflow.Tool)](https://www.nuget.org/packages/Karls.Gitflow.Tool#readme-body-tab)
 
-A modern .NET command-line tool for managing Git branches using the Gitflow
-branching model. This tool is a reimplementation of parts of
-[gitflow-avh](https://github.com/petervanderdoes/gitflow-avh). It isn't 100%
-compatible, but provides similar functionality with some additional features.
+A modern reimplementation of [gitflow-avh](https://github.com/petervanderdoes/gitflow-avh)
+for managing feature, bugfix, release, hotfix, and support branches. It brings
+the familiar Gitflow workflow with practical extras like automatic branch-name
+detection, flexible finish options, custom tag messages, and update checks.
+It is not a fully compatible drop-in replacement.
 
 ## Features
 
@@ -25,25 +26,35 @@ compatible, but provides similar functionality with some additional features.
 
 ## Installation
 
-### .NET Global Tool
+### Native installers
 
-```bash
-dotnet tool install -g Karls.Gitflow.Tool
-```
+Native builds are available for Windows x64 and macOS (Apple silicon and Intel)
+and do not require installing .NET. Choose the option for your platform:
 
-### Homebrew (OSX only)
+#### Homebrew (macOS)
 
 ```bash
 brew install karl-sjogren/tap/karls-gitflow
 ```
 
-### Windows
+#### Windows x64
 
-Get the installer from the [latest release](https://github.com/karl-sjogren/karls-gitflow/releases/latest) on Github.
+Download and run the `.msi` installer from the
+[latest release](https://github.com/karl-sjogren/karls-gitflow/releases/latest).
 
-### macOS installer
+#### macOS installer
 
-Download the `.pkg` for your Mac's architecture from the [latest release](https://github.com/karl-sjogren/karls-gitflow/releases/latest) and open it to install `git-flow` to `/usr/local/bin`.
+Download the `.pkg` for your Mac's architecture from the
+[latest release](https://github.com/karl-sjogren/karls-gitflow/releases/latest)
+and open it to install `git-flow` to `/usr/local/bin`.
+
+### .NET Global Tool
+
+If you already use the .NET tool ecosystem, install it with:
+
+```bash
+dotnet tool install -g Karls.Gitflow.Tool
+```
 
 ## Usage
 
@@ -141,6 +152,14 @@ When on a gitflow branch, you can omit the branch name for finish, publish, and 
 # While on feature/my-feature branch
 git flow feature finish  # Automatically detects "my-feature"
 ```
+
+## Extra conveniences
+
+- Finish options include fetching before an operation, pushing after a finish,
+  squashing commits, and rebasing feature or bugfix branches.
+- Configure a tag-message template for releases and hotfixes.
+- Run `git flow push` to push the main and develop branches and all tags.
+- Use `git flow update-check` to check for updates immediately.
 
 ## Start Options
 

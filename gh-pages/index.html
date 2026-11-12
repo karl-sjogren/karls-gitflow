@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Karl's Gitflow — A Modern .NET Git Flow Tool</title>
+  <title>Karl's Gitflow — A Modern Gitflow-AVH Reimplementation</title>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
   <style>
     /* ── Reset & base ─────────────────────────────────────────────── */
@@ -580,10 +580,10 @@
 
 <!-- ── Hero ─────────────────────────────────────────────────────── -->
 <header class="hero">
-  <div class="badge">✦ Global .NET Tool</div>
+  <div class="badge">Modern Gitflow-AVH reimplementation</div>
   <h1>Karl's <span class="glow-cyan">Gitflow</span></h1>
-  <p>A modern, lightweight .NET CLI tool for managing Git branches using the
-     Gitflow branching model — structured, predictable, and production-ready.</p>
+  <p>Familiar feature, bugfix, release, hotfix, and support workflows inspired by
+     gitflow-avh, with useful extras and native installers for Windows and macOS.</p>
   <div class="btn-group">
     <a class="btn btn-primary" href="#install">Get Started</a>
     <a class="btn btn-outline" href="#usage">Explore Commands</a>
@@ -595,8 +595,11 @@
   <p class="section-label">// Why Gitflow</p>
   <h2>Bring order to your <span class="glow-pink">branches</span></h2>
   <p class="section-intro">
-    Gitflow gives your team a clear, consistent branching strategy so that
-    features, releases, and hotfixes never step on each other.
+    Karl's Gitflow is a modern reimplementation of
+    <a href="https://github.com/petervanderdoes/gitflow-avh">gitflow-avh</a>,
+    with familiar branch workflows plus branch-name auto-detection, flexible
+    finish options, custom tag messages, and update checks. It is not a fully
+    compatible drop-in replacement.
   </p>
 
   <div class="cards">
@@ -764,19 +767,20 @@ gitGraph
     <p class="section-label">// Installation</p>
     <h2>Up and running in <span class="glow-green">seconds</span></h2>
     <p class="section-intro">
-      Karl's Gitflow is available as a .NET global tool, via Homebrew or a macOS installer package,
-      and as a Windows installer — choose the method that suits your platform.
+      Install a self-contained native build on Windows x64 or macOS (Apple silicon
+      and Intel), or use Homebrew on macOS. Native installs do not require .NET;
+      an optional .NET global tool is available too.
     </p>
 
     <div class="tabs" role="tablist">
-      <button class="tab-btn active" role="tab" aria-selected="true"  aria-controls="install-tab-dotnet"  onclick="showInstallTab('dotnet',  this)">.NET Tool</button>
-      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="install-tab-homebrew" onclick="showInstallTab('homebrew', this)">Homebrew</button>
+      <button class="tab-btn active" role="tab" aria-selected="true"  aria-controls="install-tab-homebrew" onclick="showInstallTab('homebrew', this)">Homebrew</button>
       <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="install-tab-macos"   onclick="showInstallTab('macos',   this)">macOS .pkg</button>
-      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="install-tab-windows"  onclick="showInstallTab('windows',  this)">Windows</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="install-tab-windows"  onclick="showInstallTab('windows',  this)">Windows x64 MSI</button>
+      <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="install-tab-dotnet"  onclick="showInstallTab('dotnet',  this)">.NET Tool</button>
     </div>
 
     <!-- .NET Tool -->
-    <div id="install-tab-dotnet" class="tab-panel active" role="tabpanel">
+    <div id="install-tab-dotnet" class="tab-panel" role="tabpanel">
       <div class="install-grid">
         <div class="install-steps">
           <div class="step">
@@ -831,7 +835,7 @@ gitGraph
     </div>
 
     <!-- Homebrew -->
-    <div id="install-tab-homebrew" class="tab-panel" role="tabpanel">
+    <div id="install-tab-homebrew" class="tab-panel active" role="tabpanel">
       <div class="install-grid">
         <div class="install-steps">
           <div class="step">
