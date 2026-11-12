@@ -50,52 +50,84 @@ public sealed class InitCommand : GitFlowCommand<InitCommand.Settings> {
     }
 
     public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {
-        return ExecuteSafe(() => {
-            if(!GitService.IsGitRepository()) {
-                throw new GitFlowException("Not a git repository.");
-            }
+        var parameters = new Dictionary<string, string?> {
+            ["defaults"] = settings.UseDefaults.ToString(),
+            ["force"] = settings.Force.ToString(),
+            ["save"] = settings.Save.ToString(),
+            ["main"] = settings.MainBranch,
+            ["develop"] = settings.DevelopBranch,
+            ["feature"] = settings.FeaturePrefix,
+            ["bugfix"] = settings.BugfixPrefix,
+            ["release"] = settings.ReleasePrefix,
+            ["hotfix"] = settings.HotfixPrefix,
+            ["support"] = settings.SupportPrefix,
+            ["tag"] = settings.VersionTagPrefix,
+            ["tagmessage"] = settings.TagMessageTemplate
+        };
 
-            if(Initializer.IsInitialized && !settings.Force) {
-                throw new GitFlowException("Gitflow is already initialized. Use --force to reinitialize.");
-            }
+        var filterableParameters = new HashSet<string>([
+            "main", "develop", "feature", "bugfix", "release", "hotfix", "support", "tag", "tagmessage"
+        ]);
 
-            var repositoryRoot = GitService.GetRepositoryRoot();
-            GitFlowConfiguration config;
+        return ExecuteHooked("init", null, parameters, filterableParameters, values => {
+            settings.MainBranch = values["main"];
+            settings.DevelopBranch = values["develop"];
+            settings.FeaturePrefix = values["feature"];
+            settings.BugfixPrefix = values["bugfix"];
+            settings.ReleasePrefix = values["release"];
+            settings.HotfixPrefix = values["hotfix"];
+            settings.SupportPrefix = values["support"];
+            settings.VersionTagPrefix = values["tag"];
+            settings.TagMessageTemplate = values["tagmessage"];
+            Initialize(settings);
+        });
+    }
 
-            if(settings.UseDefaults) {
-                config = ResolveConfigForDefaults(settings, repositoryRoot);
-            } else {
-                config = PromptForConfiguration(settings, repositoryRoot);
-            }
+    private void Initialize(Settings settings) {
+        if(!GitService.IsGitRepository()) {
+            throw new GitFlowException("Not a git repository.");
+        }
 
-            Initializer.Initialize(config, settings.Force);
+        if(Initializer.IsInitialized && !settings.Force) {
+            throw new GitFlowException("Gitflow is already initialized. Use --force to reinitialize.");
+        }
 
-            WriteSuccess("Gitflow initialized successfully!");
-            Console.WriteLine();
-            WriteInfo("Configuration:");
-            Console.MarkupLine($"  Main branch:      [yellow]{config.MainBranch}[/]");
-            Console.MarkupLine($"  Develop branch:   [yellow]{config.DevelopBranch}[/]");
-            Console.MarkupLine($"  Feature prefix:   [yellow]{config.FeaturePrefix}[/]");
-            Console.MarkupLine($"  Bugfix prefix:    [yellow]{config.BugfixPrefix}[/]");
-            Console.MarkupLine($"  Release prefix:   [yellow]{config.ReleasePrefix}[/]");
-            Console.MarkupLine($"  Hotfix prefix:    [yellow]{config.HotfixPrefix}[/]");
-            Console.MarkupLine($"  Support prefix:   [yellow]{config.SupportPrefix}[/]");
-            Console.MarkupLine($"  Version tag:      [yellow]{(string.IsNullOrEmpty(config.VersionTagPrefix) ? "(none)" : config.VersionTagPrefix)}[/]");
-            Console.MarkupLine($"  Tag message:      [yellow]{(string.IsNullOrEmpty(config.TagMessageTemplate) ? "(none)" : config.TagMessageTemplate)}[/]");
+        var repositoryRoot = GitService.GetRepositoryRoot();
+        GitFlowConfiguration config;
 
-            if(settings.Save) {
+        if(settings.UseDefaults) {
+            config = ResolveConfigForDefaults(settings, repositoryRoot);
+        } else {
+            config = PromptForConfiguration(settings, repositoryRoot);
+        }
+
+        Initializer.Initialize(config, settings.Force);
+
+        WriteSuccess("Gitflow initialized successfully!");
+        Console.WriteLine();
+        WriteInfo("Configuration:");
+        Console.MarkupLine($"  Main branch:      [yellow]{config.MainBranch}[/]");
+        Console.MarkupLine($"  Develop branch:   [yellow]{config.DevelopBranch}[/]");
+        Console.MarkupLine($"  Feature prefix:   [yellow]{config.FeaturePrefix}[/]");
+        Console.MarkupLine($"  Bugfix prefix:    [yellow]{config.BugfixPrefix}[/]");
+        Console.MarkupLine($"  Release prefix:   [yellow]{config.ReleasePrefix}[/]");
+        Console.MarkupLine($"  Hotfix prefix:    [yellow]{config.HotfixPrefix}[/]");
+        Console.MarkupLine($"  Support prefix:   [yellow]{config.SupportPrefix}[/]");
+        Console.MarkupLine($"  Version tag:      [yellow]{(string.IsNullOrEmpty(config.VersionTagPrefix) ? "(none)" : config.VersionTagPrefix)}[/]");
+        Console.MarkupLine($"  Tag message:      [yellow]{(string.IsNullOrEmpty(config.TagMessageTemplate) ? "(none)" : config.TagMessageTemplate)}[/]");
+
+        if(settings.Save) {
+            ConfigFile.Save(repositoryRoot, config);
+            WriteSuccess($"Configuration saved to {GitFlowConfigFile.FileName}");
+        } else if(!settings.UseDefaults) {
+            // In interactive mode, ask the user whether to save
+            var save = Console.Prompt(
+                new ConfirmationPrompt($"Save settings to {GitFlowConfigFile.FileName} file?") { DefaultValue = true });
+            if(save) {
                 ConfigFile.Save(repositoryRoot, config);
                 WriteSuccess($"Configuration saved to {GitFlowConfigFile.FileName}");
-            } else if(!settings.UseDefaults) {
-                // In interactive mode, ask the user whether to save
-                var save = Console.Prompt(
-                    new ConfirmationPrompt($"Save settings to {GitFlowConfigFile.FileName} file?") { DefaultValue = true });
-                if(save) {
-                    ConfigFile.Save(repositoryRoot, config);
-                    WriteSuccess($"Configuration saved to {GitFlowConfigFile.FileName}");
-                }
             }
-        });
+        }
     }
 
     /// <summary>

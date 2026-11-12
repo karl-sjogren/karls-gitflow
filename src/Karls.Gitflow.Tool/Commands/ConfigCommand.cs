@@ -35,6 +35,7 @@ public sealed class ConfigListCommand : GitFlowCommand<ConfigListCommand.Setting
             table.AddRow("Support prefix", config.SupportPrefix);
             table.AddRow("Version tag prefix", string.IsNullOrEmpty(config.VersionTagPrefix) ? "(none)" : config.VersionTagPrefix);
             table.AddRow("Tag message template", string.IsNullOrEmpty(config.TagMessageTemplate) ? "(none)" : config.TagMessageTemplate);
+            table.AddRow("Hooks path", GitService.GetConfigValue("gitflow.path.hooks") ?? "(Git default hooks directory)");
 
             Console.Write(table);
         });
@@ -64,7 +65,8 @@ public sealed class ConfigSetCommand : GitFlowCommand<ConfigSetCommand.Settings>
         ["support"] = "gitflow.prefix.support",
         ["versiontag"] = "gitflow.prefix.versiontag",
         ["tag"] = "gitflow.prefix.versiontag",
-        ["tagmessage"] = "gitflow.message.tag"
+        ["tagmessage"] = "gitflow.message.tag",
+        ["hooks"] = "gitflow.path.hooks"
     };
 
     public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken) {

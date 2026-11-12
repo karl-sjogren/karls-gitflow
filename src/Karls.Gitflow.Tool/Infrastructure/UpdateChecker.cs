@@ -1,6 +1,6 @@
+using System.Globalization;
 using System.IO.Abstractions;
 using Karls.Gitflow.Core;
-using System.Globalization;
 
 namespace Karls.Gitflow.Tool.Infrastructure;
 
